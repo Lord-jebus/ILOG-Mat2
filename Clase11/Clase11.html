@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 11: Determinante, Inversa y Estabilidad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    .roadmap { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; align-items: center; margin: 0.8rem 0; }
+    .rm-node { padding: 0.4rem; border-radius: 6px; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); font-size: 0.75rem; text-align: center; min-width: 80px; }
+    .rm-node.active { background: var(--navy); color: white; }
+    .rm-arrow { color: #64748b; font-size: 0.8rem; }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--navy); margin: 0.5rem 0; }
+    .formula-card.orange { border-left-color: var(--orange); }
+    .formula-card.green { border-left-color: var(--green); }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .warning-box { background: #fef3c7; border: 2px solid var(--orange); border-radius: 8px; padding: 0.8rem; margin: 0.5rem 0; font-size: 0.9rem; }
+    .warning-box::before { content: "⚠️ "; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-calculator" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Determinante e Inversa<br>Estabilidad Numérica del Modelo</h1>
+      <p class="sub">Matemáticas 2 — Módulo 2, Clase 11</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 11</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Objetivos de aprendizaje</li>
+      <li>Hoja de ruta y repaso</li>
+      <li>Determinante: definición y cálculo (2×2, 3×3)</li>
+      <li>Propiedades clave del determinante</li>
+      <li>Inversa: definición y teorema de invertibilidad</li>
+      <li>Fórmula para inversa 2×2</li>
+      <li>Gauss-Jordan para inversa 3×3</li>
+      <li>Número de condición: definición e interpretación</li>
+      <li>Práctica MATLAB: det, inv, cond</li>
+      <li>Análisis de estabilidad numérica</li>
+      <li>Caso logístico: confiabilidad del modelo</li>
+      <li>Ejercicios prácticos y decisión operativa</li>
+      <li>Resumen y preparación Clase 12</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Calcular</strong> \(\det(A)\) para matrices \(2\times2\) y \(3\times3\) por fórmula directa y expansión por cofactores.</li>
+      <li class="reveal"><strong>Enunciar</strong> el teorema: \(A\) invertible \(\Leftrightarrow\) \(\det(A)\neq0\) \(\Leftrightarrow\) \(\operatorname{rang}(A)=n\).</li>
+      <li class="reveal"><strong>Calcular</strong> \(A^{-1}\) para \(2\times2\) por fórmula y para \(3\times3\) por Gauss-Jordan sobre \([A|I]\).</li>
+      <li class="reveal"><strong>Usar</strong> <code>det(A)</code>, <code>inv(A)</code> y <code>cond(A)</code> en MATLAB.</li>
+      <li class="reveal"><strong>Definir</strong> el número de condición \(\operatorname{cond}(A)=\|A\|\cdot\|A^{-1}\|\) e interpretarlo como amplificador de errores.</li>
+      <li class="reveal"><strong>Diagnosticar</strong> la confiabilidad de un modelo logístico usando \(\det\), \(\operatorname{cond}\) y el residuo.</li>
+      <li class="reveal"><strong>Proponer</strong> acciones correctivas cuando el modelo es numéricamente inestable.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 3: HOJA DE RUTA -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-route"></i> Hoja de ruta — Módulo 2</h2>
+    <div class="roadmap reveal">
+      <div class="rm-node">C8 Rango</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C9 Sist. Homog.</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C10 \(AX=B\)</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node active"><b>C11 Det/Inv</b></div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C12 Grados Libertad</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C13 Mini-caso 2</div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-link"></i> Conexión con Clase 10</span>
+      En Clase 10 resolvimos \(AX=B\) con \texttt{A\b}. Hoy:
+      <ul><li>¿Cuándo existe \(A^{-1}\)?</li><li>¿Cómo medimos la "calidad" de \(A\) para resolver sistemas?</li><li>¿Qué pasa si los datos tienen errores pequeños?</li></ul>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: DETERMINANTE 2×2 -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-square-root-variable"></i> Determinante: definición y cálculo</h2>
+    <div class="formula-card reveal"><span class="b-title">Matriz \(2\times2\)</span>
+      $$ A = \begin{pmatrix}a&b\\c&d\end{pmatrix} \quad\Rightarrow\quad \det(A) = ad - bc $$
+      <span class="reveal mt italic">"Diagonal principal menos anti-diagonal"</span>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Ejemplo logístico</span>
+      Red: \(A = \begin{pmatrix}0.5&0.3\\0.5&0.7\end{pmatrix}\)<br>
+      \(\det(A) = 0.5(0.7) - 0.3(0.5) = 0.35 - 0.15 = \mathbf{0.20}\)<br>
+      <span class="reveal mt">\(\det(A)\neq0 \Rightarrow A\) es invertible \(\Rightarrow\) solución única para cualquier demanda.</span>
+    </div>
+    <div class="formula-card orange mt reveal"><span class="b-title">Matriz \(3\times3\) — Regla de Sarrus</span>
+      $$ \det(A) = a_{11}a_{22}a_{33} + a_{12}a_{23}a_{31} + a_{13}a_{21}a_{32} - a_{13}a_{22}a_{31} - a_{11}a_{23}a_{32} - a_{12}a_{21}a_{33} $$
+    </div>
+  </div>
+
+  <!-- SLIDE 5: PROPIEDADES DEL DETERMINANTE -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-list-check"></i> Propiedades clave del determinante</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Propiedades algebraicas</span>
+        <ol>
+          <li>\(\det(I_n) = 1\)</li>
+          <li>\(\det(A^T) = \det(A)\)</li>
+          <li>\(\det(AB) = \det(A)\det(B)\)</li>
+          <li>\(\det(A^{-1}) = 1/\det(A)\) (si \(A\) invertible)</li>
+          <li>Si dos filas son iguales o hay fila de ceros: \(\det(A)=0\)</li>
+        </ol>
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Interpretación logística</span>
+          <ul><li>\(\det(A)=0\): rutas redundantes o dependientes.</li><li>\(\det(A)\) pequeño: matriz "casi singular", sensible a errores.</li><li>\(\det(A)\) grande: no implica mejor condicionamiento (ver Clase 11).</li></ul>
+        </div>
+        <div class="warning-box mt reveal">
+          <strong>Confusión frecuente:</strong> El determinante solo se calcula para matrices <strong>cuadradas</strong>. No calcular \(\det([A|\mathbf{b}])\).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: INVERSA Y TEOREMA -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-right-left"></i> Inversa: definición y teorema de invertibilidad</h2>
+    <div class="block reveal"><span class="b-title">Definición</span> \(A^{-1}\) es la matriz tal que \(AA^{-1} = A^{-1}A = I_n\).<br>Propiedades: \((AB)^{-1} = B^{-1}A^{-1}\), \(\det(A^{-1}) = 1/\det(A)\).</div>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-gavel"></i> Teorema de invertibilidad</span>
+      Para \(A\in\mathbb{R}^{n\times n}\), son equivalentes:
+      <ol>
+        <li>\(A\) es invertible (\(A^{-1}\) existe)</li>
+        <li>\(\det(A)\neq0\)</li>
+        <li>\(\operatorname{rang}(A)=n\)</li>
+        <li>\(\operatorname{Nul}(A)=\{\mathbf{0}\}\) (solo solución trivial)</li>
+        <li>\(A\mathbf{x}=\mathbf{b}\) tiene solución única para todo \(\mathbf{b}\)</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> En logística</span> Si \(\det(A)\neq0\): cualquier demanda \(\mathbf{b}\) tiene plan único \(\mathbf{x}=A^{-1}\mathbf{b}\). Si \(\det(A)=0\): hay demandas inalcanzables o infinitos planes.</div>
+  </div>
+
+  <!-- SLIDE 7: FÓRMULA 2×2 -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-calculator"></i> Fórmula para inversa \(2\times2\)</h2>
+    <div class="formula-card green reveal"><span class="b-title">Fórmula memorable</span>
+      $$ \begin{pmatrix}a&b\\c&d\end{pmatrix}^{-1} = \frac{1}{ad-bc}\begin{pmatrix}d&-b\\-c&a\end{pmatrix} $$
+      <span class="reveal mt italic">"Intercambiar diagonal, negar anti-diagonal, dividir por determinante"</span>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Ejemplo con red logística</span>
+      \(A = \begin{pmatrix}0.5&0.3\\0.5&0.7\end{pmatrix}\), \(\det(A)=0.20\)<br>
+      $$ A^{-1} = \frac{1}{0.20}\begin{pmatrix}0.7&-0.3\\-0.5&0.5\end{pmatrix} = \begin{pmatrix}3.5&-1.5\\-2.5&2.5\end{pmatrix} $$
+      <span class="reveal mt">Verificación: \(A\cdot A^{-1} = I\) \checkmark</span>
+    </div>
+    <div class="warning-box mt reveal">
+      <strong>Error frecuente:</strong> No intercambiar la diagonal principal o olvidar el signo negativo en la anti-diagonal. Practicar con la regla mnemotécnica.
+    </div>
+  </div>
+
+  <!-- SLIDE 8: GAUSS-JORDAN 3×3 -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-cogs"></i> Gauss-Jordan para inversa \(3\times3\)</h2>
+    <div class="block reveal"><span class="b-title">Método</span> Aplicar Gauss-Jordan a \([A|I_3]\). Cuando \(A\) se transforma en \(I\), la parte derecha será \(A^{-1}\): \([A|I] \xrightarrow{\text{RREF}} [I|A^{-1}]\).</div>
+    <div class="example-block mt reveal"><span class="b-title">Ejemplo paso a paso</span>
+      \(A = \begin{pmatrix}1&2&3\\0&1&4\\5&6&0\end{pmatrix}\)<br>
+      \([A|I] = \left(\begin{array}{ccc|ccc}1&2&3&1&0&0\\0&1&4&0&1&0\\5&6&0&0&0&1\end{array}\right)\)
+      <span class="reveal mt">\(\xrightarrow{F_3-5F_1} \left(\begin{array}{ccc|ccc}1&2&3&1&0&0\\0&1&4&0&1&0\\0&-4&-15&-5&0&1\end{array}\right)\)</span>
+      <span class="reveal mt">\(\xrightarrow{F_3+4F_2} \left(\begin{array}{ccc|ccc}1&2&3&1&0&0\\0&1&4&0&1&0\\0&0&1&-5&4&1\end{array}\right)\)</span>
+      <span class="reveal mt">Fase atrás: \(A^{-1} = \begin{pmatrix}24&-18&5\\-20&15&-4\\5&-4&1\end{pmatrix}\)</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: NÚMERO DE CONDICIÓN -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-balance-scale"></i> Número de condición: definición e interpretación</h2>
+    <div class="block reveal"><span class="b-title">Definición</span>
+      $$ \operatorname{cond}(A) = \|A\|\cdot\|A^{-1}\| $$
+      Para norma 2: \(\operatorname{cond}_2(A) = \sigma_{\max}/\sigma_{\min}\) (valores singulares).
+    </div>
+    <div class="col-layout mt">
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-chart-line"></i> Interpretación</span>
+        Si \(A\mathbf{x}=\mathbf{b}\) y \(A(\mathbf{x}+\delta\mathbf{x})=\mathbf{b}+\delta\mathbf{b}\), entonces:
+        $$ \frac{\|\delta\mathbf{x}\|}{\|\mathbf{x}\|} \leq \operatorname{cond}(A)\cdot\frac{\|\delta\mathbf{b}\|}{\|\mathbf{b}\|} $$
+        <strong>\(\operatorname{cond}(A)\) acota la amplificación relativa del error.</strong>
+      </div>
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-table"></i> Clasificación práctica</span>
+        <table class="compact"><tr><th>\(\operatorname{cond}(A)\)</th><th>Interpretación</th></tr><tr><td>\(\approx 1\)</td><td>Excelente: errores no se amplifican</td></tr><tr><td>\(10^1-10^3\)</td><td>Bueno: pérdida de 1-3 cifras</td></tr><tr><td>\(10^4-10^8\)</td><td>Aceptable con precaución</td></tr><tr><td>\(>10^8\)</td><td>Peligroso: modelo inestable</td></tr></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: MATLAB PRACTICA -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — det, inv, cond</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Matriz del caso logistico</span>
+A = <span class="mf">[</span><span class="mn">0.5</span> <span class="mn">0.3</span> <span class="mn">0.2</span>;
+     <span class="mn">0.3</span> <span class="mn">0.5</span> <span class="mn">0.2</span>;
+     <span class="mn">0.2</span> <span class="mn">0.2</span> <span class="mn">0.6</span><span class="mf">]</span>;
+
+<span class="mc">% 1. Determinante</span>
+d = <span class="mf">det</span>(A);
+<span class="mk">fprintf</span>(<span class="ms">'det(A) = %.4f\n'</span>, d);
+
+<span class="mc">% 2. Inversa</span>
+A_inv = <span class="mf">inv</span>(A);
+<span class="mk">fprintf</span>(<span class="ms">'Verificacion A*A_inv:\n'</span>);
+<span class="mf">disp</span>(A * A_inv)
+
+<span class="mc">% 3. Numero de condicion</span>
+c = <span class="mf">cond</span>(A);
+<span class="mk">fprintf</span>(<span class="ms">'cond(A) = %.2f\n'</span>, c);
+
+<span class="mc">% 4. Sensibilidad: perturbar b en 1%</span>
+b = <span class="mf">[</span><span class="mn">300</span>; <span class="mn">200</span>; <span class="mn">150</span><span class="mf">]</span>;
+x = A <span class="mk">\</span> b;
+b_pert = b * <span class="mn">1.01</span>;
+x_pert = A <span class="mk">\</span> b_pert;
+<span class="mk">fprintf</span>(<span class="ms">'Cambio en x: %.2f%%\n'</span>,...
+        <span class="mf">norm</span>(x_pert-x)/<span class="mf">norm</span>(x)*<span class="mn">100</span>);</pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+          <code>det(A) = 0.0800</code><br>
+          <code>Verificacion A*A_inv: matriz identidad</code><br>
+          <code>cond(A) = 12.45</code><br>
+          <code>Cambio en x: ~12%</code> (amplificación ~12×)
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-circle"></i> Precaución</span>
+          <ul><li><code>inv(A)*b</code> es menos estable que <code>A\b</code>.</li><li><code>cond(A)</code> grande \(\Rightarrow\) verificar residuo \(\|A\mathbf{x}-\mathbf{b}\|\).</li><li>Para matrices grandes, usar <code>condest(A)</code> (estimación eficiente).</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: ANÁLISIS DE ESTABILIDAD -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-shield-halved"></i> Análisis de estabilidad numérica</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-flask"></i> Ejemplo: dos sistemas con mismo \(\det\), distinto \(\operatorname{cond}\)</span>
+      \[
+      A_1 = \begin{pmatrix}0.6&0.4\\0.4&0.6\end{pmatrix},\quad
+      A_2 = \begin{pmatrix}0.600&0.400\\0.401&0.599\end{pmatrix}
+      \]
+      \(\det(A_1)=0.20\), \(\det(A_2)=0.199\) (casi igual).
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Resultados MATLAB</span>
+        <table class="compact"><tr><th></th><th>\(\det\)</th><th>\(\operatorname{cond}_\infty\)</th><th>Estabilidad</th></tr><tr><td>\(A_1\)</td><td>0.20</td><td>5.0</td><td>Excelente</td></tr><tr><td>\(A_2\)</td><td>0.199</td><td>5.02</td><td>Excelente</td></tr></table>
+        <span class="reveal mt italic">Pequeñas perturbaciones no afectan significativamente el condicionamiento cuando es bueno.</span>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Diagnóstico de confiabilidad</span>
+        Para evaluar un modelo logístico:
+        <ol>
+          <li>Calcular \(\det(A)\): ¿es cero o muy pequeño?</li>
+          <li>Calcular \(\operatorname{cond}(A)\): ¿está en rango aceptable?</li>
+          <li>Verificar residuo \(\|A\mathbf{x}-\mathbf{b}\|\): ¿es cercano a cero?</li>
+          <li>Si \(\operatorname{cond}(A)\) grande: perturbar datos y ver cambio en \(\mathbf{x}\).</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: CASO LOGÍSTICO -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-industry"></i> Caso logístico: confiabilidad del modelo</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-sitemap"></i> Situación</span> Red \(A\) de 3 plantas a 3 CDs. Solución \(\mathbf{x}^*=(324,229,102)^T\) para demanda \(\mathbf{b}=(300,200,150)^T\). Pero \(x_2=-20\) en otro escenario y \(\operatorname{cond}(A)=850\).</div>
+    <div class="col-layout mt">
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-triangle-exclamation"></i> Diagnóstico</span>
+        <ul><li>\(\operatorname{cond}(A)=850\): aceptable con precaución (pérdida de ~3 cifras).</li><li>\(x_2<0\): plan no viable físicamente.</li><li>Posible causa: demanda inconsistente con estructura de red.</li></ul>
+      </div>
+      <div>
+        <div class="example-block reveal"><span class="b-title"><i class="fas fa-flask"></i> Simulación en MATLAB</span>
+          <code>A_pert = A + 0.001*randn(size(A));</code><br>
+          <code>x_pert = A_pert \ b;</code><br>
+          <code>fprintf('Cambio en x: %.2f%%\n', norm(x_pert-x)/norm(x)*100);</code>
+          <span class="reveal mt">Si cambio > 10× perturbación: modelo sensible.</span>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-wrench"></i> Acciones correctivas</span>
+          <ul><li><strong>Revisar datos:</strong> ¿coeficientes de \(A\) medidos con precisión?</li><li><strong>Diversificar rutas:</strong> reducir solapamiento entre plantas.</li><li><strong>Escalar:</strong> normalizar filas/columnas de \(A\) para equilibrar magnitudes.</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: EJERCICIO 1 -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Determinante e inversa</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Calcular \(\det(A)\) e indicar si es invertible. Si lo es, calcular \(A^{-1}\).
+      \[ A = \begin{pmatrix}4&2\\3&1\end{pmatrix},\quad B = \begin{pmatrix}2&4\\1&2\end{pmatrix},\quad C = \begin{pmatrix}1&2&3\\0&4&5\\0&0&6\end{pmatrix} \]
+    </p>
+    <div class="example-block mt reveal"><span class="b-title">Resolución</span>
+      <ul>
+        <li>\(\det(A)=4(1)-2(3)=-2\neq0 \Rightarrow\) invertible. \(A^{-1}=\frac{1}{-2}\begin{pmatrix}1&-2\\-3&4\end{pmatrix}\)</li>
+        <li>\(\det(B)=2(2)-4(1)=0 \Rightarrow\) no invertible (filas proporcionales).</li>
+        <li>\(\det(C)=1\cdot4\cdot6=24\neq0 \Rightarrow\) invertible (triangular: producto diagonal).</li>
+      </ul>
+    </div>
+    <div class="warning-box mt reveal">
+      <strong>Recordatorio:</strong> Para matrices triangulares, \(\det\) = producto de diagonales. Para \(3\times3\), usar Sarrus o expansión por cofactores.
+    </div>
+  </div>
+
+  <!-- SLIDE 14: EJERCICIO 2 -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Condicionamiento de red</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Red: \(A=\begin{pmatrix}0.4&0.3&0.3\\0.3&0.4&0.3\\0.3&0.3&0.4\end{pmatrix}\). Calcular \(\det(A)\) y \(\operatorname{cond}(A)\) en MATLAB. ¿Es confiable el modelo?</p>
+    <div class="example-block mt reveal"><span class="b-title">Código MATLAB</span>
+      <code>A = [0.4 0.3 0.3; 0.3 0.4 0.3; 0.3 0.3 0.4];</code><br>
+      <code>d = det(A); c = cond(A);</code><br>
+      <code>fprintf('det=%.4f, cond=%.2f\n', d, c);</code>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación</span>
+      \(\det(A)=0.0100\) (pequeño pero no cero). \(\operatorname{cond}(A)\approx 10\) (bueno).<br>
+      <strong>Conclusión:</strong> modelo confiable. Pequeño \(\det\) no implica mal condicionamiento aquí.
+    </div>
+  </div>
+
+  <!-- SLIDE 15: EJERCICIO 3 -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3 — Decisión: mejorar condicionamiento</h2>
+    <div class="alert-block reveal"><span class="b-title"><i class="fas fa-chess"></i> Situación</span> Red con \(\operatorname{cond}(A)=2500\) (aceptable con precaución). Demanda \(\mathbf{b}\) tiene error de medición ~1%. ¿Cómo asegurar que el plan \(\mathbf{x}\) sea confiable?</div>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-search"></i> Análisis</span>
+        Amplificación esperada: \(\operatorname{cond}(A)\times 1\% \approx 25\%\) en \(\mathbf{x}\).<br>
+        Verificar: perturbar \(\mathbf{b}\) en ±1% y observar cambio en \(\mathbf{x}\).
+      </div>
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-cogs"></i> Acciones propuestas</span>
+        <ol>
+          <li><strong>Mejorar precisión de datos:</strong> reducir error en \(\mathbf{b}\) a 0.1% \(\Rightarrow\) amplificación ~2.5%.</li>
+          <li><strong>Reestructurar red:</strong> diversificar rutas para reducir \(\operatorname{cond}(A)\).</li>
+          <li><strong>Usar regularización:</strong> añadir restricciones de suavidad al plan.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Criterio de decisión</span> Si \(\operatorname{cond}(A)\times\text{error\_datos} > 10\%\), considerar acciones correctivas antes de implementar el plan.</div>
+  </div>
+
+  <!-- SLIDE 16: RESUMEN -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-clipboard-check"></i> Resumen — Determinante, Inversa y Estabilidad</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido hoy</span>
+        <ul>
+          <li>\(\det(A)\): fórmula \(2\times2\), Sarrus/cofactores \(3\times3\).</li>
+          <li>\(A\) invertible \(\Leftrightarrow \det(A)\neq0 \Leftrightarrow \operatorname{rang}(A)=n\).</li>
+          <li>\(A^{-1}\): fórmula \(2\times2\), Gauss-Jordan \([A|I]\) para \(3\times3\).</li>
+          <li>\(\operatorname{cond}(A)=\|A\|\cdot\|A^{-1}\|\): amplificador de errores.</li>
+          <li>Diagnóstico: \(\det\), \(\operatorname{cond}\), residuo, perturbación.</li>
+          <li>Acciones: mejorar datos, diversificar rutas, escalar.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-forward-step"></i> Conexión Clase 12</span> Grados de libertad y optimización:
+          <ul><li>Si \(\operatorname{rang}(A)<n\): infinitas soluciones \(\Rightarrow\) elegir plan óptimo.</li><li>Combinar \(\operatorname{Nul}(A)\) con costos para minimizar gastos.</li><li>Base para programación lineal en redes.</li></ul>
+        </div>
+        <div class="formula-card mt"><span class="b-title">Ecuación fundamental</span>
+          \[ \text{Sol. general} = \underbrace{\mathbf{x}^*}_{\text{particular}} + \underbrace{\operatorname{Nul}(A)}_{\text{ajustes}} \]
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: TAREA -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 12</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
+      <ol>
+        <li><strong>Lectura:</strong> Lay, Sec. 2.9: Dimension and Rank; Sec. 1.7: Linear Independence.</li>
+        <li><strong>Ejercicios:</strong> Guía Clase 11 (B1–B5, I1–I3). Calcular \(\det\), \(A^{-1}\), \(\operatorname{cond}\).</li>
+        <li><strong>MATLAB:</strong> Ejecutar <code>clase11_datos.m</code> y responder preguntas.</li>
+        <li><strong>Reflexión:</strong> Empresa con 5 plantas, 3 CDs, \(\operatorname{rang}(A)=3\). ¿Cuántos grados de libertad? ¿Cómo usarlos para minimizar costo?</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span> Si \(\operatorname{rang}(A)=3<n=5\): \(5-3=2\) grados de libertad. Se pueden usar para optimizar costos, balancear carga, o priorizar ciertas rutas.</div>
+  </div>
+
+  <!-- SLIDE 18: REFERENCIAS -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-quote-left"></i> Referencias y recursos</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-book"></i> Bibliografía</span>
+          <ul>
+            <li><strong>Lay, D. C.</strong> — Sec. 2.2 (inversa), 3.1–3.2 (determinante)</li>
+            <li><strong>Higham, N. J.</strong> — Accuracy and Stability of Numerical Algorithms (avanzado)</li>
+            <li><strong>Bazaraa et al.</strong> — Linear Programming and Network Flows (matrices unimodulares)</li>
+          </ul>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-cloud"></i> Recursos</span>
+          <ul><li>Script: <code>clase11_datos.m</code></li><li>Guía de ejercicios (aula virtual)</li><li>Plantilla para cálculo manual de \(A^{-1}\)</li></ul>
+        </div>
+      </div>
+      <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
+        <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
+        <ul class="mt">
+          <li>Khan Academy: ``Determinant and inverse''</li>
+          <li>MathWorks: MATLAB <code>det</code>, <code>inv</code>, <code>cond</code> docs</li>
+          <li><em>3Blue1Brown</em> — Ep. 10: Determinants as area/volume</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: CIERRE -->
+  <div class="slide" data-slide="19">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem);">¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 12: Grados de Libertad y Optimización de Costos</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-envelope"></i> Contacto</span> <span>consultas@mat2logistica.edu | Aula Virtual</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 20</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

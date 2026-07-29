@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 12: Grados de Libertad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    .roadmap { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; align-items: center; margin: 0.8rem 0; }
+    .rm-node { padding: 0.4rem; border-radius: 6px; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); font-size: 0.75rem; text-align: center; min-width: 80px; }
+    .rm-node.active { background: var(--navy); color: white; }
+    .rm-arrow { color: #64748b; font-size: 0.8rem; }
+
+    /* Concept map CSS */
+    .concept-map { display: flex; justify-content: center; gap: 0.8rem; flex-wrap: wrap; margin: 1rem 0; }
+    .cm-box { padding: 0.5rem 0.8rem; border-radius: 8px; text-align: center; font-size: 0.8rem; min-width: 100px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    .cm-navy { background: rgba(0,82,147,0.1); border: 2px solid var(--navy); color: var(--navy); }
+    .cm-green { background: rgba(0,130,80,0.1); border: 2px solid var(--green); color: var(--green); }
+    .cm-orange { background: rgba(220,107,31,0.15); border: 2px solid var(--orange); color: var(--orange); }
+    .cm-purple { background: rgba(102,0,153,0.15); border: 2px solid var(--purple); color: var(--purple); font-weight: 600; }
+    .cm-arrow { color: #94a3b8; font-size: 1rem; }
+
+    /* Network diagrams for degrees of freedom */
+    .dof-diagram { display: flex; justify-content: space-around; align-items: flex-start; padding: 0.5rem; flex-wrap: wrap; gap: 1rem; }
+    .dof-case { text-align: center; }
+    .dof-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.4rem; }
+    .dof-nodes { display: flex; flex-direction: column; gap: 0.4rem; align-items: center; }
+    .dof-plant { background: rgba(0,82,147,0.1); border: 2px solid var(--navy); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: var(--navy); }
+    .dof-cd { background: rgba(0,130,80,0.1); border: 2px solid var(--green); border-radius: 4px; padding: 0.2rem 0.4rem; font-size: 0.7rem; color: var(--green); }
+    .dof-arrows { display: flex; flex-direction: column; gap: 0.2rem; }
+    .dof-arrow { width: 40px; height: 1px; background: #cbd5e1; position: relative; }
+    .dof-arrow::after { content: '→'; position: absolute; right: -8px; top: -8px; color: #94a3b8; font-size: 0.8rem; }
+    .dof-note { font-size: 0.7rem; color: #64748b; margin-top: 0.2rem; }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--navy); margin: 0.5rem 0; }
+    .formula-card.orange { border-left-color: var(--orange); }
+    .formula-card.green { border-left-color: var(--green); }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .warning-box { background: #fef3c7; border: 2px solid var(--orange); border-radius: 8px; padding: 0.8rem; margin: 0.5rem 0; font-size: 0.9rem; }
+    .warning-box::before { content: "⚠️ "; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-sliders" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Grados de Libertad<br>Interpretación Aplicada en Logística</h1>
+      <p class="sub">Matemáticas 2 — Módulo 2, Clase 12</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 12</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Objetivos de aprendizaje</li>
+      <li>Mapa conceptual del Módulo 2</li>
+      <li>Definición formal de grados de libertad</li>
+      <li>Interpretación según el valor (0, 1, 2, k g.d.l.)</li>
+      <li>Grados de libertad en redes logísticas (4 configuraciones)</li>
+      <li>Optimización con grados de libertad (problema LP)</li>
+      <li>Ejemplo: red con 1 grado de libertad</li>
+      <li>Ejemplo: red con 2 grados de libertad</li>
+      <li>Análisis integrado: protocolo de 9 pasos</li>
+      <li>MATLAB: análisis integrado completo</li>
+      <li>Ejercicios prácticos y decisión de expansión</li>
+      <li>Resumen del Módulo 2 y preparación Clase 13</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Definir</strong> los grados de libertad de un sistema logístico como \(n - \operatorname{rang}(A)\).</li>
+      <li class="reveal"><strong>Relacionar</strong> los grados de libertad con el espacio nulo: cada g.d.l. = un lazo cerrado independiente.</li>
+      <li class="reveal"><strong>Calcular</strong> el plan de mínimo costo dentro de la familia de soluciones, optimizando sobre parámetros libres.</li>
+      <li class="reveal"><strong>Interpretar</strong> el significado operativo de tener 0, 1, 2 o más grados de libertad en una red.</li>
+      <li class="reveal"><strong>Sintetizar</strong> los conceptos del Módulo 2 (rango, espacio nulo, inversa) en un análisis integrado de una red logística real.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 3: MAPA CONCEPTUAL MÓDULO 2 -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-diagram-project"></i> Mapa conceptual del Módulo 2</h2>
+    <div class="concept-map reveal">
+      <div class="cm-box cm-navy">C8<br>Rango<br>\(r=\operatorname{rang}(A)\)</div>
+      <i class="fas fa-arrow-right cm-arrow"></i>
+      <div class="cm-box cm-green">C9<br>Esp. Nulo<br>\(\operatorname{Nul}(A)\), lazos</div>
+      <i class="fas fa-arrow-right cm-arrow"></i>
+      <div class="cm-box cm-navy">C10<br>\(AX=B\)<br>multi-origen</div>
+      <div style="width:100%; height:1px; background:#cbd5e1; margin:0.5rem 0;"></div>
+      <div class="cm-box cm-navy">C11<br>Inversa \(A^{-1}\)<br>\(\operatorname{cond}\)</div>
+      <i class="fas fa-arrow-down cm-arrow" style="transform:rotate(90deg);"></i>
+      <div class="cm-box cm-purple">C12<br>Grados de Libertad<br>\(n-r\)</div>
+      <i class="fas fa-arrow-right cm-arrow"></i>
+      <div class="cm-box cm-orange">C13<br>Mini-caso 2<br>(próxima)</div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-link"></i> Hilo conductor del Módulo 2</span>
+      La pregunta central: <strong>dada una red \(A\), ¿cuánta libertad tenemos para elegir el plan de despacho \(\mathbf{x}\)?</strong><br>
+      La respuesta requiere rango, espacio nulo, inversa y, hoy, la formalización de los grados de libertad.
+    </div>
+  </div>
+
+  <!-- SLIDE 4: DEFINICIÓN FORMAL -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-book-open"></i> Definición formal de grados de libertad</h2>
+    <div class="block reveal">Para un sistema logístico \(A\mathbf{x}=\mathbf{b}\) compatible con \(A\in\mathbb{R}^{m\times n}\):
+      \[
+        \text{Grados de libertad} = n - \operatorname{rang}(A) = \dim(\operatorname{Nul}(A))
+      \]
+      Representa el número de <strong>parámetros libres</strong> que podemos elegir al planificar el despacho, siempre que se mantenga la demanda satisfecha.
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-chart-bar"></i> Interpretación según el valor</span>
+        <div style="display:flex; flex-direction:column; gap:0.4rem; margin-top:0.5rem;">
+          <div style="background:var(--orange-light); padding:0.4rem; border-radius:6px; border-left:3px solid var(--orange);"><strong>0 g.d.l.:</strong> Plan <strong>único</strong>. Sin margen de maniobra. Rígido.</div>
+          <div style="background:var(--green-light); padding:0.4rem; border-radius:6px; border-left:3px solid var(--green);"><strong>1 g.d.l.:</strong> Un parámetro libre. Optimizar 1D (ej: elegir \(t\in[a,b]\)).</div>
+          <div style="background:rgba(0,82,147,0.1); padding:0.4rem; border-radius:6px; border-left:3px solid var(--navy);"><strong>2 g.d.l.:</strong> Dos parámetros libres. Optimizar en un plano.</div>
+          <div style="background:rgba(102,0,153,0.1); padding:0.4rem; border-radius:6px; border-left:3px solid var(--purple);"><strong>\(k\) g.d.l.:</strong> \(k\) lazos independientes. Problema de optimización \(k\)-D.</div>
+        </div>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-square-root-variable"></i> Fórmula clave</span>
+        \[
+          \underbrace{n}_{\text{plantas}} = \underbrace{\operatorname{rang}(A)}_{\text{restricc.}} + \underbrace{(n-r)}_{\text{g.d.l.}}
+        \]
+        <ul style="font-size:0.9rem; margin-top:0.3rem;">
+          <li>\(r\) plantas quedan "fijadas" por las restricciones de demanda.</li>
+          <li>\(n-r\) plantas pueden ajustarse libremente (dentro de los lazos).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: CONFIGURACIONES TÍPICAS -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-diagram-project"></i> Grados de libertad en redes logísticas</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-list"></i> Cuatro configuraciones típicas</span></div>
+    <div class="dof-diagram reveal">
+      <!-- Caso 1: 0 gdl -->
+      <div class="dof-case">
+        <div class="dof-title" style="color:var(--navy);">0 g.d.l.</div>
+        <div style="display:flex; gap:1rem; align-items:center;">
+          <div class="dof-nodes">
+            <div class="dof-plant">P1</div>
+            <div class="dof-plant">P2</div>
+            <div class="dof-plant">P3</div>
+          </div>
+          <div class="dof-arrows">
+            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
+            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
+          </div>
+          <div class="dof-nodes">
+            <div class="dof-cd">D1</div>
+            <div class="dof-cd">D2</div>
+            <div class="dof-cd">D3</div>
+          </div>
+        </div>
+        <div class="dof-note">\(r=n=3\)</div>
+      </div>
+      <!-- Caso 2: 1 gdl -->
+      <div class="dof-case">
+        <div class="dof-title" style="color:var(--green);">1 g.d.l.</div>
+        <div style="display:flex; gap:1rem; align-items:center;">
+          <div class="dof-nodes">
+            <div class="dof-plant">P1</div>
+            <div class="dof-plant">P2</div>
+            <div class="dof-plant">P3</div>
+            <div class="dof-plant">P4</div>
+          </div>
+          <div class="dof-arrows">
+            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
+            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
+          </div>
+          <div class="dof-nodes">
+            <div class="dof-cd">D1</div>
+            <div class="dof-cd">D2</div>
+            <div class="dof-cd">D3</div>
+          </div>
+        </div>
+        <div class="dof-note">\(n=4,\;r=3\)</div>
+      </div>
+      <!-- Caso 3: 2 gdl -->
+      <div class="dof-case">
+        <div class="dof-title" style="color:var(--purple);">2 g.d.l.</div>
+        <div style="display:flex; gap:1rem; align-items:center;">
+          <div class="dof-nodes">
+            <div class="dof-plant">P1</div>
+            <div class="dof-plant">P2</div>
+            <div class="dof-plant">P3</div>
+            <div class="dof-plant">P4</div>
+            <div class="dof-plant">P5</div>
+          </div>
+          <div class="dof-arrows">
+            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
+            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
+          </div>
+          <div class="dof-nodes">
+            <div class="dof-cd">D1</div>
+            <div class="dof-cd">D2</div>
+            <div class="dof-cd">D3</div>
+          </div>
+        </div>
+        <div class="dof-note">\(n=5,\;r=3\)</div>
+      </div>
+      <!-- Caso 4: incompatible -->
+      <div class="dof-case">
+        <div class="dof-title" style="color:var(--red);">Incompatible</div>
+        <div style="display:flex; gap:1rem; align-items:center;">
+          <div class="dof-nodes">
+            <div class="dof-plant">P1</div>
+            <div class="dof-plant">P2</div>
+          </div>
+          <div class="dof-arrows">
+            <div class="dof-arrow"></div><div class="dof-arrow"></div>
+          </div>
+          <div class="dof-nodes">
+            <div class="dof-cd">D1</div>
+            <div class="dof-cd">D2</div>
+            <div class="dof-cd" style="opacity:0.5;">D3</div>
+          </div>
+        </div>
+        <div class="dof-note" style="color:var(--red);">D3 no se puede servir</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: OPTIMIZACIÓN CON G.D.L. -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-chart-line"></i> Optimizar el plan cuando hay grados de libertad</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-bullseye"></i> Problema de optimización</span>
+      Dado \(A\mathbf{x}=\mathbf{b}\) con \(k=n-r\) grados de libertad y costos \(\mathbf{c}\):
+      \[
+        \min_{\mathbf{x}}\;\mathbf{c}^T\mathbf{x} \quad \text{sujeto a} \quad A\mathbf{x}=\mathbf{b},\;\mathbf{x}\geq\mathbf{0}
+      \]
+      La solución general es \(\mathbf{x}=\mathbf{x}^*+t_1\mathbf{n}_1+\cdots+t_k\mathbf{n}_k\), con \(\mathbf{n}_i\) base de \(\operatorname{Nul}(A)\).
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-calculator"></i> Reducción a problema en parámetros</span>
+        Sustituir en la función objetivo:
+        \[
+          C(\mathbf{t}) = \mathbf{c}^T\mathbf{x}^* + t_1(\mathbf{c}^T\mathbf{n}_1) + \cdots + t_k(\mathbf{c}^T\mathbf{n}_k)
+        \]
+        El costo es <strong>lineal</strong> en \((t_1,\ldots,t_k)\).<br>
+        Las restricciones \(\mathbf{x}\geq\mathbf{0}\) se traducen en restricciones lineales sobre \((t_1,\ldots,t_k)\).<br>
+        Resultado: un <strong>problema de programación lineal</strong> (LP) en \(k\) dimensiones.
+      </div>
+      <div class="block reveal"><span class="b-title"><i class="fas fa-compass"></i> Estrategia de solución</span>
+        <ol>
+          <li>Calcular \(\mathbf{c}^T\mathbf{n}_i\) para cada lazo.</li>
+          <li>Si \(\mathbf{c}^T\mathbf{n}_i<0\): <strong>aumentar</strong> \(t_i\) reduce el costo.</li>
+          <li>Si \(\mathbf{c}^T\mathbf{n}_i>0\): <strong>disminuir</strong> \(t_i\) reduce el costo.</li>
+          <li>Si \(\mathbf{c}^T\mathbf{n}_i=0\): ese lazo no afecta el costo.</li>
+          <li>El óptimo está en un <strong>vértice</strong> de la región factible definida por \(\mathbf{x}\geq\mathbf{0}\).</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: EJEMPLO 1 G.D.L. -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-calculator"></i> Ejemplo — red con 1 grado de libertad</h2>
+    <div class="block reveal"><span class="b-title">Datos</span>
+      Red con 4 plantas, 3 CDs, \(\operatorname{rang}(A)=3\), \(n=4\), \(k=1\) g.d.l.
+      \[
+        A=\begin{pmatrix}0.5&0.2&0.3&0\\0.3&0.6&0&0.4\\0.2&0.2&0.7&0.6\end{pmatrix},\;
+        \mathbf{b}=\begin{pmatrix}200\\300\\100\end{pmatrix},\;
+        \mathbf{c}=\begin{pmatrix}8\\6\\12\\9\end{pmatrix}
+      \]
+    </div>
+    <div class="col-layout mt">
+      <div>
+        <div class="example-block reveal"><span class="b-title">Solución general</span>
+          Solución particular (vars. libres \(=0\)): \(\mathbf{x}^*=(280,350,120,0)^T\).<br>
+          Lazo cerrado (base de \(\operatorname{Nul}(A)\)): \(\mathbf{n}_1=(-0.6,0.2,-0.5,1)^T\).<br>
+          Solución general: \(\mathbf{x}=\mathbf{x}^*+t\,\mathbf{n}_1\).
+        </div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-coins"></i> Efecto sobre el costo</span>
+          \[
+            \mathbf{c}^T\mathbf{n}_1 = 8(-0.6)+6(0.2)+12(-0.5)+9(1) = -4.8+1.2-6.0+9.0 = \mathbf{-0.6}
+          \]
+          Cada unidad de \(t\) <strong>reduce</strong> el costo en \$0.60.
+        </div>
+      </div>
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-shield-halved"></i> Restricciones de factibilidad</span>
+          \(\mathbf{x}^*+t\,\mathbf{n}_1\geq\mathbf{0}\):
+          \[
+            \begin{aligned}
+              280-0.6t &\geq0 \Rightarrow t\leq467\\
+              350+0.2t &\geq0 \Rightarrow t\geq-1750\\
+              120-0.5t &\geq0 \Rightarrow t\leq240\\
+              0+t &\geq0 \Rightarrow t\geq0
+            \end{aligned}
+          \]
+          Rango: \(0\leq t\leq240\).
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-trophy"></i> Plan óptimo</span>
+          \(t^*=240\): \(\mathbf{x}^*=(136,398,0,240)^T\).<br>
+          Costo: \(C_0-0.6(240)=\$7560-\$144=\mathbf{\$7416}\).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: EJEMPLO 2 G.D.L. -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-calculator"></i> Ejemplo — red con 2 grados de libertad</h2>
+    <div class="block reveal"><span class="b-title">Datos</span>
+      Red con 5 plantas, 3 CDs: \(\operatorname{rang}(A)=3\), \(n=5\), \(k=2\) g.d.l.<br>
+      Lazos: \(\mathbf{n}_1\) y \(\mathbf{n}_2\) (calculados con MATLAB).
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-chart-area"></i> Función de costo en 2D</span>
+        \[
+          C(s,t) = C_0 + s\underbrace{(\mathbf{c}^T\mathbf{n}_1)}_{\delta_1} + t\underbrace{(\mathbf{c}^T\mathbf{n}_2)}_{\delta_2}
+        \]
+        Si \(\delta_1=-3\) y \(\delta_2=-1\): el lazo \(\mathbf{n}_1\) reduce el costo más rápidamente.<br>
+        La región factible en el plano \((s,t)\) es un <strong>polígono convexo</strong> definido por \(\mathbf{x}^*+s\mathbf{n}_1+t\mathbf{n}_2\geq\mathbf{0}\).
+      </div>
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-map"></i> Solución gráfica (2D)</span>
+          <div style="width:200px; height:150px; border-left:2px solid #94a3b8; border-bottom:2px solid #94a3b8; position:relative; margin:0.5rem auto; background:rgba(0,82,147,0.05);">
+            <div style="position:absolute; bottom:0; left:0; width:100%; height:100%; clip-path:polygon(0% 100%, 75% 0%, 50% 67%, 0% 75%); background:rgba(0,82,147,0.15);"></div>
+            <div style="position:absolute; bottom:0; right:10px; width:8px; height:8px; background:var(--orange); border-radius:50%;"></div>
+            <span style="position:absolute; bottom:-20px; right:5px; font-size:0.7rem; color:var(--orange);">óptimo</span>
+            <span style="position:absolute; top:10px; left:10px; font-size:0.7rem; color:var(--navy);">Región factible</span>
+            <span style="position:absolute; bottom:5px; right:-30px; font-size:0.7rem; color:#64748b;">\(s\)</span>
+            <span style="position:absolute; top:-25px; left:5px; font-size:0.7rem; color:#64748b;">\(t\)</span>
+          </div>
+        </div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Conclusión</span>
+          El óptimo está en un <strong>vértice</strong> del poliedro factible. Los vértices son los puntos donde exactamente \(n-r\) restricciones \(x_i=0\) son activas.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: PROTOCOLO DE ANÁLISIS -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-clipboard-check"></i> Análisis integrado — diagnóstico completo de una red</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-list-ol"></i> Protocolo de análisis</span>
+      Dado un sistema \(A\mathbf{x}=\mathbf{b}\), el análisis completo del Módulo 2 sigue estos pasos:
+    </div>
+    <ol class="mt reveal">
+      <li><strong>Dimensiones:</strong> \(A\in\mathbb{R}^{m\times n}\), \(m\) CDs, \(n\) plantas. Verificar consistencia.</li>
+      <li><strong>Rango:</strong> \(r=\operatorname{rang}(A)\). ¿Hay rutas redundantes? (\(r<n\)). ¿Ecuaciones redundantes? (\(r<m\)).</li>
+      <li><strong>Compatibilidad:</strong> \(\operatorname{rang}(A)=\operatorname{rang}([A|\mathbf{b}])\). Si no: sistema incompatible, demanda inalcanzable.</li>
+      <li><strong>Grados de libertad:</strong> \(k=n-r\). Calcular la base de \(\operatorname{Nul}(A)\).</li>
+      <li><strong>Invertibilidad y condición:</strong> si \(r=n\), calcular \(A^{-1}\) y \(\operatorname{cond}(A)\). ¿Es el modelo confiable?</li>
+      <li><strong>Solución particular:</strong> \(\mathbf{x}^*\) (vars. libres \(=0\)). Verificar que \(A\mathbf{x}^*=\mathbf{b}\) y \(\mathbf{x}^*\geq\mathbf{0}\).</li>
+      <li><strong>Optimización:</strong> calcular \(\mathbf{c}^T\mathbf{n}_i\) y encontrar el plan de mínimo costo respetando \(\mathbf{x}\geq\mathbf{0}\).</li>
+      <li><strong>Sensibilidad:</strong> ¿cómo cambia el plan óptimo si \(\mathbf{b}\) cambia en un 10%?</li>
+    </ol>
+  </div>
+
+  <!-- SLIDE 10: MATLAB ANÁLISIS -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — análisis integrado completo</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Protocolo de analisis del Modulo 2</span>
+<span class="mk">function</span> analizar_red(A, b, c, cap)
+  [m,n] = <span class="mf">size</span>(A);
+  <span class="mk">fprintf</span>(<span class="ms">'=== ANALISIS DE RED ===\n'</span>);
+  
+  <span class="mc">% 1. Rango y grados de libertad</span>
+  r = <span class="mf">rank</span>(A); k = n - r;
+  <span class="mk">fprintf</span>(<span class="ms">'rang(A) = %d  gdl = %d\n'</span>, r, k);
+  
+  <span class="mc">% 2. Compatibilidad</span>
+  <span class="mk">if</span> r < <span class="mf">rank</span>(<span class="mf">[</span>A b<span class="mf">]</span>)
+    <span class="mk">fprintf</span>(<span class="ms">'INCOMPATIBLE: demanda inalcanzable\n'</span>);
+    <span class="mk">return</span>;
+  <span class="mk">end</span>
+  
+  <span class="mc">% 3. Base del Nul(A)</span>
+  N = <span class="mf">null</span>(A, <span class="ms">'r'</span>);
+  
+  <span class="mc">% 4. Solucion particular</span>
+  [R,piv] = <span class="mf">rref</span>(<span class="mf">[</span>A b<span class="mf">]</span>);
+  xp = <span class="mf">zeros</span>(n,<span class="mn">1</span>); xp(piv) = R(<span class="mn">1</span>:r, <span class="mf">end</span>);
+  
+  <span class="mc">% 5. Efecto de lazos sobre el costo</span>
+  dc = c' * N;
+  
+  <span class="mc">% 6. Optimizar (si k==1)</span>
+  <span class="mk">if</span> k == <span class="mn">1</span>, optimizar_1d(xp, N(:,<span class="mn">1</span>), c, cap); <span class="mk">end</span>
+  
+  <span class="mc">% 7. Condicion (si cuadrada)</span>
+  <span class="mk">if</span> m==n && r==n, <span class="mk">fprintf</span>(<span class="ms">'cond(A) = %.2f\n'</span>, <span class="mf">cond</span>(A)); <span class="mk">end</span>
+<span class="mk">end</span></pre>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-list"></i> Qué produce el análisis</span>
+          <ul>
+            <li>Dimensiones y rango de la red.</li>
+            <li>Grados de libertad y lazos cerrados.</li>
+            <li>Solución particular inicial.</li>
+            <li>Gradiente del costo sobre cada lazo.</li>
+            <li>Plan de mínimo costo factible.</li>
+            <li>Número de condición (si aplica).</li>
+          </ul>
+        </div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-flask"></i> Aplicación</span>
+          Ejecutar con los datos del caso logístico del Módulo 2:
+          <ul>
+            <li>Red del Mini-caso 1 (\(5\times4\), \(k=0\)).</li>
+            <li>Red extendida (\(5\times5\), \(k=1\)).</li>
+            <li>Red ampliada (\(5\times6\), \(k=2\)).</li>
+          </ul>
+          Ver cómo los g.d.l. permiten mejorar el costo.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: EJERCICIO 1 -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Calcular g.d.l. y optimizar</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Red con \(A\in\mathbb{R}^{3\times5}\), \(\operatorname{rang}(A)=3\), demanda \(\mathbf{b}=(100,200,150)^T\), costos \(\mathbf{c}=(5,3,8,6,4)^T\) USD/ton.</p>
+    <ol class="mt reveal">
+      <li>Calcular \(k=5-3=\mathbf{2}\) grados de libertad.</li>
+      <li>Obtener la base \(\{\mathbf{n}_1,\mathbf{n}_2\}\) de \(\operatorname{Nul}(A)\) con <code>null(A,'r')</code>.</li>
+      <li>Calcular \(\delta_i=\mathbf{c}^T\mathbf{n}_i\) para \(i=1,2\).</li>
+      <li>La función de costo es lineal en \((s,t)\): el óptimo está en un vértice del polígono factible.</li>
+    </ol>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación de los resultados</span>
+      <ul>
+        <li>Si \(\delta_1<0\) y \(\delta_2<0\): ambos lazos reducen el costo. Maximizar ambos parámetros hasta el borde factible.</li>
+        <li>Si \(\delta_1<0\) y \(\delta_2>0\): solo el lazo 1 reduce el costo. Maximizar \(s\), minimizar \(t\).</li>
+        <li>El plan óptimo tiene siempre al menos 2 componentes \(x_i=0\) (condición de optimalidad en LP).</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: EJERCICIO 2 -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Diagnóstico completo de una red</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Aplicar el protocolo de análisis completo a:
+      \[
+        A=\begin{pmatrix}0.4&0.2&0.6&0\\0.3&0.5&0&0.4\\0.3&0.3&0.4&0.6\end{pmatrix},\;
+        \mathbf{b}=\begin{pmatrix}240\\270\\240\end{pmatrix},\;
+        \mathbf{c}=\begin{pmatrix}10\\8\\14\\9\end{pmatrix}
+      \]
+      Capacidades: \(\mathbf{cap}=(800,600,500,700)^T\) ton.
+    </p>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-list-ol"></i> Paso a paso</span>
+        <ol>
+          <li>\(r=\operatorname{rang}(A)=3\), \(n=4\), \(k=\mathbf{1}\) g.d.l.</li>
+          <li>\(\operatorname{rang}([A|\mathbf{b}])=3\): compatible.</li>
+          <li>Lazo \(\mathbf{n}_1\) (calcular con <code>null(A,'r')</code>).</li>
+          <li>\(\delta_1=\mathbf{c}^T\mathbf{n}_1\) (calculado en MATLAB).</li>
+          <li>Optimizar: \(t\in[t_{\min},t_{\max}]\).</li>
+          <li>Verificar plan óptimo contra capacidades.</li>
+        </ol>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-terminal"></i> A verificar con MATLAB</span>
+        <ul>
+          <li><code>rank(A)</code> y <code>rank([A b])</code>.</li>
+          <li><code>null(A,'r')</code>.</li>
+          <li>Solución particular con <code>rref</code>.</li>
+          <li>\(\delta_1\), rango factible de \(t\).</li>
+          <li>Plan óptimo y costo.</li>
+          <li><code>cond(A)</code>: ¿el modelo es confiable?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: EJERCICIO 3 -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3 — Comparar distintos niveles de libertad</h2>
+    <div class="alert-block reveal"><span class="b-title"><i class="fas fa-chess"></i> Situación</span> LogiSur evalúa tres diseños de red con el mismo vector de costos \(\mathbf{c}\).</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-table"></i> Comparación</span>
+        <table class="compact"><tr><th>Red</th><th>\(n\)</th><th>\(r\)</th><th>g.d.l.</th><th>Costo óptimo</th></tr><tr><td>A (actual)</td><td>3</td><td>3</td><td>0</td><td>$9400 (fijo)</td></tr><tr><td>B (ampliada)</td><td>4</td><td>3</td><td>1</td><td>$8750</td></tr><tr><td>C (extendida)</td><td>5</td><td>3</td><td>2</td><td>$8200</td></tr><tr><td>D (máxima)</td><td>6</td><td>3</td><td>3</td><td>$7900</td></tr></table>
+        <p style="font-size:0.85rem; margin-top:0.3rem;">Agregar plantas reduce el costo pero aumenta la complejidad operativa y el gasto fijo en infraestructura.</p>
+      </div>
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-circle-question"></i> Pregunta de decisión</span>
+          ¿Vale la pena pasar de 0 a 1 g.d.l. si cuesta \$200,000/año en nueva infraestructura?
+          <ul>
+            <li>Ahorro semanal: \(9400-8750=\$650\).</li>
+            <li>Ahorro anual: \(\$650\times52=\$33,800\).</li>
+            <li>Tiempo de recuperación: \(200,000/33,800\approx5.9\) años.</li>
+          </ul>
+          <span class="reveal mt">Si el plazo de inversión es 5 años: <strong>no conviene</strong>. Si es 7 años: <strong>sí conviene</strong>.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: RESUMEN MÓDULO 2 -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-flag-checkered"></i> Resumen del Módulo 2 — visión completa</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido en el Módulo 2</span>
+        <ul>
+          <li><strong>C8:</strong> Rango = número de restricciones efectivas. Teorema Rouche-Frobenius.</li>
+          <li><strong>C9:</strong> \(\operatorname{Nul}(A)\) = espacio de lazos cerrados. Sol. general = particular + lazos.</li>
+          <li><strong>C10:</strong> \(AX=B\) = múltiples sistemas con misma red. Eficiencia computacional.</li>
+          <li><strong>C11:</strong> \(A^{-1}\) y \(\operatorname{cond}(A)\) = planificación rápida y confiabilidad del modelo.</li>
+          <li><strong>C12:</strong> Grados de libertad = parámetros optimizables. LP en el espacio de lazos.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-square-root-variable"></i> Ecuación fundamental del Módulo 2</span>
+          \[
+            \underbrace{n}_{\text{plantas}} = \underbrace{r}_{\text{restricciones}} + \underbrace{k}_{\text{g.d.l.}}
+          \]
+          \[
+            \text{Plan} = \underbrace{\mathbf{x}^*}_{\text{particular}} + \underbrace{\sum_{i=1}^k t_i\mathbf{n}_i}_{\text{lazos}}
+          \]
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-forward-step"></i> Conexión con Mini-caso 2 (C13)</span>
+          El Mini-caso 2 aplica todo el Módulo 2 a una red logística real uruguaya con:
+          <ul>
+            <li>Diagnóstico completo de la red.</li>
+            <li>Optimización vía lazos cerrados.</li>
+            <li>Análisis de sensibilidad.</li>
+            <li>Decisión de expansión de la red.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: TAREA -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 13 — Mini-caso 2</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Preparación del Mini-caso 2</span>
+      <ol>
+        <li><strong>Leer</strong> el enunciado del Mini-caso 2 (disponible en aula virtual).</li>
+        <li><strong>Ejecutar</strong> <code>clase12_datos.m</code> completo. La función <code>analizar_red</code> es la herramienta principal para el mini-caso.</li>
+        <li><strong>Aplicar</strong> el protocolo de 8 pasos a la red del Mini-caso 2 como preparación.</li>
+        <li><strong>Entregar</strong> en la Clase 13: el informe del Mini-caso 2 con todos los pasos documentados.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-file-pen"></i> Estructura del informe del Mini-caso 2</span>
+      El informe debe incluir: (1) diagnóstico completo de la red, (2) identificación de grados de libertad y lazos, (3) plan de mínimo costo, (4) análisis de sensibilidad, (5) decisión de expansión justificada cuantitativamente.
+    </div>
+  </div>
+
+  <!-- SLIDE 16: CIERRE -->
+  <div class="slide" data-slide="16">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem); color:var(--navy);">Fin del Módulo 2</h1>
+      <p class="sub" style="color:var(--orange); font-weight:600;">Estructura de Sistemas y Decisiones</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-arrow-right"></i> Siguiente</span> Clase 13: Mini-caso 2 — Análisis de Red Logística Uruguay</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 17</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

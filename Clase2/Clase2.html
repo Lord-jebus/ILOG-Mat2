@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 2: Operaciones con Matrices</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    .col-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout, .col-3 { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.95em; }
+    th, td { padding: 0.45rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: center; }
+    th { background: #f1f5f9; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.72rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    .flowchart { display: flex; flex-wrap: wrap; gap: 0.8rem; justify-content: center; align-items: center; margin-top: 0.5rem; }
+    .flow-node { background: var(--navy-dark); color: white; padding: 0.7rem 0.9rem; border-radius: 10px; text-align: center; min-width: 110px; font-size: 0.85rem; }
+    .flow-node.hl { background: var(--navy); }
+    .flow-node.sec { background: #64748b; }
+    .flow-arrow { color: #94a3b8; font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-cubes-stacked" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Operaciones con Matrices<br>e Impacto en Costos Logísticos</h1>
+      <p class="sub">Matemáticas 2 — Módulo 1, Clase 2</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 2</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Objetivos de aprendizaje</li>
+      <li>Hoja de ruta y repaso Clase 1</li>
+      <li>Situación logística: dos semanas de operación</li>
+      <li>Suma, resta y propiedades matriciales</li>
+      <li>Multiplicación escalar y costo promedio</li>
+      <li>Multiplicación matricial (motivación, definición, cálculo)</li>
+      <li>Producto elemento a elemento vs matricial</li>
+      <li>Práctica en MATLAB (+, -, *, .*)</li>
+      <li>Ejercicios prácticos y resumen</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Realizar</strong> operaciones de suma, resta y multiplicación escalar con matrices.</li>
+      <li class="reveal"><strong>Ejecutar</strong> la multiplicación matricial e interpretar su resultado en términos logísticos.</li>
+      <li class="reveal"><strong>Interpretar</strong> el impacto de cada operación sobre los costos de una red de distribución.</li>
+      <li class="reveal"><strong>Decidir</strong> qué ruta global minimiza los costos totales usando operaciones matriciales.</li>
+      <li class="reveal"><strong>Implementar</strong> estas operaciones en MATLAB usando <code>+</code>, <code>-</code>, <code>*</code>, <code>.*</code>.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 3: HOJA DE RUTA -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-route"></i> ¿Dónde estamos? — Hoja de ruta del Módulo 1</h2>
+    <div class="flowchart reveal">
+      <div class="flow-node sec">Clase 1<br>Estructura</div><i class="fas fa-arrow-right flow-arrow"></i>
+      <div class="flow-node hl"><b>Clase 2</b><br>Operaciones</div><i class="fas fa-arrow-right flow-arrow"></i>
+      <div class="flow-node">Clase 3<br>Flujos \(Av\)</div><i class="fas fa-arrow-right flow-arrow"></i>
+      <div class="flow-node">Clase 4–6<br>Sistemas \(Ax=b\)</div><i class="fas fa-arrow-right flow-arrow"></i>
+      <div class="flow-node">Clase 7<br>Mini-caso</div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-rotate-left"></i> Repaso rápido — Clase 1</span>
+      <ul>
+        <li>Una <strong>matriz</strong> \(A \in \mathbb{R}^{m\times n}\) organiza datos en filas y columnas.</li>
+        <li>Tipos: diagonal, triangular, dispersa, adyacencia, identidad.</li>
+        <li>En logística: costos, inventarios y flujos \(\rightarrow\) <strong>matrices naturales</strong>.</li>
+      </ul>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title">Pregunta de repaso</span> La matriz de costos es \(3\times4\). ¿Cuántos elementos tiene su transpuesta \(C^T\)? <span class="reveal"><strong>→ \(4\times3\), 12 elementos.</strong></span></div>
+  </div>
+
+  <!-- SLIDE 4: SITUACIÓN -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-calendar-week"></i> Situación: dos semanas de operación</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-building"></i> Contexto</span> 3 plantas y 4 centros de distribución. Disponemos de matrices de costos de dos semanas consecutivas.</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Semana 1 — \(C_1\) (USD/ton)</span>
+        $$ C_1 = \begin{pmatrix} 12 & 35 & 48 & 8 \\ 40 & 15 & 22 & 38 \\ 52 & 28 & 10 & 60 \end{pmatrix} $$
+      </div>
+      <div class="example-block reveal"><span class="b-title">Semana 2 — \(C_2\) (USD/ton)</span>
+        $$ C_2 = \begin{pmatrix} 14 & 33 & 50 & 10 \\ 38 & 17 & 24 & 36 \\ 55 & 30 & 12 & 58 \end{pmatrix} $$
+      </div>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-briefcase"></i> Preguntas de negocio</span>
+      <ol>
+        <li>¿Cuánto varió cada costo? (resta)</li>
+        <li>¿Cuál es el costo promedio? (suma + escalar)</li>
+        <li>¿Cuánto costaría enviar el doble de carga? (escalar)</li>
+        <li>¿Qué ruta global conviene priorizar?</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: SUMA -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-plus"></i> Suma de matrices — Definición</h2>
+    <div class="block reveal">Dadas \(A, B \in \mathbb{R}^{m \times n}\) (misma dimensión), su <strong>suma</strong> es:
+      $$ (A + B)_{ij} = a_{ij} + b_{ij} $$
+      Se suman <strong>elemento a elemento</strong>. Solo definida si tienen la <strong>misma dimensión</strong>.
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Costo acumulado (2 semanas)</span>
+        $$ C_1 + C_2 = \begin{pmatrix} 12{+}14 & 35{+}33 & 48{+}50 & 8{+}10 \\ 40{+}38 & 15{+}17 & 22{+}24 & 38{+}36 \\ 52{+}55 & 28{+}30 & 10{+}12 & 60{+}58 \end{pmatrix} = \begin{pmatrix} 26 & 68 & 98 & 18 \\ 78 & 32 & 46 & 74 \\ 107 & 58 & 22 & 118 \end{pmatrix} $$
+      </div>
+      <div class="alert-block reveal"><span class="b-title">Interpretación logística</span> \((C_1+C_2)_{ij}\) = costo total acumulado de <strong>dos semanas</strong>. Ejemplo: Salto → Tacuarembó acumuló \(22+24=\$46\)/ton.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: RESTA -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-minus"></i> Resta de matrices — Variación de costos</h2>
+    <div class="block reveal">La <strong>resta</strong> es: \((A - B)_{ij} = a_{ij} - b_{ij}\). También elemento a elemento, igual restricción de dimensión.</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Variación semanal \(\Delta C = C_2 - C_1\)</span>
+        $$ \Delta C = \begin{pmatrix} 14-12 & 33-35 & 50-48 & 10-8 \\ 38-40 & 17-15 & 24-22 & 36-38 \\ 55-52 & 30-28 & 12-10 & 58-60 \end{pmatrix} = \begin{pmatrix} 2 & -2 & 2 & 2 \\ -2 & 2 & 2 & -2 \\ 3 & 2 & 2 & -2 \end{pmatrix} $$
+      </div>
+      <div>
+        <div class="block reveal">
+          <ul>
+            <li><strong style="color:var(--orange)">Positivo (+)</strong>: costo subió de S1 a S2.</li>
+            <li><strong style="color:var(--green)">Negativo (-)</strong>: costo bajó.</li>
+            <li><strong>Cero</strong>: sin cambio.</li>
+          </ul>
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Decisión</span> Rutas con \(\Delta c_{ij} < 0\) son más convenientes: <strong>Salto→Maldonado, Salto→Colonia, Rivera→Colonia</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: PROPIEDADES SUMA -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-scale-balanced"></i> Propiedades de la suma matricial</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title">Propiedades algebraicas</span>
+        <ol>
+          <li><strong>Conmutativa:</strong> \(A + B = B + A\)</li>
+          <li><strong>Asociativa:</strong> \((A+B)+C = A+(B+C)\)</li>
+          <li><strong>Elemento neutro:</strong> \(A + O = A\)</li>
+          <li><strong>Opuesto:</strong> \(A + (-A) = O\)</li>
+        </ol>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-triangle-exclamation"></i> ¡Restricción fundamental!</span> La suma/resta <strong>solo</strong> están definidas para matrices de <strong>igual dimensión</strong>.<br><br>Error típico en MATLAB:<br><code>Matrix dimensions must agree</code></div>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Aplicación en 3 semanas</span> Si \(C_3\) es la matriz de la semana 3: \(C_{\text{prom}} = \dfrac{C_1 + C_2 + C_3}{3}\)</div>
+  </div>
+
+  <!-- SLIDE 8: ESCALAR -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-xmark"></i> Multiplicación por un escalar</h2>
+    <div class="block reveal">Dado \(k \in \mathbb{R}\) y \(A \in \mathbb{R}^{m\times n}\): \((kA)_{ij} = k \cdot a_{ij}\). Se multiplica <strong>cada elemento</strong> por \(k\).</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Escenario: aumento del 15%</span>
+        $$ 1{,}15 \cdot C_1 = 1{,}15 \begin{pmatrix} 12 & 35 & 48 & 8 \\ 40 & 15 & 22 & 38 \\ 52 & 28 & 10 & 60 \end{pmatrix} = \begin{pmatrix} 13.8 & 40.25 & 55.2 & 9.2 \\ 46.0 & 17.25 & 25.3 & 43.7 \\ 59.8 & 32.20 & 11.5 & 69.0 \end{pmatrix} $$
+      </div>
+      <div>
+        <div class="block reveal"><span class="b-title">Propiedades</span> \(k(A+B)=kA+kB\), \((k+l)A=kA+lA\), \(1\cdot A=A\), \(0\cdot A=O\)</div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-chart-line"></i> Casos logísticos</span>
+          <ul><li>\(k=0.9\): descuento 10%</li><li>\(k=2\): duplicar tonelaje</li><li>\(k=-1\): modelar ingresos</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: COSTO PROMEDIO -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-calculator"></i> Cálculo del costo promedio — paso a paso</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-bullseye"></i> Objetivo</span> Calcular la matriz de costos promedio entre la Semana 1 y la Semana 2.</div>
+    <ol class="mt">
+      <li class="reveal">Fórmula: \(C_{\text{prom}} = \frac{1}{2}(C_1 + C_2)\)</li>
+      <li class="reveal">Suma: \(C_{\Sigma} = \begin{pmatrix}26&68&98&18\\78&32&46&74\\107&58&22&118\end{pmatrix}\)</li>
+      <li class="reveal">Escalar: \(C_{\text{prom}} = \begin{pmatrix}13&34&49&9\\39&16&23&37\\53.5&29&11&59\end{pmatrix}\)</li>
+    </ol>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-magnifying-glass"></i> Lectura del resultado</span> El costo promedio de enviar desde Rivera hacia Tacuarembó fue \$11/ton. Comparado con S1 (\$10) y S2 (\$12): <strong>subió ligeramente</strong>.</div>
+  </div>
+
+  <!-- SLIDE 10: MULT MATRIZ MOTIVACIÓN -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-boxes-packing"></i> Multiplicación matricial — Motivación</h2>
+    <div class="alert-block reveal"><span class="b-title"><i class="fas fa-question-circle"></i> ¿Por qué multiplicar matrices?</span> Queremos calcular el <strong>costo total</strong> considerando tarifas (USD/ton) y <strong>volúmenes de carga</strong> (ton).</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Tarifas \(C\) (USD/ton) — \(3\times2\)</span> $$ C = \begin{pmatrix}12 & 35 \\ 40 & 15 \\ 52 & 28\end{pmatrix} $$</div>
+      <div class="example-block reveal"><span class="b-title">Volúmenes \(V\) (ton) — \(2\times3\)</span> $$ V = \begin{pmatrix}10 & 20 & 5 \\ 30 & 10 & 15\end{pmatrix} $$</div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-hand-pointer"></i> Pregunta clave</span> ¿Cuánto cuesta en total enviar cada producto desde cada planta? \(\Rightarrow\) necesitamos \(C \cdot V\).</div>
+  </div>
+
+  <!-- SLIDE 11: DEFINICIÓN MULT -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-square-root-variable"></i> Multiplicación matricial — Definición</h2>
+    <div class="block reveal">Si \(A \in \mathbb{R}^{m\times p}\) y \(B \in \mathbb{R}^{p\times n}\), el producto \(C = AB \in \mathbb{R}^{m\times n}\) tiene:
+      $$ c_{ij} = \sum_{k=1}^{p} a_{ik} \cdot b_{kj} = \text{fila } i \text{ de } A \;\cdot\; \text{columna } j \text{ de } B $$
+      <strong>Condición:</strong> columnas de \(A\) = filas de \(B\).
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-ruler-combined"></i> Regla de compatibilidad</span>
+      <center>\(\underbrace{(m\times p)}_A \cdot \underbrace{(p\times n)}_B = \underbrace{(m\times n)}_C\)<br><small>Las dimensiones <strong>internas</strong> coinciden; el resultado tiene las <strong>externas</strong>.</small></center>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: CÁLCULO PASO A PASO -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-pen-ruler"></i> Multiplicación matricial — Cálculo</h2>
+    <p class="reveal">\(C_{3\times2} \cdot V_{2\times3} \in \mathbb{R}^{3\times3}\)</p>
+    <div class="col-3 mt">
+      <div class="example-block center reveal">Elemento \((1,1)\):<br>Planta 1, Producto A<br>
+        $$ (CV)_{11} = 12\cdot10 + 35\cdot30 = \mathbf{1170} $$
+      </div>
+      <div class="example-block center reveal">Elemento \((2,2)\):<br>Planta 2, Producto B<br>
+        $$ (CV)_{22} = 40\cdot20 + 15\cdot10 = \mathbf{950} $$
+      </div>
+      <div class="example-block center reveal">Elemento \((3,3)\):<br>Planta 3, Producto C<br>
+        $$ (CV)_{33} = 52\cdot5 + 28\cdot15 = \mathbf{680} $$
+      </div>
+    </div>
+    <div class="block mt reveal"><span class="b-title">Matriz de costo total (USD)</span>
+      $$ CV = \begin{pmatrix} 1170 & 590 & 585 \\ 850 & 950 & 425 \\ 1360 & 1320 & 680 \end{pmatrix} $$
+      \((CV)_{ij}\) = costo total de enviar el Producto \(j\) desde la Planta \(i\).
+    </div>
+  </div>
+
+  <!-- SLIDE 13: PROPIEDADES MULT -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-equals"></i> Propiedades de la multiplicación matricial</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Propiedades válidas</span>
+        <ol>
+          <li><strong>Asociativa:</strong> \((AB)C = A(BC)\)</li>
+          <li><strong>Distributiva:</strong> \(A(B+C) = AB + AC\)</li>
+          <li><strong>Elemento neutro:</strong> \(AI = IA = A\)</li>
+          <li><strong>Transpuesta:</strong> \((AB)^T = B^T A^T\)</li>
+        </ol>
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-times-circle"></i> ¡Propiedad que NO vale!</span>
+          <strong>NO es conmutativa:</strong> \(AB \neq BA\) en general. Incluso si ambos productos están definidos, el resultado es distinto.
+        </div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-flask"></i> Ejemplo</span>
+          $$ \begin{pmatrix}1&2\\0&0\end{pmatrix} \begin{pmatrix}0&0\\3&4\end{pmatrix} = \begin{pmatrix}6&8\\0&0\end{pmatrix} \neq \begin{pmatrix}0&0\\3&4\end{pmatrix} \begin{pmatrix}1&2\\0&0\end{pmatrix} = \begin{pmatrix}0&0\\3&6\end{pmatrix} $$
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: HADAMARD / .* -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-dot-circle"></i> Producto elemento a elemento (<code>.*</code> en MATLAB)</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title">Producto de Hadamard</span> \((A \odot B)_{ij} = a_{ij} \cdot b_{ij}\). Multiplica elemento a elemento. <strong>Requiere misma dimensión.</strong></div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-weight-hanging"></i> Aplicación: costo ponderado</span>
+          $$ C = \begin{pmatrix}12&35\\40&15\end{pmatrix} \quad W = \begin{pmatrix}2&1\\1&3\end{pmatrix} \implies C \odot W = \begin{pmatrix}24&35\\40&45\end{pmatrix} $$
+        </div>
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-terminal"></i> En MATLAB</span>
+          <ul>
+            <li><code>A * B</code> → multiplicación matricial (\(AB\))</li>
+            <li><code>A .* B</code> → producto elemento a elemento</li>
+          </ul>
+          <strong>¡El punto hace la diferencia!</strong>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-sliders"></i> ¿Cuándo usar cada uno?</span>
+          <ul>
+            <li><code>*</code>: combinar dos sistemas (filas × columnas)</li>
+            <li><code>.*</code>: aplicar factor por ruta individualmente</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: MATLAB BÁSICAS -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — Operaciones básicas: +, -, escalar</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Semana 1 y Semana 2</span>
+C1 = <span class="mf">[</span><span class="mn">12</span> <span class="mn">35</span> <span class="mn">48</span>  <span class="mn">8</span>;
+     <span class="mn">40</span> <span class="mn">15</span> <span class="mn">22</span> <span class="mn">38</span>;
+     <span class="mn">52</span> <span class="mn">28</span> <span class="mn">10</span> <span class="mn">60</span><span class="mf">]</span>;
+
+C2 = <span class="mf">[</span><span class="mn">14</span> <span class="mn">33</span> <span class="mn">50</span> <span class="mn">10</span>;
+     <span class="mn">38</span> <span class="mn">17</span> <span class="mn">24</span> <span class="mn">36</span>;
+     <span class="mn">55</span> <span class="mn">30</span> <span class="mn">12</span> <span class="mn">58</span><span class="mf">]</span>;
+
+<span class="mc">% Suma y Resta</span>
+Cacum = C1 + C2;
+DeltaC = C2 - C1;
+
+<span class="mc">% Escalar: aumento 15%</span>
+C_nuevo = <span class="mn">1.15</span> * C1;
+
+<span class="mc">% Promedio</span>
+Cprom = <span class="mn">0.5</span> * (C1 + C2);</pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title">Interpretación</span> <code>DeltaC(2,1) = -2</code> → Salto→Maldonado bajó \$2/ton.<br><code>C_nuevo(1,1) = 13.8</code> → Mvd→Maldonado pasa a \$13.8.</div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Tip MATLAB</span> Agregar <code>;</code> suprime salida automática. Usar <code>disp()</code> o <code>fprintf()</code> para mostrar solo lo necesario.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: MATLAB MULT -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — Multiplicación matricial</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Tarifas (3x2) y Volúmenes (2x3)</span>
+C = <span class="mf">[</span><span class="mn">12</span> <span class="mn">35</span>; <span class="mn">40</span> <span class="mn">15</span>; <span class="mn">52</span> <span class="mn">28</span><span class="mf">]</span>;
+V = <span class="mf">[</span><span class="mn">10</span> <span class="mn">20</span>  <span class="mn">5</span>;
+     <span class="mn">30</span> <span class="mn">10</span> <span class="mn">15</span><span class="mf">]</span>;
+
+<span class="mc">% Multiplicación matricial</span>
+CostoTotal = C * V;
+
+<span class="mc">% Verificación manual</span>
+manual_11 = C(<span class="mn">1</span>,:) * V(:,<span class="mn">1</span>);
+
+<span class="mc">% Producto elemento a elemento</span>
+W = <span class="mf">[</span><span class="mn">2</span> <span class="mn">1</span>; <span class="mn">1</span> <span class="mn">3</span>; <span class="mn">1</span> <span class="mn">2</span><span class="mf">]</span>;
+Cpond = C <span class="mk">.*</span> W;
+
+<span class="mc">% Verificar no conmutativa</span>
+A = <span class="mf">[</span><span class="mn">1</span> <span class="mn">2</span>; <span class="mn">3</span> <span class="mn">4</span><span class="mf">]</span>;
+B = <span class="mf">[</span><span class="mn">0</span> <span class="mn">1</span>; <span class="mn">1</span> <span class="mn">0</span><span class="mf">]</span>;
+<span class="mk">disp</span>(A*B); <span class="mk">disp</span>(B*A);</pre>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title">Dimensiones</span> \(C(3\times2) \cdot V(2\times3) \Rightarrow \text{resultado } 3\times3\) \checkmark</div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Error típico</span> Si las internas no coinciden:<br><code>Inner matrix dimensions must agree</code></div>
+        <div class="example-block mt reveal"><span class="b-title">Ejercicio en clase</span> Modifica \(V\) para que el costo de la Planta 3 baje al mínimo.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: EJERCICIO 1 -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Suma y variación</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Costos de dos carriers: \(A_1 = \begin{pmatrix}20&45\\60&30\end{pmatrix}\), \(A_2 = \begin{pmatrix}18&50\\55&28\end{pmatrix}\)</p>
+    <ol class="mt">
+      <li class="reveal">Calcula \(A_2 - A_1\). ¿Qué rutas son más caras con carrier 2?</li>
+      <li class="reveal">Descuento 8% a carrier 1: ¿nueva tarifa?</li>
+      <li class="reveal">Costo promedio entre carriers.</li>
+    </ol>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check"></i> Resolución</span>
+      \(\Delta A = \begin{pmatrix}-2&+5\\-5&-2\end{pmatrix}\) → Carrier 2 solo más caro en (1,2).<br>
+      Descuento: \(0.92 A_1 = \begin{pmatrix}18.4&41.4\\55.2&27.6\end{pmatrix}\)<br>
+      Promedio: \(\frac{A_1+A_2}{2} = \begin{pmatrix}19&47.5\\57.5&29\end{pmatrix}\)
+    </div>
+  </div>
+
+  <!-- SLIDE 18: EJERCICIO 2 -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Multiplicación logística</h2>
+    <p class="reveal"><strong>Enunciado:</strong> \(T = \begin{pmatrix}5&8\\6&4\\3&9\end{pmatrix}\) (tarifas), \(Q = \begin{pmatrix}100&50\\80&120\end{pmatrix}\) (toneladas)</p>
+    <ol class="mt">
+      <li class="reveal">¿Dimensión de \(T \cdot Q\)?</li>
+      <li class="reveal">Calcula \((TQ)_{11}\) y \((TQ)_{22}\).</li>
+      <li class="reveal">Interpreta cada elemento.</li>
+    </ol>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check"></i> Resolución</span>
+      \(T(3\times2) \cdot Q(2\times2) \Rightarrow 3\times2\)<br>
+      \((TQ)_{11} = 5\cdot100 + 8\cdot80 = \mathbf{1140}\) USD (Planta 1, Prod 1)<br>
+      \((TQ)_{22} = 6\cdot50 + 4\cdot120 = \mathbf{780}\) USD (Planta 2, Prod 2)<br>
+      <strong>Cada elemento</strong> = costo total de enviar el Producto \(j\) desde Planta \(i\).
+    </div>
+  </div>
+
+  <!-- SLIDE 19: EJERCICIO 3 -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3 — Decisión de ruta global</h2>
+    <div class="alert-block reveal"><span class="b-title"><i class="fas fa-chess"></i> Situación</span> ¿Qué planta debe asumir más carga para minimizar el costo total?</div>
+    <div class="col-layout mt">
+      <div>
+        <pre><span class="mc">% Tarifas actuales</span>
+T = <span class="mf">[</span><span class="mn">12</span> <span class="mn">35</span> <span class="mn">48</span>  <span class="mn">8</span>;
+     <span class="mn">40</span> <span class="mn">15</span> <span class="mn">22</span> <span class="mn">38</span>;
+     <span class="mn">52</span> <span class="mn">28</span> <span class="mn">10</span> <span class="mn">60</span><span class="mf">]</span>;
+
+<span class="mc">% Volumen esperado por CD</span>
+Vol = <span class="mf">[</span><span class="mn">50</span>; <span class="mn">80</span>; <span class="mn">30</span>; <span class="mn">60</span><span class="mf">]</span>;
+
+<span class="mc">% Costo por planta (3x4 * 4x1 = 3x1)</span>
+costo_planta = T * Vol;
+
+<span class="mk">fprintf</span>(<span class="ms">'P1: $%.0f | P2: $%.0f | P3: $%.0f\n'</span>, ...
+        costo_planta);
+[~, mejor] = <span class="mf">min</span>(costo_planta);</pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-chart-pie"></i> Resultados</span>
+          Planta 1: \$5320<br>Planta 2: \$6140<br>Planta 3: \$8740
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-trophy"></i> Decisión</span> <strong>Planta 1 (Montevideo)</strong> tiene el menor costo total. Priorizar su uso.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: RESUMEN -->
+  <div class="slide" data-slide="20">
+    <h2><i class="fas fa-clipboard-check"></i> Resumen — Operaciones y su significado</h2>
+    <table class="reveal">
+      <tr><th>Operación</th><th>Fórmula</th><th>Aplicación logística</th></tr>
+      <tr><td>Suma</td><td>\((A+B)_{ij}=a_{ij}+b_{ij}\)</td><td>Costos acumulados</td></tr>
+      <tr><td>Resta</td><td>\((A-B)_{ij}=a_{ij}-b_{ij}\)</td><td>Variación, comparación</td></tr>
+      <tr><td>Escalar</td><td>\((kA)_{ij}=k\,a_{ij}\)</td><td>Aumento/descuento global</td></tr>
+      <tr><td>Mult. matricial</td><td>\(c_{ij}=\sum a_{ik}b_{kj}\)</td><td>Costo total = tarifas × volúmenes</td></tr>
+      <tr><td>Hadamard (<code>.*</code>)</td><td>\((A\odot B)_{ij}=a_{ij}b_{ij}\)</td><td>Peso por urgencia/ruta</td></tr>
+    </table>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title">Reglas clave</span>
+        <ul>
+          <li>Suma/resta: requiere <strong>misma dimensión</strong>.</li>
+          <li>Producto \(AB\): columnas de \(A\) = filas de \(B\).</li>
+          <li>\(AB \neq BA\) en general.</li>
+          <li><code>*</code> ≠ <code>.*</code> en MATLAB.</li>
+        </ul>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-forward"></i> Conexión Clase 3</span> La multiplicación <strong>matriz × vector</strong> (\(Av\)) es un caso especial. La usaremos para calcular <strong>flujos de carga</strong>.</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 21: TAREA -->
+  <div class="slide" data-slide="21">
+    <h2><i class="fas fa-book-open"></i> Tarea para la Clase 3</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades preparatorias</span>
+      <ol>
+        <li><strong>Lectura:</strong> Lay, Cap. 1, Sec. 1.3: multiplicación matriz-vector.</li>
+        <li><strong>Ejercicios manuales:</strong> Guía B1–B3 e I1–I2. Atención al cálculo manual.</li>
+        <li><strong>MATLAB:</strong> Completar script <code>clase2_datos.m</code> y responder las 5 preguntas.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-brain"></i> Para reflexionar</span> Si \(A\) es costos (\(3\times4\)) y \(\mathbf{v}\) es vector de volúmenes, ¿qué representa \(A\mathbf{v}\)? ¿Qué dimensión tiene? ¿Por qué es útil?</div>
+  </div>
+
+  <!-- SLIDE 22: REFERENCIAS -->
+  <div class="slide" data-slide="22">
+    <h2><i class="fas fa-quote-left"></i> Referencias y recursos</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-book"></i> Bibliografía</span>
+          <ul>
+            <li><strong>Lay, D. C.</strong> — Álgebra Lineal, Cap. 1</li>
+            <li><strong>MATLAB Manual</strong> — Operaciones con arreglos y matrices</li>
+          </ul>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-globe"></i> Recursos digitales</span>
+          <ul>
+            <li>Guía MATLAB #1 (aula virtual)</li>
+            <li>Script: <code>clase2_datos.m</code></li>
+            <li>Dataset: costos multimodal</li>
+          </ul>
+        </div>
+      </div>
+      <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
+        <span class="b-title"><i class="fas fa-play-circle"></i> Videos recomendados</span>
+        <ul class="mt">
+          <li><em>3Blue1Brown</em> — «Essence of Linear Algebra», Ep. 4: Matrix multiplication</li>
+          <li>MathWorks: MATLAB matrix operations tutorial</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 23: CIERRE -->
+  <div class="slide" data-slide="23">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem);">¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 3: Multiplicación matriz-vector y cálculo de flujos logísticos</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-envelope"></i> Contacto</span> <span>jesus.martinez@utec.edu.uy | Aula Virtual Moodle</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 24</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

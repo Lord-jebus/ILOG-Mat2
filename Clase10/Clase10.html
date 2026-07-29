@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 10: Ecuaciones Matriciales AX=B</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    /* Diagrams with CSS */
+    .network-diag { display: flex; justify-content: space-around; align-items: center; padding: 1rem 0; flex-wrap: wrap; gap: 1rem; }
+    .nd-col { display: flex; flex-direction: column; gap: 0.8rem; align-items: center; }
+    .nd-node { padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 600; font-size: 0.9rem; min-width: 40px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    .nd-fab { background: rgba(102,0,153,0.15); border: 2px solid var(--purple); color: var(--purple); border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+    .nd-cd { background: rgba(0,82,147,0.1); border: 2px solid var(--navy); color: var(--navy); }
+    .nd-arrows { display: flex; flex-direction: column; justify-content: space-around; align-items: center; height: 100%; min-height: 150px; }
+    .arrow-line { width: 80%; height: 1px; background: #cbd5e1; margin: 0.4rem 0; position: relative; }
+    .arrow-line::after { content: '➔'; position: absolute; right: -10px; top: -12px; color: #94a3b8; font-size: 1rem; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-cube" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Ecuaciones Matriciales \(AX=B\)<br>Distribución Multi-Origen</h1>
+      <p class="sub">Matemáticas 2 — Módulo 2, Clase 10</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 10</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Objetivos de aprendizaje</li>
+      <li>De \(A\mathbf{x}=\mathbf{b}\) a \(AX=B\) (motivación y definición)</li>
+      <li>Resolución manual y propiedades algebraicas</li>
+      <li>Caso logístico: distribución multi-origen (3 fábricas)</li>
+      <li>Resolución en MATLAB (\texttt{A\textbackslash B})</li>
+      <li>Análisis por fábrica: costo y viabilidad</li>
+      <li>Variación de demanda y eficiencia computacional</li>
+      <li>Relación con la inversa \(A^{-1}\)</li>
+      <li>Ejercicios prácticos (resolución manual, comparación, decisión)</li>
+      <li>Resumen y preparación Clase 11</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Formular</strong> la ecuación matricial \(AX=B\) como extensión de \(A\mathbf{x}=\mathbf{b}\) a múltiples vectores simultáneos.</li>
+      <li class="reveal"><strong>Interpretar</strong> las columnas de \(X\) como planes de despacho para distintas fábricas, y las columnas de \(B\) como sus demandas.</li>
+      <li class="reveal"><strong>Resolver</strong> \(AX=B\) usando el operador \texttt{A\textbackslash B} de MATLAB, entendiendo que resuelve cada columna independientemente.</li>
+      <li class="reveal"><strong>Verificar</strong> la solución calculando el residuo matricial \(\|AX-B\|_F\).</li>
+      <li class="reveal"><strong>Decidir</strong> cómo repartir carga entre fábricas dada la solución de \(AX=B\).</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 3: MOTIVACIÓN -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-lightbulb"></i> Motivación: múltiples escenarios simultáneos</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-exclamation-circle"></i> Limitación de \(A\mathbf{x}=\mathbf{b}\)</span> Hasta ahora resolvemos un sistema por vez. Si hay <strong>\(k\) fábricas</strong> con demandas distintas \(\mathbf{b}_1,\ldots,\mathbf{b}_k\), deberíamos resolver \(k\) sistemas separados.</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-industry"></i> Problema logístico</span>
+        LogiSur tiene <strong>3 fábricas clientes</strong> con demandas distintas cada semana. La misma red \(A\) atiende a las tres.
+        <ul>
+          <li><strong>Fabrica F1:</strong> \(\mathbf{b}_1=(300,200,150)^T\) ton</li>
+          <li><strong>Fabrica F2:</strong> \(\mathbf{b}_2=(450,100,250)^T\) ton</li>
+          <li><strong>Fabrica F3:</strong> \(\mathbf{b}_3=(200,350,100)^T\) ton</li>
+        </ul>
+      </div>
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-equals"></i> Ecuación matricial</span>
+        Agrupar \(\mathbf{b}_j\) como columnas de \(B\):
+        $$ B = \begin{pmatrix}300&450&200\\200&100&350\\150&250&100\end{pmatrix} $$
+        Resolver <strong>simultáneamente</strong>: \(AX = B\)<br>
+        La solución \(X = [\mathbf{x}_1\;\mathbf{x}_2\;\mathbf{x}_3]\) contiene los tres planes de despacho.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: DEFINICIÓN -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-book-open"></i> Definición formal de \(AX=B\)</h2>
+    <div class="block reveal">Dadas \(A\in\mathbb{R}^{m\times n}\) y \(B\in\mathbb{R}^{m\times k}\), la <strong>ecuación matricial</strong> busca \(X\in\mathbb{R}^{n\times k}\) tal que:
+      \[ A\underbrace{[\mathbf{x}_1\;\mathbf{x}_2\;\cdots\;\mathbf{x}_k]}_{X} = \underbrace{[\mathbf{b}_1\;\mathbf{b}_2\;\cdots\;\mathbf{b}_k]}_{B} \]
+      Equivale a resolver \(k\) sistemas lineales <strong>con la misma \(A\)</strong>:
+      \[ A\mathbf{x}_1=\mathbf{b}_1,\quad A\mathbf{x}_2=\mathbf{b}_2,\quad\ldots,\quad A\mathbf{x}_k=\mathbf{b}_k \]
+    </div>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-microchip"></i> Ventaja computacional</span>
+        En lugar de \(k\) llamadas a <code>A\b</code>, una sola llamada: \(X = A \backslash B\)<br>
+        MATLAB factoriza \(A\) <strong>una sola vez</strong> (factorización LU) y aplica esa factorización a cada columna de \(B\).
+        <em>Ahorro: \((k-1)\) factorizaciones.</em>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-check-to-slot"></i> Condición de existencia</span>
+        El sistema \(AX=B\) tiene solución si y solo si cada columna de \(B\) es compatible con \(A\):
+        \[ \operatorname{rang}(A) = \operatorname{rang}([A|\mathbf{b}_j]) \quad \forall j \]
+        En MATLAB: <code>rank(A) == rank([A B])</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: RESOLUCIÓN MANUAL -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-pen-ruler"></i> Resolución manual de \(AX=B\)</h2>
+    <div class="block reveal"><span class="b-title">Método: Gauss-Jordan sobre la matriz aumentada \([A|B]\)</span>
+      Aplicar las mismas OEF a <strong>toda</strong> la matriz \([A|B]\):
+      \([A|B] \xrightarrow{\text{RREF}} [I|X]\) (si \(A\) es cuadrada e invertible). Si \(A\) es invertible: \(X = A^{-1}B\).
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Ejemplo \(2\times2\) con 2 fábricas</span>
+      \[ A=\begin{pmatrix}2&1\\1&3\end{pmatrix},\quad B=\begin{pmatrix}5&7\\4&2\end{pmatrix} \]
+      \([A|B]=\left(\begin{array}{cc|cc}2&1&5&7\\1&3&4&2\end{array}\right)\)
+      <span class="reveal mt">\(\xrightarrow{F_2-\frac{1}{2}F_1} \left(\begin{array}{cc|cc}2&1&5&7\\0&\frac{5}{2}&\frac{3}{2}&-\frac{3}{2}\end{array}\right)\)</span>
+      <span class="reveal mt">\(\xrightarrow{\text{Normalizar y atrás}} \left(\begin{array}{cc|cc}1&0&\frac{11}{5}&\frac{18}{5}\\0&1&\frac{3}{5}&-\frac{3}{5}\end{array}\right)\)</span>
+      <span class="reveal mt bold">\[ X=\begin{pmatrix}11/5&18/5\\3/5&-3/5\end{pmatrix} \]</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: PROPIEDADES -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-scale-balanced"></i> Propiedades de la ecuación matricial</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title">Propiedades algebraicas</span>
+          <ol>
+            <li><strong>Distributiva:</strong> \(A(X_1+X_2)=AX_1+AX_2\)</li>
+            <li><strong>Escalar:</strong> \(A(cX)=c(AX)\)</li>
+            <li><strong>Asociativa:</strong> \((AB)C=A(BC)\)</li>
+            <li>Si \(A\) invertible: \(X=A^{-1}B\) (solución única)</li>
+            <li><strong>No conmutativa:</strong> \(AX\neq XA\)</li>
+          </ol>
+        </div>
+        <div class="block mt reveal"><span class="b-title">Clasificación (columna a columna)</span>
+          <ul><li>\(\operatorname{rang}(A)=n\) y compatible: \(X\) única.</li><li>\(\operatorname{rang}(A)<n\) y compatible: columnas no únicas.</li><li>Alguna \(\mathbf{b}_j\) incompatible: sin solución exacta.</li></ul>
+        </div>
+      </div>
+      <div>
+        <div class="example-block reveal"><span class="b-title"><i class="fas fa-link"></i> Conexión con la inversa</span>
+          Si \(A\) invertible: \(AX=B \Rightarrow X=A^{-1}B\).<br>
+          Si \(B=I\) (identidad): \(AX=I \Rightarrow X=A^{-1}\).<br>
+          Método para calcular \(A^{-1}\) vía Gauss-Jordan: \([A|I] \to [I|A^{-1}]\). (Clase 11).
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-truck-loading"></i> En logística</span> \(A^{-1}B\) resuelve la distribución para <strong>cualquier</strong> \(\mathbf{b}\) sin factorizar de nuevo: \(\mathbf{x}=A^{-1}\mathbf{b}\).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: CASO LOGÍSTICO COMPLETO -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-industry"></i> Caso logístico completo — tres fábricas</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-sitemap"></i> Situación</span> LogiSur distribuye para 3 fábricas. Cada una tiene demandas semanales en los mismos 3 CDs. La red \(A\) es la misma.</div>
+    <div class="col-layout mt">
+      <div>
+        <div class="example-block reveal"><span class="b-title">Datos</span>
+          <strong>Red \(A\) (\(3\times3\)):</strong> \( A=\begin{pmatrix}0.5&0.3&0.2\\0.3&0.5&0.2\\0.2&0.2&0.6\end{pmatrix} \)
+          <strong>Demandas \(B\) (\(3\times3\)):</strong> \( B=\begin{pmatrix}300&450&200\\200&100&350\\150&250&100\end{pmatrix} \)
+          Columnas de \(B\): demanda de F1, F2, F3.
+        </div>
+        <div class="block mt reveal"><span class="b-title">Sistema a resolver</span> \(AX=B\)<br>\(X\in\mathbb{R}^{3\times3}\): columna \(j\) = plan de despacho para Fábrica \(j\).</div>
+      </div>
+      <div>
+        <div class="network-diag reveal">
+          <div class="nd-col">
+            <div class="nd-node nd-fab">F1</div>
+            <div class="nd-node nd-fab">F2</div>
+            <div class="nd-node nd-fab">F3</div>
+          </div>
+          <div class="nd-arrows">
+            <div class="arrow-line"></div><div class="arrow-line"></div><div class="arrow-line"></div>
+            <div class="arrow-line"></div><div class="arrow-line"></div><div class="arrow-line"></div>
+            <div class="arrow-line"></div><div class="arrow-line"></div><div class="arrow-line"></div>
+          </div>
+          <div class="nd-col">
+            <div class="nd-node nd-cd">CD1</div>
+            <div class="nd-node nd-cd">CD2</div>
+            <div class="nd-node nd-cd">CD3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: MATLAB AX=B -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-laptop-code"></i> Resolución en MATLAB — \texttt{A\textbackslash B}</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% 1. Verificar compatibilidad</span>
+rA  = <span class="mf">rank</span>(A);
+rAB = <span class="mf">rank</span>(<span class="mf">[</span>A B<span class="mf">]</span>);
+<span class="mk">fprintf</span>(<span class="ms">'rang(A)=%d  rang([A|B])=%d\n'</span>, rA, rAB);
+
+<span class="mc">% 2. Resolver todas las fabricas</span>
+X = A <span class="mk">\</span> B;
+<span class="mk">fprintf</span>(<span class="ms">'Plan X (cols=fabricas):\n'</span>); <span class="mk">disp</span>(X);
+
+<span class="mc">% 3. Verificacion: norma de Frobenius</span>
+res = <span class="mf">norm</span>(A*X - B, <span class="ms">'fro'</span>);
+<span class="mk">fprintf</span>(<span class="ms">'Residuo ||AX-B||_F = %.2e\n'</span>, res);
+
+<span class="mc">% 4. Costo por fabrica</span>
+c = <span class="mf">[</span><span class="mn">8</span> <span class="mn">12</span> <span class="mn">15</span><span class="mf">]</span>;
+<span class="mk">for</span> f = <span class="mn">1</span>:<span class="mn">3</span>
+  <span class="mk">fprintf</span>(<span class="ms">'Fabrica F%d: $%.0f\n'</span>, f, c*X(:,f));
+<span class="mk">end</span></pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+          <code>rang(A)=3  rang([A|B])=3</code><br>
+          <code>Residuo ||AX-B||_F = 0.00e+00</code><br>
+          <code>Fabrica F1: $7918</code><br>
+          <code>Fabrica F2: $9764</code><br>
+          <code>Fabrica F3: $10260</code>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Interpretación</span> Cada columna de \(X\) es el plan óptimo para una fábrica. MATLAB los calcula todos en <strong>una sola operación</strong> gracias a la factorización única de \(A\).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: ANÁLISIS POR FÁBRICA -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-chart-pie"></i> Análisis por fábrica — costo y viabilidad</h2>
+    <div class="col-layout">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-table"></i> Tabla de planes y costos</span>
+        <table class="compact"><tr><th>Planta</th><th>F1</th><th>F2</th><th>F3</th></tr><tr><td>P1 (ton)</td><td>324</td><td>698</td><td>155</td></tr><tr><td>P2 (ton)</td><td>229</td><td>47</td><td>480</td></tr><tr><td>P3 (ton)</td><td>102</td><td>180</td><td>71</td></tr><tr style="font-weight:bold;"><td>Total</td><td>655</td><td>925</td><td>706</td></tr><tr style="font-weight:bold;"><td>Costo ($)</td><td>7918</td><td>9764</td><td>10260</td></tr></table>
+        <p style="font-size:0.85rem; margin-top:0.3rem;">Capacidades: P1=800, P2=600, P3=400 ton.</p>
+      </div>
+      <div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-shield-halved"></i> Viabilidad</span>
+          <ul><li>F1: todas dentro de capacidad. \checkmark</li><li>F2: P1 usa 87% capacidad. \checkmark</li><li>F3: P2 usa 80% capacidad. \checkmark</li></ul>
+          <strong>Los tres planes son viables.</strong>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Decisión</span> F2 es la más costosa ($9764). Para reducir costo:
+          <ul><li>Renegociar proporción \(a_{ij}\) a P1.</li><li>Si hay variables libres, usar lazo para transferir carga a P2/P3.</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: VARIACIÓN DEMANDA -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-chart-line"></i> Variación de demanda — escenarios</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-calendar-week"></i> Pregunta de gestión</span> La demanda cambia cada semana. ¿Cómo planificamos sin recalcular la factorización de \(A\)?</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-calendar-days"></i> Múltiples semanas en una operación</span>
+        4 semanas de demanda para F1:
+        \[ B_{\text{F1}} = \begin{pmatrix}300&320&280&350\\200&190&220&180\\150&160&140&170\end{pmatrix} \]
+        Resolver \(A X_{\text{F1}} = B_{\text{F1}}\) \(\Rightarrow\) <code>X_F1 = A \ B_F1</code>.<br>
+        Resultado: \(X_{\text{F1}}\in\mathbb{R}^{3\times4}\). Columna \(t\) = plan semana \(t\).
+      </div>
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-bolt"></i> Ventaja de \(AX=B\)</span> Factorización LU de \(A\) se hace <strong>una vez</strong>.
+          <ul><li>Añadir nueva fábrica: agregar columna a \(B\).</li><li>Nueva semana: agregar columna a \(B\).</li><li>Cambio de demanda: actualizar columna.</li></ul>
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Cuidado</span> Si alguna columna de \(B\) no es compatible, MATLAB da solución de mínimos cuadrados para esa columna. Verificar residuo por columna.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: RELACIÓN CON LA INVERSA -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-right-left"></i> \(AX=B\) y la matriz inversa</h2>
+    <div class="block reveal"><span class="b-title">Caso especial: \(B=I\)</span> Si \(A\) es cuadrada e invertible: \(AX=I \Rightarrow X=A^{-1}\). Calcular \(A^{-1}\) es resolver \(AX=I\) con Gauss-Jordan: \([A|I] \xrightarrow{\text{RREF}} [I|A^{-1}]\).</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-calculator"></i> Por qué \(A^{-1}\) facilita \(AX=B\)</span>
+        Si calculamos \(A^{-1}\) una vez: \(X=A^{-1}B\).<br>
+        Para <strong>cualquier</strong> \(B\) nueva, solo multiplicamos. No resolvemos nuevo sistema.
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-scale-balanced"></i> ¿\(A^{-1}B\) o \(A\backslash B\)?</span>
+          <ul><li><code>inv(A)*B</code>: útil si reutilizas \(A^{-1}\) muchas veces.</li><li><code>A\b</code>: más estable numéricamente y eficiente con pocas columnas.</li><li><strong>Práctica:</strong> siempre usar <code>A\b</code>.</li></ul>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-gavel"></i> Regla práctica</span> <code>A\b</code> es siempre preferido. Usar <code>inv(A)*B</code> solo si necesitas la inversa explícita por otra razón.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: EJERCICIO 1 -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Resolución manual de \(AX=B\)</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Resolver \(AX=B\) con Gauss-Jordan.
+      \[ A=\begin{pmatrix}1&2\\3&7\end{pmatrix},\quad B=\begin{pmatrix}5&1\\11&2\end{pmatrix} \]
+    </p>
+    <div class="example-block mt reveal"><span class="b-title">Resolución</span>
+      \([A|B]=\left(\begin{array}{cc|cc}1&2&5&1\\3&7&11&2\end{array}\right)\)
+      <span class="reveal mt">\(\xrightarrow{F_2-3F_1} \left(\begin{array}{cc|cc}1&2&5&1\\0&1&-4&-1\end{array}\right)\)</span>
+      <span class="reveal mt">\(\xrightarrow{F_1-2F_2} \left(\begin{array}{cc|cc}1&0&13&3\\0&1&-4&-1\end{array}\right)\)</span>
+      <span class="reveal mt bold">\[ X=\begin{pmatrix}13&3\\-4&-1\end{pmatrix} \]</span>
+    </div>
+    <p class="reveal mt italic">Verificación: \(AX=B\) \checkmark. Nota: la segunda columna es \((-1)\) veces la primera. Significa que demanda F2 es opuesta a F1... verificar sentido físico.</p>
+  </div>
+
+  <!-- SLIDE 13: EJERCICIO 2 -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Comparar columna a columna</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Verificar que resolver \(AX=B\) simultáneamente da igual que \(A\mathbf{x}_j=\mathbf{b}_j\) por separado.
+      \[ A=\begin{pmatrix}2&1&0\\1&3&1\\0&1&2\end{pmatrix},\quad B=\begin{pmatrix}4&6\\8&5\\3&7\end{pmatrix} \]
+    </p>
+    <ol class="mt reveal">
+      <li>Resolver \(A\mathbf{x}_1=(4,8,3)^T\) (<code>x1 = A\b1</code>).</li>
+      <li>Resolver \(A\mathbf{x}_2=(6,5,7)^T\) (<code>x2 = A\b2</code>).</li>
+      <li>Resolver \(AX=B\) (<code>X = A\B</code>).</li>
+      <li>Verificar: <code>norm(X - [x1, x2], 'fro')</code> debe ser \(\approx 0\).</li>
+    </ol>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Conclusión</span> \(AX=B\) es equivalente a resolver por separado. Ventaja: <strong>eficiencia</strong> (una sola factorización de \(A\)).</div>
+  </div>
+
+  <!-- SLIDE 14: EJERCICIO 3 -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3 — Decisión: reparto de carga</h2>
+    <div class="alert-block reveal"><span class="b-title"><i class="fas fa-chess"></i> Situación</span> Capacidades \((800,600,400)^T\). Costos \((8,12,15)^T\).
+      <ul><li>F1: costo $7918 | F2: $9764 | F3: $10260</li></ul>
+      F3 requiere mucha P2 ($12/ton) y tiene alto costo.
+    </div>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-code-branch"></i> Análisis con espacio nulo</span>
+        Si \(\operatorname{rang}(A)=3=n\): solución única por fábrica. No hay lazos para optimizar.<br>
+        Para reducir costo de F3 hay que <strong>cambiar la red \(A\)</strong>: negociar fracciones. Ejemplo: si \(a_{23}\) baja de 0.2 a 0.1, el plan cambia.
+      </div>
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-flask"></i> Simulación en MATLAB</span>
+        <ul><li><code>A_new = A; A_new(2,3) = 0.1;</code></li><li><code>X_new = A_new \ B;</code></li><li><code>[8 12 15]*X_new(:,3)</code></li></ul>
+        Si costo F3 baja, la renegociación conviene. \(AX=B\) simula <strong>rápidamente</strong> impacto de cambios en red.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: RESUMEN -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-clipboard-check"></i> Resumen — \(AX=B\) en distribución multi-origen</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido hoy</span>
+        <ul>
+          <li>\(AX=B\) es extensión de \(A\mathbf{x}=\mathbf{b}\) a \(k\) sistemas con misma \(A\).</li>
+          <li>Cada columna de \(X\) = plan de despacho para fábrica/escenario.</li>
+          <li>Resolver con <code>A\b</code>: una sola factorización.</li>
+          <li>Verificar con \(\|AX-B\|_F\) (norma de Frobenius).</li>
+          <li>Si \(A\) invertible: \(X=A^{-1}B\) (anticipo Clase 11).</li>
+          <li>Análisis de viabilidad y costos columna a columna.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-forward-step"></i> Conexión Clase 11</span> Determinante e Inversa:
+          <ul><li>\(\det(A)\neq0 \Leftrightarrow A\) invertible \(\Leftrightarrow AX=B\) solución única.</li><li>\(A^{-1}\) se calcula vía G-J: \([A|I]\to[I|A^{-1}]\).</li><li>\(A^{-1}\) permite análisis de sensibilidad (\(\Delta B \Rightarrow \Delta X\)).</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: TAREA -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 11</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
+      <ol>
+        <li><strong>Lectura:</strong> Lay, Sec. 3.1–3.2: Determinante \(2\times2\) y \(3\times3\). Sec. 2.2: Inversa de matriz.</li>
+        <li><strong>Ejercicios:</strong> Guía Clase 10 (B1–B5, I1–I3).</li>
+        <li><strong>MATLAB:</strong> Ejecutar <code>clase10_datos.m</code> y responder preguntas.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span> Si \(AX=B\) tiene solución única, ¿existe \(A^{-1}\) tal que \(A^{-1}(AX)=X\)? ¿Bajo qué condición existe \(A^{-1}\)? ¿Qué tiene que ver con el determinante?</div>
+  </div>
+
+  <!-- SLIDE 17: CIERRE -->
+  <div class="slide" data-slide="17">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem);">¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 11: Determinante e Inversa — Confiabilidad del Modelo</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-envelope"></i> Contacto</span> <span>consultas@mat2logistica.edu | Aula Virtual</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 18</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

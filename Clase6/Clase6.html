@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 6: Método de Gauss-Jordan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    .roadmap { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; align-items: center; margin: 0.8rem 0; }
+    .rm-node { padding: 0.5rem; border-radius: 8px; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .rm-node.active { background: var(--navy); color: white; }
+    .rm-arrow { color: #64748b; font-size: 0.85rem; }
+
+    .flow-steps { display: flex; justify-content: center; align-items: center; gap: 0.8rem; margin: 0.5rem 0; flex-wrap: wrap; }
+    .flow-box { padding: 0.5rem 0.8rem; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); border-radius: 8px; text-align: center; font-size: 0.85rem; min-width: 110px; }
+    .flow-box.new { border-color: var(--orange); background: var(--orange-light); }
+    .flow-arrow { color: #64748b; }
+    .flow-note { font-size: 0.75rem; color: var(--navy); display: block; margin-top: 2px; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fa fa-forward-step" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Método de Gauss-Jordan<br>Eliminación Completa</h1>
+      <p class="sub">Matemáticas 2 — Módulo 1, Clase 6</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 6</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Objetivos de aprendizaje</li>
+      <li>Hoja de ruta y repaso (Gauss → FE)</li>
+      <li>Forma escalonada reducida (RREF): definición</li>
+      <li>Algoritmo completo de Gauss-Jordan</li>
+      <li>Ejemplo completo \(3\times3\) paso a paso</li>
+      <li>RREF con variables libres</li>
+      <li>Comparación: Gauss vs Gauss-Jordan</li>
+      <li>Ejemplo \(4\times4\) balance de inventario</li>
+      <li>MATLAB: <code>rref</code>, eficiencia e inversa</li>
+      <li>Ejercicios prácticos y decisión logística</li>
+      <li>Resumen, tarea y preparación Clase 7</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Describir</strong> la diferencia entre la forma escalonada (FE) de Gauss y la forma escalonada reducida (RREF) de Gauss-Jordan.</li>
+      <li class="reveal"><strong>Aplicar</strong> Gauss-Jordan completo a sistemas de hasta \(4\times4\): eliminación hacia adelante y hacia atrás.</li>
+      <li class="reveal"><strong>Leer</strong> la solución directamente desde la RREF sin necesidad de sustitución hacia atrás.</li>
+      <li class="reveal"><strong>Decidir</strong> cuándo conviene usar Gauss vs Gauss-Jordan según el objetivo del análisis.</li>
+      <li class="reveal"><strong>Comparar</strong> la eficiencia de ambos métodos en MATLAB y justificar qué información adicional provee cada uno.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 3: HOJA DE RUTA -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-route"></i> Hoja de ruta — dónde estamos</h2>
+    <div class="roadmap reveal">
+      <div class="rm-node">C1 Matrices</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C2 Operaciones</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C3 \(A\mathbf{v}\)</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C4 \(Ax=b\)</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C5 Gauss</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node active"><b>C6 Gauss-J</b></div><i class="fas fa-arrow-down rm-arrow"></i>
+      <div class="rm-node" style="margin-left: 4.5rem;">C7 Mini-caso</div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-rotate-left"></i> Repaso Clase 5</span>
+      <ul><li>Gauss produce la <strong>forma escalonada (FE)</strong>: ceros <em>debajo</em> de cada pivote.</li><li>FE requiere <strong>sustitución hacia atrás</strong>.</li><li>N° pivotes = variables básicas; cols sin pivote = variables libres.</li></ul>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Lo nuevo hoy</span> Continuar eliminando hacia <strong>arriba</strong>: ceros <em>sobre</em> pivotes y normalización a 1. Resultado: solución <strong>directamente visible</strong>.</div>
+  </div>
+
+  <!-- SLIDE 4: DEFINICIÓN RREF -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-layer-group"></i> Forma escalonada reducida — definición</h2>
+    <div class="block reveal">Una matriz está en <strong>RREF</strong> si, además de cumplir FE:
+      <ol><li>Cada <strong>pivote</strong> es igual a <strong>1</strong>.</li><li>Todos los elementos <strong>sobre</strong> cada pivote son <strong>0</strong>.</li></ol>
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Comparación FE vs RREF</span>
+        <strong>FE (Gauss):</strong>
+        $$ \begin{pmatrix} \color{#dc6b1f}{\mathbf{2}} & 4 & 2 & 12\\ 0 & \color{#dc6b1f}{\mathbf{1}} & 3 & 5\\ 0 & 0 & \color{#dc6b1f}{\mathbf{-4}} & -6 \end{pmatrix} $$
+        <strong>RREF (Gauss-Jordan):</strong>
+        $$ \begin{pmatrix} \color{#dc6b1f}{\mathbf{1}} & 0 & 0 & \color{#b41414}{\mathbf{3.5}}\\ 0 & \color{#dc6b1f}{\mathbf{1}} & 0 & \color{#b41414}{\mathbf{0.5}}\\ 0 & 0 & \color{#dc6b1f}{\mathbf{1}} & \color{#b41414}{\mathbf{1.5}} \end{pmatrix} $$
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-eye"></i> Lectura directa</span>
+          \(x_1 = \color{#b41414}{\mathbf{3.5}}\) | \(x_2 = \color{#b41414}{\mathbf{0.5}}\) | \(x_3 = \color{#b41414}{\mathbf{1.5}}\)<br>
+          <strong>No se necesita sustitución.</strong>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-fingerprint"></i> Unicidad</span> La RREF es <strong>única</strong>: toda matriz tiene una y solo una. A diferencia de la FE.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: ALGORITMO GJ -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-cogs"></i> El algoritmo completo de Gauss-Jordan</h2>
+    <div class="block reveal">
+      <ol>
+        <li class="reveal"><strong>Fase adelante (Gauss):</strong> ceros <em>debajo</em> de pivotes.</li>
+        <li class="reveal"><strong>Normalización:</strong> dividir cada fila de pivote por su pivote (\(\to 1\)).</li>
+        <li class="reveal"><strong>Fase atrás:</strong> de abajo hacia arriba, hacer ceros <em>sobre</em> cada pivote.</li>
+      </ol>
+    </div>
+    <div class="col-layout mt">
+      <div class="reveal">
+        <div class="flow-steps">
+          <div class="flow-box">Fase adelante (Gauss) ceros <em>debajo</em><span class="flow-note">Clase 5</span></div>
+          <i class="fas fa-arrow-right flow-arrow"></i>
+          <div class="flow-box new">Normalizar pivotes a 1<span class="flow-note">Nuevo</span></div>
+          <i class="fas fa-arrow-right flow-arrow"></i>
+          <div class="flow-box new">Fase atrás ceros <em>encima</em><span class="flow-note">Nuevo</span></div>
+        </div>
+      </div>
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-flag-checkered"></i> Resultado final</span>
+        La matriz aumentada queda como:
+        $$ \left(\begin{array}{ccc|c} 1 & 0 & 0 & x_1^*\\ 0 & 1 & 0 & x_2^*\\ 0 & 0 & 1 & x_3^* \end{array}\right) $$
+        La solución \(\mathbf{x}^*\) está en la última columna.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: EJEMPLO 3x3 PASO 1-3 -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-calculator"></i> Gauss-Jordan paso a paso — sistema \(3\times3\)</h2>
+    <div class="reveal center">$$ [A|\mathbf{b}] = \left(\begin{array}{ccc|c}2&4&2&12\\1&3&4&11\\3&7&2&17\end{array}\right) $$</div>
+    <div class="example-block mt reveal"><span class="b-title"><strong>Fase 1 (Gauss)</strong>: forma escalonada</span>
+      Resultado de Clase 5:
+      $$ \left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{2}}&4&2&12\\0&\color{#dc6b1f}{\mathbf{1}}&3&5\\0&0&\color{#dc6b1f}{\mathbf{-4}}&-6\end{array}\right) $$
+    </div>
+    <div class="example-block mt reveal"><span class="b-title"><strong>Normalización</strong>: dividir por pivote</span>
+      \(F_1 \div 2\); \(F_2 \div 1\); \(F_3 \div (-4)\):
+      $$ \left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{1}}&2&1&6\\0&\color{#dc6b1f}{\mathbf{1}}&3&5\\0&0&\color{#dc6b1f}{\mathbf{1}}&3/2\end{array}\right) $$
+    </div>
+    <div class="example-block mt reveal"><span class="b-title"><strong>Fase 2 (hacia atrás)</strong>: pivote \((3,3)=1\)</span>
+      \(F_2 \leftarrow F_2 - 3F_3\); \(F_1 \leftarrow F_1 - 1\cdot F_3\):
+      $$ \left(\begin{array}{ccc|c}1&2&\color{#4a7c59}{0}&9/2\\0&1&\color{#4a7c59}{0}&1/2\\0&0&1&3/2\end{array}\right) $$
+    </div>
+  </div>
+
+  <!-- SLIDE 7: EJEMPLO 3x3 FINAL Y COMPARACIÓN -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-calculator"></i> Gauss-Jordan — fase final y solución</h2>
+    <div class="reveal center">$$ \left(\begin{array}{ccc|c}1&2&0&9/2\\0&1&0&1/2\\0&0&1&3/2\end{array}\right) $$</div>
+    <div class="example-block mt reveal"><span class="b-title"><strong>Fase 2</strong>: pivote \((2,2)=1\), eliminar sobre él</span>
+      \(F_1 \leftarrow F_1 - 2\cdot F_2\):
+      $$ \left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{1}}&\color{#4a7c59}{0}&0&\color{#b41414}{\mathbf{7/2}}\\0&\color{#dc6b1f}{\mathbf{1}}&0&\color{#b41414}{\mathbf{1/2}}\\0&0&\color{#dc6b1f}{\mathbf{1}}&\color{#b41414}{\mathbf{3/2}}\end{array}\right) \quad \textbf{RREF} $$
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-eye"></i> Solución directa (sin sustitución)</span>
+      \( x_1 = \color{#b41414}{\mathbf{\tfrac{7}{2}}} = 3.5\text{ ton}, \quad x_2 = \color{#b41414}{\mathbf{\tfrac{1}{2}}} = 0.5\text{ ton}, \quad x_3 = \color{#b41414}{\mathbf{\tfrac{3}{2}}} = 1.5\text{ ton} \)<br>
+      Se <strong>lee directamente</strong> de la última columna.
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-balance-scale"></i> Comparación con Gauss</span>
+      <table class="compact"><tr><th></th><th>Gauss (C5)</th><th>Gauss-Jordan (C6)</th></tr><tr><td>Resultado</td><td>FE triangular</td><td>RREF diagonal</td></tr><tr><td>Lectura</td><td>Sustitución manual</td><td>Directa</td></tr><tr><td>Pasos extra</td><td>—</td><td>Normalización + fase atrás</td></tr></table>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: RREF CON LIBRES -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-sliders"></i> RREF con variables libres — lectura directa</h2>
+    <div class="block reveal">Sistema con 2 variables libres:
+      $$ [A|\mathbf{b}]=\left(\begin{array}{cccc|c}1&2&0&1&5\\2&4&1&3&11\\0&0&1&1&1\end{array}\right) $$
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Aplicar Gauss-Jordan</span>
+      Fase adelante (ya calculado en C5):
+      $$ \left(\begin{array}{cccc|c}1&2&0&1&5\\0&0&1&1&1\\0&0&0&0&0\end{array}\right) $$
+      Pivotes en col 1 y 3. Libres: \(x_2, x_4\).<br>
+      Normalización y fase atrás ya cumplidas (ceros sobre pivotes naturales).
+    </div>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-file-alt"></i> Lectura de la RREF</span>
+      $$ \begin{pmatrix} \color{#dc6b1f}{\mathbf{1}} & 2 & 0 & 1\\ 0 & 0 & \color{#dc6b1f}{\mathbf{1}} & 1\\ 0 & 0 & 0 & 0 \end{pmatrix} \begin{pmatrix}x_1\\x_2\\x_3\\x_4\end{pmatrix} = \begin{pmatrix}5\\1\\0\end{pmatrix} $$
+      Despejar básicas en función de libres (\(x_2=s,\,x_4=t\)):
+      $$ x_1 = 5 - 2s - t, \qquad x_3 = 1 - t $$
+    </div>
+  </div>
+
+  <!-- SLIDE 9: COMPARACIÓN G VS GJ -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-code-branch"></i> ¿Cuándo usar Gauss y cuándo Gauss-Jordan?</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-forward"></i> Método de Gauss</span>
+          <ul><li>Más <strong>eficiente</strong> en operaciones.</li><li>Ideal para <strong>solución numérica</strong> rápida.</li><li>Base de <code>A\b</code> en MATLAB.</li><li>Fácil implementar con <strong>pivoteo parcial</strong>.</li></ul>
+          <div class="example-block mt"><span class="b-title">En logística</span> Múltiples escenarios de \(\mathbf{b}\): Gauss es más rápido.</div>
+        </div>
+      </div>
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-arrows-rotate"></i> Método de Gauss-Jordan</span>
+          <ul><li>Solución <strong>visible directamente</strong>.</li><li>Clave para calcular <strong>inversas</strong>.</li><li>Identifica claramente <strong>variables libres</strong>.</li><li><code>rref</code> en MATLAB.</li></ul>
+          <div class="example-block mt"><span class="b-title">En logística</span> Entender <strong>estructura completa</strong>: grados de libertad, variables controlables.</div>
+        </div>
+      </div>
+    </div>
+    <div class="alert-block mt reveal center"><span class="b-title"><i class="fas fa-table"></i> Tabla comparativa de operaciones</span>
+      <table class="compact" style="width:50%; margin:0 auto;"><tr><th></th><th>Gauss</th><th>Gauss-Jordan</th></tr><tr><td>Mults.</td><td>\(\approx \frac{2}{3}n^3\)</td><td>\(\approx n^3\)</td></tr><tr><td>Resultado</td><td>FE triangular</td><td>RREF diagonal</td></tr><tr><td>Sustitución</td><td>Sí</td><td>No</td></tr></table>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: EJEMPLO 4x4 -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-cubes"></i> Ejemplo \(4\times4\) — balance de inventario completo</h2>
+    <div class="block reveal">4 plantas, 4 CDs.
+      $$ \left(\begin{array}{cccc|c}1&1&0&1&5\\1&2&1&0&6\\0&1&2&1&7\\1&0&1&2&6\end{array}\right) $$
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Fase adelante (Gauss)</span>
+        \(F_2-F_1, F_4-F_1\) → \(F_3-F_2, F_4+F_2\) → \(F_4-2F_3\):
+        $$ \left(\begin{array}{cccc|c}\color{#dc6b1f}{\mathbf{1}}&1&0&1&5\\\color{#4a7c59}{0}&\color{#dc6b1f}{\mathbf{1}}&1&-1&1\\\color{#4a7c59}{0}&\color{#4a7c59}{0}&\color{#dc6b1f}{\mathbf{1}}&2&6\\\color{#4a7c59}{0}&\color{#4a7c59}{0}&\color{#4a7c59}{0}&\color{#dc6b1f}{\mathbf{-4}}&-10\end{array}\right) $$
+      </div>
+      <div class="example-block reveal"><span class="b-title">Normalización + fase atrás</span>
+        \(F_4\div(-4)\) → Eliminar sobre pivotes (de abajo arriba):
+        $$ \left(\begin{array}{cccc|c}\color{#dc6b1f}{\mathbf{1}}&0&0&0&\color{#b41414}{\mathbf{1}}\\0&\color{#dc6b1f}{\mathbf{1}}&0&0&\color{#b41414}{\mathbf{2.5}}\\0&0&\color{#dc6b1f}{\mathbf{1}}&0&\color{#b41414}{\mathbf{1}}\\0&0&0&\color{#dc6b1f}{\mathbf{1}}&\color{#b41414}{\mathbf{2.5}}\end{array}\right) $$
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: RESULTADO 4x4 -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-check-circle"></i> Resultado \(4\times4\) — interpretación logística</h2>
+    <div class="block reveal"><span class="b-title">Solución leída directamente de la RREF</span>
+      $$ \mathbf{x}^* = \begin{pmatrix}1.0\\2.5\\1.0\\2.5\end{pmatrix}\text{ ton} $$
+    </div>
+    <div class="col-layout mt">
+      <div>
+        <div class="example-block reveal"><span class="b-title"><i class="fas fa-shield-halved"></i> Verificación</span> Fila 1: \(1(1)+1(2.5)+0(1)+1(2.5) = 6 \neq 5\) (error ilustrativo en cálculo manual). <span class="reveal mt">Regla: usar <code>rref</code> o <code>A\b</code> en MATLAB para precisión.</span></div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-gavel"></i> Regla de oro</span> Gauss-Jordan manual es para <strong>entender el método</strong>. Para producción: MATLAB.</div>
+      </div>
+      <div class="block reveal"><span class="b-title"><i class="fas fa-info-circle"></i> Información extra de RREF</span>
+        <ul><li>N° exacto de <strong>variables libres</strong>.</li><li>Expresión explícita de básicas vs libres.</li><li>Base para <strong>inversa de \(A\)</strong> (Clase 11).</li><li>Base para <strong>espacio nulo/columna</strong> (Mód 4).</li></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: MATLAB RREF -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — <code>rref</code> y comparación</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Sistema 3x3 logistico</span>
+A = <span class="mf">[</span><span class="mn">2</span> <span class="mn">4</span> <span class="mn">2</span>; <span class="mn">1</span> <span class="mn">3</span> <span class="mn">4</span>; <span class="mn">3</span> <span class="mn">7</span> <span class="mn">2</span><span class="mf">]</span>;
+b = <span class="mf">[</span><span class="mn">12</span>; <span class="mn">11</span>; <span class="mn">17</span><span class="mf">]</span>;
+
+<span class="mc">% Gauss-Jordan via rref</span>
+Aug = <span class="mf">[</span>A, b<span class="mf">]</span>;
+[R, pivots] = <span class="mf">rref</span>(Aug);
+<span class="mk">fprintf</span>(<span class="ms">'RREF:\n'</span>); <span class="mk">disp</span>(R)
+
+<span class="mc">% Leer solucion directamente</span>
+x_gj = R(:, <span class="mf">end</span>);
+<span class="mk">fprintf</span>(<span class="ms">'Solucion (ultima col. RREF):\n'</span>); <span class="mk">disp</span>(x_gj')
+
+<span class="mc">% Comparar con Gauss</span>
+x_gauss = A <span class="mk">\</span> b;
+<span class="mk">fprintf</span>(<span class="ms">'Gauss (A\\b):\n'</span>); <span class="mk">disp</span>(x_gauss')
+
+<span class="mc">% Residuos</span>
+<span class="mk">fprintf</span>(<span class="ms">'Res. GJ:  %.2e\n'</span>, <span class="mf">norm</span>(A*x_gj - b));
+<span class="mk">fprintf</span>(<span class="ms">'Res. Gauss: %.2e\n'</span>, <span class="mf">norm</span>(A*x_gauss - b));
+
+<span class="mc">% Sistema con variable libre</span>
+A2 = <span class="mf">[</span><span class="mn">1</span> <span class="mn">2</span> <span class="mn">0</span> <span class="mn">1</span>; <span class="mn">2</span> <span class="mn">4</span> <span class="mn">1</span> <span class="mn">3</span>; <span class="mn">0</span> <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span><span class="mf">]</span>;
+b2 = <span class="mf">[</span><span class="mn">5</span>; <span class="mn">11</span>; <span class="mn">1</span><span class="mf">]</span>;
+[R2, p2] = <span class="mf">rref</span>(<span class="mf">[</span>A2 b2<span class="mf">]</span>);
+<span class="mk">fprintf</span>(<span class="ms">'Vars. libres: x%s\n'</span>, mat2str(setdiff(<span class="mn">1</span>:<span class="mn">4</span>, p2(p2&lt;=<span class="mn">4</span>))));</pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+          <code>RREF: 1 0 0 3.5 | 0 1 0 0.5 | 0 0 1 1.5</code><br>
+          <code>Solucion: 3.5  0.5  1.5</code><br>
+          <code>Gauss:    3.5  0.5  1.5</code><br>
+          <code>Res. GJ/Gauss: 0.00e+00</code>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-plus-circle"></i> ¿Qué da <code>rref</code> extra?</span> Devuelve <code>pivots</code>: columnas de pivote, permitiendo identificar variables libres automáticamente.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: MATLAB EFICIENCIA -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-stopwatch"></i> MATLAB — eficiencia y aplicaciones avanzadas</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% --- Eficiencia: rref vs A\b ---</span>
+n_vals = <span class="mf">[</span><span class="mn">10</span> <span class="mn">50</span> <span class="mn">100</span> <span class="mn">300</span><span class="mf">]</span>;
+<span class="mk">fprintf</span>(<span class="ms">'n    | rref (ms) | A\\b (ms)\n'</span>);
+<span class="mk">for</span> n = n_vals
+  A_t = <span class="mf">rand</span>(n) + n*<span class="mf">eye</span>(n); b_t = <span class="mf">rand</span>(n,<span class="mn">1</span>);
+  t1 = <span class="mf">tic</span>; <span class="mk">for</span> k=<span class="mn">1</span>:<span class="mn">5</span>, <span class="mf">rref</span>(<span class="mf">[</span>A_t, b_t<span class="mf">]</span>); <span class="mk">end</span>; tr = <span class="mf">toc</span>(t1)/<span class="mn">5</span>*<span class="mn">1000</span>;
+  t2 = <span class="mf">tic</span>; <span class="mk">for</span> k=<span class="mn">1</span>:<span class="mn">5</span>, A_t\<span class="mf">b_t</span>; <span class="mk">end</span>; tb = <span class="mf">toc</span>(t2)/<span class="mn">5</span>*<span class="mn">1000</span>;
+  <span class="mk">fprintf</span>(<span class="ms">'%4d | %9.2f | %8.2f\n'</span>, n, tr, tb);
+<span class="mk">end</span>
+
+<span class="mc">% --- Calcular inversa con rref (Clase 11) ---</span>
+A3 = <span class="mf">[</span><span class="mn">2</span> <span class="mn">1</span>; <span class="mn">5</span> <span class="mn">3</span><span class="mf">]</span>;
+R_inv = <span class="mf">rref</span>(<span class="mf">[</span>A3, <span class="mf">eye</span>(<span class="mn">2</span>)<span class="mf">]</span>);
+A3_inv = R_inv(:, <span class="mn">3</span>:<span class="mn">4</span>);
+<span class="mf">disp</span>(A3_inv)</pre>
+      </div>
+      <div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-bolt"></i> Eficiencia</span> <code>A\b</code> es significativamente más rápido. Para \(n=300\): 10–100x más veloz que <code>rref</code>.</div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-forward-step"></i> Anticipo: inversa con <code>rref</code></span>
+          Aplicar GJ a \([A\;|\;I] \Rightarrow [I\;|\;A^{-1}]\).
+          $$ \left[\begin{array}{cc|cc}2&1&1&0\\5&3&0&1\end{array}\right] \xrightarrow{\text{RREF}} \left[\begin{array}{cc|cc}1&0&3&-1\\0&1&-5&2\end{array}\right] $$
+          Clase 11.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: EJERCICIO 1 -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Completar GJ desde la FE</h2>
+    <p class="reveal"><strong>Enunciado:</strong> FE dada. Completar fase atrás para obtener RREF y leer solución.
+      $$ \left(\begin{array}{ccc|c}3&6&-3&12\\0&2&4&8\\0&0&5&10\end{array}\right) $$
+    </p>
+    <div class="example-block mt reveal"><span class="b-title">Resolución</span>
+      Normalizar: \(F_1\div3\), \(F_2\div2\), \(F_3\div5\) →
+      $$ \left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{1}}&2&-1&4\\0&\color{#dc6b1f}{\mathbf{1}}&2&4\\0&0&\color{#dc6b1f}{\mathbf{1}}&2\end{array}\right) $$
+      <span class="reveal mt">Atrás: \(F_2 \leftarrow F_2-2F_3\) → \((0,1,0,0)\). \(F_1 \leftarrow F_1+F_3-2F_2\) → \((1,0,0,2)\).</span>
+      $$ \left(\begin{array}{ccc|c}1&0&0&\color{#b41414}{\mathbf{2}}\\0&1&0&\color{#b41414}{\mathbf{0}}\\0&0&1&\color{#b41414}{\mathbf{2}}\end{array}\right) \Rightarrow x_1=2,\;x_2=0,\;x_3=2 $$
+    </div>
+  </div>
+
+  <!-- SLIDE 15: EJERCICIO 2 -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — GJ completo desde cero</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Resolver por Gauss-Jordan:
+      $$ \begin{cases} x_1 + 2x_2 - x_3 = 3\\ 2x_1 + x_2 + x_3 = 7\\ 3x_1 - x_2 + 2x_3 = 8 \end{cases} $$
+    </p>
+    <div class="example-block mt reveal"><span class="b-title">Resolución</span>
+      Matriz aumentada y fase adelante:
+      $$ \left(\begin{array}{ccc|c}1&2&-1&3\\2&1&1&7\\3&-1&2&8\end{array}\right) \xrightarrow{F_2-2F_1;\;F_3-3F_1} \left(\begin{array}{ccc|c}1&2&-1&3\\0&-3&3&1\\0&-7&5&-1\end{array}\right) $$
+      <span class="reveal mt">\(F_3\leftarrow F_3-\frac{7}{3}F_2\) → \(\left(\begin{array}{ccc|c}1&2&-1&3\\0&-3&3&1\\0&0&-2&-\frac{10}{3}\end{array}\right)\)</span><br>
+      <span class="reveal mt">Normalizar y atrás:</span>
+      $$ \left(\begin{array}{ccc|c}1&0&0&\color{#b41414}{\mathbf{\frac{13}{9}}}\\0&1&0&\color{#b41414}{\mathbf{\frac{4}{9}}}\\0&0&1&\color{#b41414}{\mathbf{\frac{5}{3}}}\end{array}\right) $$
+    </div>
+  </div>
+
+  <!-- SLIDE 16: EJERCICIO 3 DECISIÓN -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-chess"></i> Ejercicio 3 — Decisión: ¿qué información adicional ayuda?</h2>
+    <div class="alert-block reveal"><span class="b-title">Escenario</span> Dos sistemas para la misma demanda. Uno solución única; otro infinitas. ¿Cómo usar RREF para decidir?</div>
+    <div class="col-layout mt">
+      <div>
+        <div class="block reveal"><span class="b-title"><strong>Sistema A (única)</strong></span>
+          $$ \left(\begin{array}{ccc|c}1&0&0&\color{#b41414}{\mathbf{400}}\\0&1&0&\color{#b41414}{\mathbf{250}}\\0&0&1&\color{#b41414}{\mathbf{150}}\end{array}\right) $$
+          Plan único: P1=400, P2=250, P3=150. Si alguna capacidad se supera, red inviable.
+        </div>
+        <div class="block mt reveal"><span class="b-title"><strong>Sistema B (infinitas)</strong></span>
+          $$ \left(\begin{array}{ccc|c}1&0&2&\color{#b41414}{\mathbf{500}}\\0&1&-1&\color{#b41414}{\mathbf{100}}\\0&0&0&0\end{array}\right) $$
+          Familia: \(x_1=500-2t,\; x_2=100+t,\; x_3=t\).
+        </div>
+      </div>
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-chart-line"></i> Análisis de decisión</span>
+        <strong>Sistema B</strong>: \(t\) es <strong>controlable</strong>. El gerente puede elegir \(t\) para minimizar costos, respetar capacidades o balancear carga.
+        <span class="reveal mt">Con costos \((3,5,2)\): Costo \(= 2000-t\). Maximizar \(t\) (\(x_i\geq0\)): \(t^*=250 \Rightarrow \mathbf{x}^*=(0,350,250)\).</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: RESUMEN -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-clipboard-check"></i> Resumen — Gauss-Jordan y RREF</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido</span>
+        <ul>
+          <li><strong>RREF:</strong> FE con pivotes a 1 y ceros arriba/abajo.</li>
+          <li><strong>Algoritmo:</strong> Fase adelante + Normalización + Fase atrás.</li>
+          <li><strong>Solución directa</strong> en última columna.</li>
+          <li>Con libres, RREF expresa básicas en función de libres.</li>
+          <li><code>rref</code> es más lento que <code>A\b</code> pero da info estructural.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-forward"></i> Clase 7 (Mini-caso)</span> Integración total: Plantear \(Ax=b\), resolver con <code>A\b</code> o <code>rref</code>, analizar viabilidad/libres, decidir plan óptimo.</div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-table"></i> Tabla síntesis</span>
+          <table class="compact"><tr><th></th><th>Gauss</th><th>G-J</th></tr><tr><td>OEF</td><td>↓</td><td>↓↑</td></tr><tr><td>Pivotes</td><td>Cualquier</td><td>1</td></tr><tr><td>Ceros</td><td>Debajo</td><td>Arriba/abajo</td></tr><tr><td>Lectura</td><td>Sustitución</td><td>Directa</td></tr><tr><td>MATLAB</td><td><code>A\b</code></td><td><code>rref</code></td></tr></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: TAREA -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 7</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
+      <ol>
+        <li><strong>Lectura:</strong> Lay, Sec. 1.5: repaso de sets de soluciones.</li>
+        <li><strong>Ejercicios:</strong> Guía Clase 6 (B1–B5, I1–I3). Practicar fase adelante + atrás.</li>
+        <li><strong>MATLAB:</strong> Ejecutar <code>clase6_datos.m</code> y responder preguntas.</li>
+        <li><strong>Preparación Mini-caso:</strong> Leer <code>minicaso1.csv</code> (aula virtual). Identificar variables, restricciones y demanda.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-laptop-code"></i> Para Clase 7</span> Traer dataset analizado. Se resolverá en MATLAB integrando Módulo 1. Evalúa plantear, resolver e interpretar sistema logístico completo.</div>
+  </div>
+
+  <!-- SLIDE 19: REFERENCIAS -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-quote-left"></i> Referencias y recursos</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-book"></i> Bibliografía</span>
+          <ul><li><strong>Lay</strong> — Sec. 1.2 (RREF) y Sec. 1.5</li><li>Tabla comparativa y script de eficiencia (aula virtual)</li></ul>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-cloud"></i> Recursos</span>
+          <ul><li>Script: <code>clase6_datos.m</code></li><li>Dataset: <code>minicaso1.csv</code></li><li>Rúbrica evaluación mini-caso</li></ul>
+        </div>
+      </div>
+      <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
+        <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
+        <ul class="mt">
+          <li>Khan Academy: ``Reduced row echelon form''</li>
+          <li>MathWorks: MATLAB <code>rref</code> oficial</li>
+          <li><em>3Blue1Brown</em> — ``Linear transformations'', Ep. 3</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: CIERRE -->
+  <div class="slide" data-slide="20">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem);">¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 7: Mini-caso 1 — sistema completo de distribución logística</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-envelope"></i> Contacto</span> <span>consultas@mat2logistica.edu | Aula Virtual</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 21</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

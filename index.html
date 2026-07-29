@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Álgebra Lineal Aplicada a Logística | Índice de Clases</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --azul-marino: #005293;
+            --azul-oscuro: #003d6e;
+            --azul-claro: #e8f1fa;
+            --verde: #008250;
+            --verde-claro: #e6f4ee;
+            --naranja: #dc6b1f;
+            --naranja-claro: #fef0e6;
+            --gris-texto: #2c3e50;
+            --gris-claro: #f5f7fa;
+            --sombra: 0 4px 20px rgba(0, 82, 147, 0.1);
+            --sombra-hover: 0 8px 30px rgba(0, 82, 147, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8f1fa 50%, #e6f4ee 100%);
+            background-attachment: fixed;
+            color: var(--gris-texto);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        .hero {
+            background: linear-gradient(135deg, var(--azul-marino) 0%, var(--azul-oscuro) 100%);
+            color: white;
+            padding: 3rem 2rem 4rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(220, 107, 31, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -5%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(0, 130, 80, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .hero h1 {
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 .accent {
+            color: var(--naranja);
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 300;
+            opacity: 0.9;
+            max-width: 700px;
+            margin-bottom: 2rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .stat-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-info .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: block;
+            line-height: 1;
+        }
+
+        .stat-info .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* NAVEGACIÓN DE MÓDULOS */
+        .module-nav {
+            max-width: 1200px;
+            margin: -2rem auto 2rem;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .module-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.8rem;
+            border-radius: 16px;
+            box-shadow: var(--sombra);
+        }
+
+        .filter-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 0.8rem 1.2rem;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--gris-texto);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .filter-btn:hover {
+            background: var(--gris-claro);
+        }
+
+        .filter-btn.active {
+            background: var(--azul-marino);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 82, 147, 0.3);
+        }
+
+        .filter-btn .count {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 0.1rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .filter-btn.active .count {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* CONTENIDO PRINCIPAL */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem 4rem;
+        }
+
+        .module-section {
+            margin-bottom: 3rem;
+        }
+
+        .module-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(0, 82, 147, 0.1);
+        }
+
+        .module-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .module-1 .module-icon { background: linear-gradient(135deg, var(--azul-marino), var(--azul-oscuro)); }
+        .module-2 .module-icon { background: linear-gradient(135deg, var(--verde), #006b42); }
+        .module-3 .module-icon { background: linear-gradient(135deg, var(--naranja), #b8551a); }
+        .module-4 .module-icon { background: linear-gradient(135deg, #6c3483, #512e5f); }
+        .module-5 .module-icon { background: linear-gradient(135deg, #1a5276, #154360); }
+        .module-6 .module-icon { background: linear-gradient(135deg, #7f8c8d, #5d6d7e); }
+
+        .module-title {
+            flex: 1;
+        }
+
+        .module-title h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--azul-marino);
+            margin-bottom: 0.2rem;
+        }
+
+        .module-title p {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 400;
+        }
+
+        /* GRID DE CLASES */
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .class-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--sombra);
+            border-left: 4px solid var(--azul-marino);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .class-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(0, 82, 147, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+
+        .class-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--sombra-hover);
+        }
+
+        .module-1 .class-card { border-left-color: var(--azul-marino); }
+        .module-2 .class-card { border-left-color: var(--verde); }
+        .module-3 .class-card { border-left-color: var(--naranja); }
+        .module-4 .class-card { border-left-color: #6c3483; }
+        .module-5 .class-card { border-left-color: #1a5276; }
+        .module-6 .class-card { border-left-color: #7f8c8d; }
+
+        .class-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .class-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .module-1 .class-number { background: var(--azul-marino); }
+        .module-2 .class-number { background: var(--verde); }
+        .module-3 .class-number { background: var(--naranja); }
+        .module-4 .class-number { background: #6c3483; }
+        .module-5 .class-number { background: #1a5276; }
+        .module-6 .class-number { background: #7f8c8d; }
+
+        .class-icon {
+            font-size: 1.5rem;
+            color: var(--azul-marino);
+            opacity: 0.6;
+        }
+
+        .module-1 .class-icon { color: var(--azul-marino); }
+        .module-2 .class-icon { color: var(--verde); }
+        .module-3 .class-icon { color: var(--naranja); }
+        .module-4 .class-icon { color: #6c3483; }
+        .module-5 .class-icon { color: #1a5276; }
+        .module-6 .class-icon { color: #7f8c8d; }
+
+        .class-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--azul-marino);
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .class-description {
+            font-size: 0.88rem;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .class-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .meta-tag {
+            font-size: 0.72rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .tag-teoria { background: var(--azul-claro); color: var(--azul-marino); }
+        .tag-practica { background: var(--verde-claro); color: var(--verde); }
+        .tag-aplicacion { background: var(--naranja-claro); color: var(--naranja); }
+        .tag-evaluacion { background: #fde8e8; color: #c0392b; }
+
+        .class-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 0.8rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .class-link {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--azul-marino);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: gap 0.3s ease;
+        }
+
+        .class-card:hover .class-link {
+            gap: 0.7rem;
+        }
+
+        .class-duration {
+            font-size: 0.75rem;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: var(--azul-oscuro);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .footer-icons a {
+            color: white;
+            opacity: 0.6;
+            font-size: 1.2rem;
+            transition: opacity 0.3s;
+        }
+
+        .footer-icons a:hover {
+            opacity: 1;
+        }
+
+        /* ANIMACIONES */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .class-card {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        .class-card:nth-child(1) { animation-delay: 0.05s; }
+        .class-card:nth-child(2) { animation-delay: 0.1s; }
+        .class-card:nth-child(3) { animation-delay: 0.15s; }
+        .class-card:nth-child(4) { animation-delay: 0.2s; }
+        .class-card:nth-child(5) { animation-delay: 0.25s; }
+        .class-card:nth-child(6) { animation-delay: 0.3s; }
+        .class-card:nth-child(7) { animation-delay: 0.35s; }
+        .class-card:nth-child(8) { animation-delay: 0.4s; }
+        .class-card:nth-child(9) { animation-delay: 0.45s; }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 2rem 1.5rem 3rem;
+            }
+
+            .hero-stats {
+                gap: 1rem;
+            }
+
+            .module-nav {
+                padding: 0 1rem;
+            }
+
+            .main-content {
+                padding: 0 1rem 3rem;
+            }
+
+            .classes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-btn {
+                min-width: 120px;
+                font-size: 0.8rem;
+                padding: 0.6rem 0.8rem;
+            }
+
+            .module-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 1.6rem;
+            }
+
+            .stat-item {
+                flex: 1;
+                min-width: 100px;
+            }
+        }
+
+        /* SCROLL TO TOP */
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: var(--azul-marino);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0, 82, 147, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            background: var(--azul-oscuro);
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HERO SECTION -->
+    <header class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Código: ILOG-MAT2</span>
+            </div>
+            <h1>Matemáticas 2 <span class="accent">Aplicada a Logística</span></h1>
+            <p class="hero-subtitle">
+                Índice interactivo de las 32 clases del curso. Cada sesión combina teoría matemática, 
+                práctica en MATLAB y aplicaciones reales en cadenas de suministro.
+            </p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number">32</span>
+                        <span class="stat-label">Clases</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number">5</span>
+                        <span class="stat-label">Módulos</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number">96h</span>
+                        <span class="stat-label">Total</span>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number">MATLAB</span>
+                        <span class="stat-label">Software</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVEGACIÓN DE MÓDULOS -->
+    <nav class="module-nav">
+        <div class="module-filters">
+            <button class="filter-btn active" data-module="all">
+                <i class="fas fa-th-large"></i>
+                Todas
+                <span class="count">32</span>
+            </button>
+            <button class="filter-btn" data-module="1">
+                <i class="fas fa-table"></i>
+                Módulo 1
+                <span class="count">9</span>
+            </button>
+            <button class="filter-btn" data-module="2">
+                <i class="fas fa-vector-square"></i>
+                Módulo 2
+                <span class="count">5</span>
+            </button>
+            <button class="filter-btn" data-module="3">
+                <i class="fas fa-chart-line"></i>
+                Módulo 3
+                <span class="count">7</span>
+            </button>
+            <button class="filter-btn" data-module="4">
+                <i class="fas fa-project-diagram"></i>
+                Módulo 4
+                <span class="count">6</span>
+            </button>
+            <button class="filter-btn" data-module="5">
+                <i class="fas fa-rocket"></i>
+                Módulo 5
+                <span class="count">3</span>
+            </button>
+            <button class="filter-btn" data-module="6">
+                <i class="fas fa-clipboard-check"></i>
+                Cierre
+                <span class="count">2</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+
+        <!-- MÓDULO 1 -->
+        <section class="module-section module-1" data-module="1">
+            <div class="module-header">
+                <div class="module-icon">
+                    <i class="fas fa-table"></i>
+                </div>
+                <div class="module-title">
+                    <h2>Módulo 1 · Matrices y Resolución de Sistemas</h2>
+                    <p>Clases 1 a 9 · Fundamentos matriciales aplicados a redes logísticas</p>
+                </div>
+            </div>
+            <div class="classes-grid">
+                <a href="Clase1/Clase1.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">1</div>
+                        <i class="fas fa-th class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Matrices: definición, tipos y notación</h3>
+                    <p class="class-description">
+                        Introducción a matrices diagonales, triangulares y dispersas. Identificación de estructuras matriciales en datos logísticos reales.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase2/Clase2.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">2</div>
+                        <i class="fas fa-calculator class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Operaciones básicas con matrices</h3>
+                    <p class="class-description">
+                        Suma, resta, multiplicación escalar y matricial. Aplicación a matrices origen-destino multiplicadas por tarifas de transporte.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-truck"></i> Logística</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase3/Clase3.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">3</div>
+                        <i class="fas fa-times class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Multiplicación matriz-vector y sistemas \(Ax=b\)</h3>
+                    <p class="class-description">
+                        Modelado de sistemas lineales para balance de inventario: stock = demanda − despacho. Resolución con el operador <code>A\b</code> en MATLAB.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase4/Clase4.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">4</div>
+                        <i class="fas fa-network-wired class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Método de Gauss: eliminación hacia adelante</h3>
+                    <p class="class-description">
+                        Implementación manual paso a paso del método de Gauss aplicado a redes de flujo en 3 centros logísticos.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-warehouse"></i> Redes</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase5/Clase5.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">5</div>
+                        <i class="fas fa-equals class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Gauss-Jordan: eliminación completa</h3>
+                    <p class="class-description">
+                        Comparación Gauss vs Gauss-Jordan en MATLAB. Determinación de costos unitarios ocultos en cadenas de suministro.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-dollar-sign"></i> Costos</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase6/Clase6.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">6</div>
+                        <i class="fas fa-sort-numeric-up class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Rango de una matriz y clasificación de sistemas</h3>
+                    <p class="class-description">
+                        Cálculo de rank para detectar rutas redundantes en redes de transporte. Sistemas compatibles e incompatibles.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase7/Clase7.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">7</div>
+                        <i class="fas fa-boxes class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Ecuaciones matriciales \(AX=B\) y \(XA=B\)</h3>
+                    <p class="class-description">
+                        Resolución de distribución de productos: matriz de flujos desde 3 fábricas a 4 almacenes usando <code>A\B</code> y <code>B/A</code>.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-dolly"></i> Distribución</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase8/Clase8.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">8</div>
+                        <i class="fas fa-infinity class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Sistemas homogéneos y no homogéneos</h3>
+                    <p class="class-description">
+                        Análisis de inventario: ¿puede haber múltiples configuraciones con el mismo costo? Soluciones paramétricas básicas.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-warehouse"></i> Inventario</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase9/Clase9.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">9</div>
+                        <i class="fas fa-key class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Determinante e inversa de matrices</h3>
+                    <p class="class-description">
+                        Repaso conceptual de <code>det</code> e <code>inv</code> en MATLAB. Cuándo NO usarlos por estabilidad numérica. Verificación de solución única de costos.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- MÓDULO 2 -->
+        <section class="module-section module-2" data-module="2">
+            <div class="module-header">
+                <div class="module-icon">
+                    <i class="fas fa-vector-square"></i>
+                </div>
+                <div class="module-title">
+                    <h2>Módulo 2 · Vectores y Espacios Vectoriales</h2>
+                    <p>Clases 10 a 14 · Profundización moderada con aplicaciones logísticas</p>
+                </div>
+            </div>
+            <div class="classes-grid">
+                <a href="Clase10/Clase10.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">10</div>
+                        <i class="fas fa-arrows-alt class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Vectores en \(\mathbb{R}^n\) y combinación lineal</h3>
+                    <p class="class-description">
+                        Dependencia e independencia lineal. ¿Son independientes las rutas de 3 proveedores? Verificación con <code>rank</code>.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-truck"></i> Rutas</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase11/Clase11.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">11</div>
+                        <i class="fas fa-shapes class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Espacio vectorial: definición y axiomas</h3>
+                    <p class="class-description">
+                        Los 8 axiomas (mencionados sin demostrar). Ejemplos: \(\mathbb{R}^n\), matrices, polinomios. ¿El conjunto de vectores de despacho factibles es espacio vectorial?
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase12/Clase12.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">12</div>
+                        <i class="fas fa-layer-group class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Subespacios vectoriales</h3>
+                    <p class="class-description">
+                        Condición necesaria y suficiente. Subespacio de rutas que pasan por un centro logístico específico.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-map-marker-alt"></i> Centros</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase13/Clase13.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">13</div>
+                        <i class="fas fa-cube class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Base y dimensión de un espacio</h3>
+                    <p class="class-description">
+                        Bases sencillas en 2D y 3D con <code>rref</code> en MATLAB. Dimensión del espacio de políticas de inventario posibles.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase14/Clase14.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">14</div>
+                        <i class="fas fa-compass class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Coordenadas y cambio de base</h3>
+                    <p class="class-description">
+                        Expresar una ruta en diferentes sistemas de referencia logísticos. Cálculo de coordenadas con sistemas lineales.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-route"></i> Referencias</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- MÓDULO 3 -->
+        <section class="module-section module-3" data-module="3">
+            <div class="module-header">
+                <div class="module-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="module-title">
+                    <h2>Módulo 3 · Regresión Lineal, Cuadrática y Error</h2>
+                    <p>Clases 15 a 21 · Modelado predictivo para pronósticos logísticos</p>
+                </div>
+            </div>
+            <div class="classes-grid">
+                <a href="Clase15/Clase15.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">15</div>
+                        <i class="fas fa-chart-line class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Regresión lineal simple</h3>
+                    <p class="class-description">
+                        Ecuación normal con derivación matricial conceptual. Predicción de tiempo de entrega vs distancia con <code>polyfit(x,y,1)</code>.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase16/Clase16.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">16</div>
+                        <i class="fas fa-clipboard-check class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Evaluación Parcial 1</h3>
+                    <p class="class-description">
+                        Evaluación integral: matrices, Gauss, Gauss-Jordan, espacios vectoriales básicos y regresión lineal simple. Caso integrador logístico.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-evaluacion"><i class="fas fa-exclamation-circle"></i> Evaluación</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase17/Clase17.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">17</div>
+                        <i class="fas fa-chart-area class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Regresión lineal múltiple con matrices</h3>
+                    <p class="class-description">
+                        Fórmula matricial \(\beta = (X^TX)^{-1}X^Ty\). Predicción de costo logístico considerando distancia, peso, modo y urgencia.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-dollar-sign"></i> Costos</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase18/Clase18.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">18</div>
+                        <i class="fas fa-percentage class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Interpretación de coeficientes y \(R^2\)</h3>
+                    <p class="class-description">
+                        Coeficientes, \(R^2\) y \(R^2\) ajustado. Identificación de factores que más encarecen el transporte mediante análisis de residuos.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase19/Clase19.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">19</div>
+                        <i class="fas fa-bullseye class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Error cuadrático medio (MSE) y RMSE</h3>
+                    <p class="class-description">
+                        Cálculo de MSE y RMSE para medir la precisión del pronóstico de demanda en sistemas logísticos.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-chart-bar"></i> Demanda</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase20/Clase20.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">20</div>
+                        <i class="fas fa-wave-square class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Regresión cuadrática (polinomial grado 2)</h3>
+                    <p class="class-description">
+                        Modelado de demanda con estacionalidad o saturación usando <code>polyfit</code> grado 2 y visualización de curvas.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase21/Clase21.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">21</div>
+                        <i class="fas fa-balance-scale class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Comparación lineal vs cuadrática</h3>
+                    <p class="class-description">
+                        Sobreajuste y sesgo-varianza. Validación simple dividiendo datos en 70%-30%. Elección de modelo para inventario en temporada alta.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-warehouse"></i> Inventario</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- MÓDULO 4 -->
+        <section class="module-section module-4" data-module="4">
+            <div class="module-header">
+                <div class="module-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <div class="module-title">
+                    <h2>Módulo 4 · Optimización Logística con Matrices</h2>
+                    <p>Clases 22 a 27 · Técnicas avanzadas para sistemas complejos</p>
+                </div>
+            </div>
+            <div class="classes-grid">
+                <a href="Clase22/Clase22.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">22</div>
+                        <i class="fas fa-ruler class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Normas de vectores (L1, L2, L∞)</h3>
+                    <p class="class-description">
+                        Propiedades y cálculo en MATLAB con <code>norm(v,1)</code>, <code>norm(v)</code>, <code>norm(v,inf)</code>. Minimización de error absoluto vs cuadrático en pronósticos.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase23/Clase23.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">23</div>
+                        <i class="fas fa-compress-arrows-alt class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Mínimos cuadrados y sistemas sobredeterminados</h3>
+                    <p class="class-description">
+                        Comparación solución exacta vs mínimos cuadrados. Ajuste oferta-demanda en 10 almacenes con datos ruidosos usando <code>A\b</code>.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-warehouse"></i> Almacenes</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase24/Clase24.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">24</div>
+                        <i class="fas fa-project-diagram class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Matrices de adyacencia y redes logísticas</h3>
+                    <p class="class-description">
+                        Creación de matriz y graficación de red con <code>graph</code> en MATLAB. Representación de red de distribución multimodal.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase25/Clase25.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">25</div>
+                        <i class="fas fa-atom class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Eigenvalores y eigenvectores</h3>
+                    <p class="class-description">
+                        Concepto y relación con estabilidad. Interpretación del mayor eigenvalor con <code>eig</code> en MATLAB. Modos dominantes de fluctuación de inventario.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-chart-line"></i> Estabilidad</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase/Clase26.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">26</div>
+                        <i class="fas fa-cogs class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Factorización LU para sistemas grandes</h3>
+                    <p class="class-description">
+                        Idea de factorización LU para resolver sistemas grandes eficientemente. Uso de <code>lu</code> en MATLAB para redes logísticas con 50+ ecuaciones.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase27/Clase27.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">27</div>
+                        <i class="fas fa-equals class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Ecuaciones matriciales avanzadas: \(AXB=C\)</h3>
+                    <p class="class-description">
+                        Resolución despejando con inversas o usando <code>\</code> y <code>/</code>. Cálculo de matriz de flujos óptimos entre múltiples orígenes y destinos.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-dolly"></i> Flujos</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- MÓDULO 5 -->
+        <section class="module-section module-5" data-module="5">
+            <div class="module-header">
+                <div class="module-icon">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <div class="module-title">
+                    <h2>Módulo 5 · Proyecto Logístico Integrador</h2>
+                    <p>Clases 28 a 30 · Aplicación integral de todos los conceptos</p>
+                </div>
+            </div>
+            <div class="classes-grid">
+                <a href="Clase28/Clase28.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">28</div>
+                        <i class="fas fa-lightbulb class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Planteamiento del problema</h3>
+                    <p class="class-description">
+                        Datos realistas de empresa logística: costos, tiempos, demanda histórica, 5 centros, 8 rutas. Carga de datos desde Excel con <code>readtable</code>.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-briefcase"></i> Caso real</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase29/Clase29.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">29</div>
+                        <i class="fas fa-hammer class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Construcción y resolución</h3>
+                    <p class="class-description">
+                        Matrices de diseño, regresión múltiple y resolución de sistema logístico con Gauss-Jordan simbólico. Cálculo de \(\beta\), MSE y flujos \(AX=B\).
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Teoría</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase/Clase30.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">30</div>
+                        <i class="fas fa-presentation class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Presentación de resultados</h3>
+                    <p class="class-description">
+                        Informe técnico de 1 página + scripts comentados. Gráficos de residuos, mapa de calor de matriz de costos y red logística visualizada.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-aplicacion"><i class="fas fa-chart-pie"></i> Resultados</span>
+                        <span class="meta-tag tag-practica"><i class="fas fa-laptop"></i> MATLAB</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- CIERRE -->
+        <section class="module-section module-6" data-module="6">
+            <div class="module-header">
+                <div class="module-icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <div class="module-title">
+                    <h2>Cierre del Curso · Evaluación Final</h2>
+                    <p>Clases 31 y 32 · Consolidación y evaluación integral</p>
+                </div>
+            </div>
+            <div class="classes-grid">
+                <a href="Clase31/Clase31.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">31</div>
+                        <i class="fas fa-sync-alt class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Repaso general</h3>
+                    <p class="class-description">
+                        Énfasis en Gauss-Jordan, ecuaciones matriciales, bases y regresión. Resolución de dudas y preparación para evaluación final.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-teoria"><i class="fas fa-book"></i> Repaso</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+
+                <a href="Clase32/Clase32.html" class="class-card">
+                    <div class="class-header">
+                        <div class="class-number">32</div>
+                        <i class="fas fa-graduation-cap class-icon"></i>
+                    </div>
+                    <h3 class="class-title">Evaluación Parcial 2</h3>
+                    <p class="class-description">
+                        Evaluación integral: espacios vectoriales base/dimensión, regresión cuadrática, ecuaciones matriciales y caso logístico con MATLAB.
+                    </p>
+                    <div class="class-meta">
+                        <span class="meta-tag tag-evaluacion"><i class="fas fa-exclamation-circle"></i> Evaluación</span>
+                    </div>
+                    <div class="class-footer">
+                        <span class="class-link">Abrir clase <i class="fas fa-arrow-right"></i></span>
+                        <span class="class-duration"><i class="fas fa-clock"></i> 2.5h</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p><strong>Álgebra Lineal Aplicada a Logística</strong> · MAT2</p>
+            <p>Documento académico · Versión 2.0 · Julio 2026</p>
+            <div class="footer-icons">
+                <a href="https://la.mathworks.com/products/matlab.html" title="MATLAB"><i class="fas fa-laptop-code"></i></a>
+                <a href="https://github.com/" title="GitHub"><i class="fab fa-github"></i></a>
+                <a href="mailto:jesus.martinez@utec.edu.uy" title="Correo"><i class="fas fa-envelope"></i></a>
+                <a href="https://ev1.utec.edu.uy/moodle/my/courses.php" title="Moodle"><i class="fas fa-info-circle"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCROLL TO TOP -->
+    <button class="scroll-top" id="scrollTop" title="Volver arriba">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        // FILTRADO POR MÓDULOS
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const moduleSections = document.querySelectorAll('.module-section');
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Actualizar botón activo
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const module = btn.getAttribute('data-module');
+
+                // Mostrar/ocultar secciones
+                moduleSections.forEach(section => {
+                    if (module === 'all' || section.getAttribute('data-module') === module) {
+                        section.style.display = 'block';
+                        section.style.animation = 'fadeInUp 0.5s ease';
+                    } else {
+                        section.style.display = 'none';
+                    }
+                });
+
+                // Scroll suave al contenido
+                if (module !== 'all') {
+                    const targetSection = document.querySelector(`[data-module="${module}"]`);
+                    if (targetSection) {
+                        setTimeout(() => {
+                            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 100);
+                    }
+                }
+            });
+        });
+
+        // SCROLL TO TOP BUTTON
+        const scrollTopBtn = document.getElementById('scrollTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+        });
+
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // ANIMACIÓN DE TARJETAS AL HACER SCROLL
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.class-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(card);
+        });
+
+        // CONTADOR DINÁMICO DE CLASES VISIBLES
+        function updateVisibleCount() {
+            const visibleCards = document.querySelectorAll('.module-section[style*="block"] .class-card, .module-section:not([style]) .class-card');
+            // Este contador se puede usar para mostrar información adicional
+        }
+
+        // TOOLTIP EN TARJETAS
+        document.querySelectorAll('.class-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        console.log('📘 Índice de clases cargado correctamente');
+        console.log('📊 Total de clases: 32');
+        console.log('📦 Módulos: 5 + cierre');
+    </script>
+
+</body>
+</html>

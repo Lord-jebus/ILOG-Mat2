@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 4: Sistemas de Ecuaciones Lineales</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide h3 { font-size: 1.15rem; font-weight: 600; color: var(--navy-dark); margin: 0.8rem 0 0.4rem; }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    .roadmap { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; align-items: center; margin: 0.8rem 0; }
+    .rm-node { padding: 0.6rem; border-radius: 8px; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); font-size: 0.85rem; text-align: center; min-width: 90px; }
+    .rm-node.active { background: var(--navy); color: white; }
+    .rm-arrow { color: #64748b; }
+
+    .flow-diagram { display: flex; justify-content: center; gap: 1.5rem; align-items: center; margin: 1rem 0; }
+    .flow-box { padding: 0.6rem; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); border-radius: 8px; text-align: center; font-size: 0.85rem; max-width: 200px; }
+    .flow-arrow { color: var(--red); font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-table-cells-large" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Sistemas de Ecuaciones Lineales<br>Forma Matricial \(A\mathbf{x}=\mathbf{b}\)</h1>
+      <p class="sub">Matemáticas 2 — Módulo 1, Clase 4</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 4</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Objetivos de aprendizaje</li>
+      <li>Hoja de ruta y problema inverso</li>
+      <li>Del problema logístico a la forma matricial</li>
+      <li>Sistema general y matriz aumentada \([A|\mathbf{b}]\)</li>
+      <li>Resolución manual \(2\times2\) y \(3\times3\)</li>
+      <li>Interpretación como combinación lineal</li>
+      <li>MATLAB: operador <code>A\ b</code> y detección de casos especiales</li>
+      <li>Caso logístico completo y toma de decisiones</li>
+      <li>Ejercicios prácticos y resumen</li>
+      <li>Tarea y preparación Clase 5</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Traducir</strong> un sistema de ecuaciones lineales a la forma matricial \(A\mathbf{x}=\mathbf{b}\) y viceversa.</li>
+      <li class="reveal"><strong>Construir</strong> la matriz aumentada \([A|\mathbf{b}]\) y aplicar operaciones elementales de fila.</li>
+      <li class="reveal"><strong>Resolver</strong> sistemas pequeños (\(2\times2\) y \(3\times3\)) de forma manual usando eliminación.</li>
+      <li class="reveal"><strong>Resolver</strong> sistemas con MATLAB usando el operador <code>A\ b</code>.</li>
+      <li class="reveal"><strong>Interpretar</strong> la solución como plan de distribución para cumplir la demanda de inventario.</li>
+      <li class="reveal"><strong>Decidir</strong> cómo distribuir los envíos para satisfacer la demanda de cada CD.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 3: HOJA DE RUTA -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-route"></i> Hoja de ruta — dónde estamos</h2>
+    <div class="roadmap reveal">
+      <div class="rm-node">Clase 1<br>Estructura</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">Clase 2<br>Operaciones</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">Clase 3<br>\(A\mathbf{v}\)</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node active"><b>Clase 4</b><br>\(A\mathbf{x}=\mathbf{b}\)</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">Clases 5–6<br>Gauss/Jordan</div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-exchange-alt"></i> El problema inverso</span>
+      <div class="flow-diagram">
+        <div class="flow-box">Clase 3: \(\mathbf{x}\) conocido<br>\(A\mathbf{x}=\mathbf{b}\) calculado<br><em>¿cuánto cuesta?</em></div>
+        <i class="fas fa-arrow-right flow-arrow"></i>
+        <div class="flow-box">Clase 4: \(\mathbf{b}\) conocido<br>\(A\mathbf{x}=\mathbf{b}\) a resolver<br><em>¿cuánto enviar?</em></div>
+      </div>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-circle-question"></i> Pregunta clave de hoy</span> Conocemos la demanda de cada CD (\(\mathbf{b}\)) y la red (\(A\)). <strong>¿Cuánto debe enviar cada planta para satisfacer exactamente esa demanda?</strong></div>
+  </div>
+
+  <!-- SLIDE 4: DEL PROBLEMA A LA MATRIZ -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-file-invoice"></i> Del problema logístico al sistema de ecuaciones</h2>
+    <div class="block reveal">Dos plantas (P1: Montevideo, P2: Salto) abastecen dos CDs. Conocemos <strong>fracciones de despacho</strong>. Necesitamos que cada CD reciba exactamente su demanda.</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-database"></i> Datos del problema</span>
+        <ul>
+          <li>\(x_1\) = ton a despachar desde P1</li>
+          <li>\(x_2\) = ton a despachar desde P2</li>
+          <li><strong>CD Norte</strong> necesita 300 ton: \(0.6\,x_1 + 0.4\,x_2 = 300\)</li>
+          <li><strong>CD Sur</strong> necesita 240 ton: \(0.4\,x_1 + 0.6\,x_2 = 240\)</li>
+        </ul>
+      </div>
+      <div class="example-block reveal"><span class="b-title">Forma matricial \(A\mathbf{x}=\mathbf{b}\)</span>
+        $$ \underbrace{\begin{pmatrix}0.6&0.4\\0.4&0.6\end{pmatrix}}_{A} \underbrace{\begin{pmatrix}x_1\\x_2\end{pmatrix}}_{\mathbf{x}} = \underbrace{\begin{pmatrix}300\\240\end{pmatrix}}_{\mathbf{b}} $$
+        <ul style="font-size:0.9rem; margin-top:0.3rem;"><li>\(A\): coeficientes</li><li>\(\mathbf{x}\): incógnitas</li><li>\(\mathbf{b}\): demanda</li></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: SISTEMA GENERAL -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-square-root-variable"></i> Sistema general y forma matricial</h2>
+    <div class="block reveal">Sistema de \(m\) ecuaciones con \(n\) incógnitas:
+      $$ \begin{cases} a_{11}x_1 + \cdots + a_{1n}x_n = b_1 \\ a_{21}x_1 + \cdots + a_{2n}x_n = b_2 \\ \quad\vdots \\ a_{m1}x_1 + \cdots + a_{mn}x_n = b_m \end{cases} $$
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Forma matricial equivalente</span> \(A\mathbf{x} = \mathbf{b}\) donde \(A\in\mathbb{R}^{m\times n}\), \(\mathbf{x}\in\mathbb{R}^n\), \(\mathbf{b}\in\mathbb{R}^m\).<br>Cada ecuación = fila de \(A\). Cada incógnita = columna de \(A\).</div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-list-ol"></i> Tres posibilidades</span>
+        <ol>
+          <li><strong>Solución única:</strong> compatible determinado.</li>
+          <li><strong>Infinitas soluciones:</strong> compatible indeterminado.</li>
+          <li><strong>Sin solución:</strong> incompatible.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: MATRIZ AUMENTADA -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-columns"></i> Matriz aumentada \([A|\mathbf{b}]\)</h2>
+    <div class="block reveal">Adjunta el vector \(\mathbf{b}\) como última columna. Operar sobre filas equivale a combinar ecuaciones.
+      $$ [A|\mathbf{b}] = \left(\begin{array}{ccc|c} a_{11} & \cdots & a_{1n} & b_1 \\ \vdots & \ddots & \vdots & \vdots \\ a_{m1} & \cdots & a_{mn} & b_m \end{array}\right) $$
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Caso logístico</span>
+        $$ \left(\begin{array}{cc|c}0.6&0.4&300\\0.4&0.6&240\end{array}\right) $$
+      </div>
+      <div class="block reveal"><span class="b-title"><i class="fas fa-cogs"></i> Operaciones elementales de fila (OEF)</span>
+        <ol>
+          <li>\(F_i \leftrightarrow F_j\) (intercambio)</li>
+          <li>\(F_i \leftarrow k\,F_i\) (escalar, \(k\neq0\))</li>
+          <li>\(F_i \leftarrow F_i + k\,F_j\) (combinación)</li>
+        </ol>
+        <em>No cambian el conjunto solución.</em>
+      </div>
+    </div>
+  </div>
+
+ <!-- SLIDE 7: RESOLUCIÓN 2x2 -->
+<div class="slide" data-slide="7">
+  <h2><i class="fas fa-calculator"></i> Resolución sistema \(2\times2\) — paso a paso</h2>
+  <div class="reveal center">
+    $$ \left(\begin{array}{cc|c}0.6&0.4&300\\0.4&0.6&240\end{array}\right) $$
+  </div>
+  <ol class="mt">
+    <li class="reveal"><strong>Eliminar \(x_1\) de ec. 2:</strong> \(F_2 \leftarrow F_2 - \frac{2}{3}F_1\)<br>
+      \(\left(\begin{array}{cc|c}0.6&0.4&300\\0&\frac{7}{15}&40\end{array}\right)\)
+    </li>
+    <li class="reveal"><strong>Despejar \(x_2\):</strong> \(\frac{7}{15}x_2 = 40 \Rightarrow x_2 = 40\cdot\frac{15}{7} \approx \mathbf{85.7}\) ton</li>
+    <li class="reveal"><strong>Sustitución hacia atrás:</strong> \(0.6x_1 = 300 - 0.4(85.7) = 265.7 \Rightarrow x_1 \approx \mathbf{442.9}\) ton</li>
+    <li class="reveal">
+      <strong>Verificación:</strong> 
+      \(0.6(442.9)+0.4(85.7)\approx300 \checkmark\) | 
+      \(0.4(442.9)+0.6(85.7)\approx228.6\) 
+      <span class="reveal mt" style="display:block; color: var(--orange); font-size: 0.9rem;">
+        <i class="fas fa-exclamation-circle"></i> (Error de redondeo — en Clase 5 lo haremos exacto con Gauss)
+      </span>
+    </li>
+  </ol>
+</div>
+
+  <!-- SLIDE 8: RESOLUCIÓN 3x3 -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-calculator"></i> Resolución sistema \(3\times3\) — balance inventario</h2>
+    <div class="block reveal">3 plantas (\(x_1,x_2,x_3\)) abastecen 3 CDs. Demandas: 9, 8, 9 ton.
+      $$ \left(\begin{array}{ccc|c}1&2&1&9\\2&1&1&8\\1&1&3&9\end{array}\right) $$
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Paso 1</span> \(F_2 \leftarrow F_2-2F_1\), \(F_3\leftarrow F_3-F_1\)<br>\(\left(\begin{array}{ccc|c}1&2&1&9\\0&-3&-1&-10\\0&-1&2&0\end{array}\right)\)</div>
+      <div class="example-block reveal"><span class="b-title">Paso 2</span> \(F_3\leftarrow F_3-\frac{1}{3}F_2\)<br>\(\left(\begin{array}{ccc|c}1&2&1&9\\0&-3&-1&-10\\0&0&\frac{7}{3}&\frac{10}{3}\end{array}\right)\)</div>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Sustitución hacia atrás</span>
+      \(x_3=\frac{10/3}{7/3}\approx1.43\) | \(x_2=\frac{-10+x_3}{-3}\approx2.86\) | \(x_1=9-2(2.86)-1.43\approx1.86\)
+    </div>
+  </div>
+
+  <!-- SLIDE 9: COMBINACIÓN LINEAL -->
+<div class="slide" data-slide="9">
+  <h2><i class="fas fa-vector-square"></i> Interpretación como combinación lineal</h2>
+  <div class="block reveal">
+    \(A\mathbf{x}=\mathbf{b}\) se lee como: \(x_1\,\mathbf{a}_1 + x_2\,\mathbf{a}_2 + \cdots + x_n\,\mathbf{a}_n = \mathbf{b}\)<br>
+    ¿Puede \(\mathbf{b}\) expresarse como combinación lineal de las columnas de \(A\)?
+  </div>
+  <div class="col-layout mt">
+    <div>
+      <div class="example-block reveal">
+        <span class="b-title"><i class="fas fa-truck-loading"></i> Aplicación logística</span> 
+        Columnas = perfil de despacho. \(\mathbf{b}\) = demanda. Resolver es encontrar <strong>cuánto</strong> contribuye cada planta para satisfacer exactamente \(\mathbf{b}\).
+      </div>
+      <div class="alert-block mt reveal">
+        <span class="b-title">Existencia</span> 
+        El sistema tiene solución \(\iff\) \(\mathbf{b}\) pertenece al <strong>espacio columna</strong> de \(A\).
+      </div>
+    </div>
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-code-branch"></i> Tipos de solución</span>
+      <ul style="font-size: 0.95rem; line-height: 1.6;">
+        <li><strong>Única:</strong> \(m=n\) y \(\det(A) \neq 0\) \(\Rightarrow\) una sola solución \((x_1, x_2, \dots)\).</li>
+        <li><strong>Infinitas:</strong> \(m < n\) o dependencia lineal \(\Rightarrow\) infinitas soluciones (familia \(\infty\)).</li>
+        <li><strong>Incompatible:</strong> \(\mathbf{b} \notin \text{Col}(A)\) \(\Rightarrow\) sin solución (no se puede satisfacer la demanda).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+  <!-- SLIDE 10: MATLAB OPERADOR \ -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — operador <code>A\ b</code></h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Sistema 2x2</span>
+A2 = <span class="mf">[</span><span class="mn">0.6</span>  <span class="mn">0.4</span>; <span class="mn">0.4</span>  <span class="mn">0.6</span><span class="mf">]</span>;
+b2 = <span class="mf">[</span><span class="mn">300</span>; <span class="mn">240</span><span class="mf">]</span>;
+
+x2 = A2 <span class="mk">\</span> b2;
+<span class="mk">fprintf</span>(<span class="ms">'x1 = %.2f ton\n'</span>, x2(<span class="mn">1</span>));
+<span class="mk">fprintf</span>(<span class="ms">'x2 = %.2f ton\n'</span>, x2(<span class="mn">2</span>));
+
+<span class="mc">% Verificacion</span>
+res = <span class="mf">norm</span>(A2*x2 - b2);
+<span class="mk">fprintf</span>(<span class="ms">'Residuo: %.2e\n'</span>, res);
+
+<span class="mc">% Sistema 3x3</span>
+A3 = <span class="mf">[</span><span class="mn">1</span> <span class="mn">2</span> <span class="mn">1</span>; <span class="mn">2</span> <span class="mn">1</span> <span class="mn">1</span>; <span class="mn">1</span> <span class="mn">1</span> <span class="mn">3</span><span class="mf">]</span>;
+b3 = <span class="mf">[</span><span class="mn">9</span>; <span class="mn">8</span>; <span class="mn">9</span><span class="mf">]</span>;
+x3 = A3 <span class="mk">\</span> b3;</pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+          <code>x1 = 442.86 ton</code><br><code>x2 = 85.71 ton</code><br><code>Residuo = 0.00e+00</code><br><br><code>3x3: x=[1.8571, 2.8571, 1.4286]</code>
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> ¿Por qué <code>A\ b</code> y no <code>inv(A)*b</code>?</span> <code>A\ b</code> usa eliminación numérica estable. <code>inv(A)*b</code> es más lento y menos preciso. <strong>Regla: siempre usar <code>\</code>.</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: MATLAB WARNINGS -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-triangle-exclamation"></i> MATLAB — Detección de sistemas especiales</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Caso incompatible</span>
+A_inc = <span class="mf">[</span><span class="mn">1</span> <span class="mn">2</span>; <span class="mn">2</span> <span class="mn">4</span><span class="mf">]</span>; b_inc = <span class="mf">[</span><span class="mn">3</span>; <span class="mn">7</span><span class="mf">]</span>;
+x_inc = A_inc <span class="mk">\</span> b_inc;
+<span class="mk">fprintf</span>(<span class="ms">'Residuo: %.4f\n'</span>, <span class="mf">norm</span>(A_inc*x_inc - b_inc));
+
+<span class="mc">% Caso infinitas soluciones</span>
+A_inf = <span class="mf">[</span><span class="mn">1</span> <span class="mn">2</span>; <span class="mn">2</span> <span class="mn">4</span><span class="mf">]</span>; b_inf = <span class="mf">[</span><span class="mn">3</span>; <span class="mn">6</span><span class="mf">]</span>;
+x_inf = A_inf <span class="mk">\</span> b_inf;
+<span class="mk">fprintf</span>(<span class="ms">'Residuo: %.2e\n'</span>, <span class="mf">norm</span>(A_inf*x_inf - b_inf));
+
+<span class="mk">fprintf</span>(<span class="ms">'Rango A: %d | [A|b]: %d\n'</span>, <span class="mf">rank</span>(A_inf), <span class="mf">rank</span>([A_inf, b_inf]));</pre>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-info-circle"></i> Warnings</span> <code>Matrix is singular...</code> = sin solución única. MATLAB da solución de mínimos cuadrados.</div>
+        <div class="alert-block mt reveal"><span class="b-title">Regla práctica (Residuo)</span>
+          <ul><li>\(\approx 0\): solución exacta (única o no)</li><li>\(> 0\): incompatible</li></ul>
+        </div>
+        <div class="example-block mt reveal"><span class="b-title">Clasificación rápida</span>
+          <ul><li>Rango\((A)=n\) y \(\|r\|=0\): única</li><li>Rango\((A)<n\) y \(\|r\|=0\): infinitas</li><li>\(\|r\|>0\): incompatible</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: CASO LOGÍSTICO COMPLETO -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-warehouse"></i> Balance de inventario — caso \(3\times3\) completo</h2>
+    <div class="block reveal">3 plantas abastecen 3 CDs. \(a_{ij}\) = fracción de planta \(j\) que llega a CD \(i\).</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Datos</span>
+        $$ A = \begin{pmatrix} 0.5 & 0.3 & 0.2\\ 0.3 & 0.5 & 0.1\\ 0.2 & 0.2 & 0.7 \end{pmatrix} \quad \mathbf{b} = \begin{pmatrix}500\\400\\350\end{pmatrix} $$
+        Hallar \(\mathbf{x}\) (ton a despachar por planta).
+      </div>
+      <div>
+        <div class="example-block reveal"><span class="b-title"><i class="fas fa-microchip"></i> Solución MATLAB</span> <code>x = A \ b</code> \(\Rightarrow\) \(\mathbf{x} \approx (569, 405, 344)^T\) ton</div>
+        <div class="alert-block mt reveal"><span class="b-title">Verificación</span> CD1: \(0.5(569)+0.3(405)+0.2(344)\approx474.8\) (esp: 500). <span class="reveal mt">Valores exactos con Gauss (Clase 5). Aquí ilustramos el proceso.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: DECISIÓN LOGÍSTICA -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-scale-balanced"></i> Decisión logística — ¿cómo distribuir envíos?</h2>
+    <div class="alert-block reveal"><span class="b-title"><i class="fas fa-question"></i> Pregunta de decisión</span> Solución \(\mathbf{x}^* \approx (569, 405, 344)^T\). Capacidad máx P1 = 500 ton. <strong>¿Qué hacemos?</strong></div>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-chart-pie"></i> Análisis</span> Déficit: 69 ton en P1. Opciones:
+        <ol>
+          <li>Aumentar capacidad P1 (inversión).</li>
+          <li>Renegociar demanda con CDs.</li>
+          <li>Revisar red: ¿P2/P3 absorben más carga?</li>
+        </ol>
+      </div>
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-flask"></i> Simulación</span> Si P1 solo puede 500 ton, el problema requiere <strong>programación lineal</strong>. Podemos plantear varios escenarios de demanda \(\mathbf{b}\) y resolver \(A\mathbf{x}=\mathbf{b}\) para ver viabilidad.</div>
+      <div class="block reveal"><span class="b-title">Herramienta clave</span> MATLAB resuelve <strong>instantáneamente</strong> cada escenario. \(A\) es fija; solo varía \(\mathbf{b}\).</div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: EJERCICIO 1 -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Del sistema a la forma matricial</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Escribe en forma \(A\mathbf{x}=\mathbf{b}\):
+      $$ \begin{cases} 3x_1 - x_2 + 2x_3 = 7\\ x_1 + 4x_2 - x_3 = 2\\ 2x_1 + x_2 + 3x_3 = 12 \end{cases} $$
+    </p>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check"></i> Resolución</span>
+      $$ A=\begin{pmatrix}3&-1&2\\1&4&-1\\2&1&3\end{pmatrix}, \mathbf{x}=\begin{pmatrix}x_1\\x_2\\x_3\end{pmatrix}, \mathbf{b}=\begin{pmatrix}7\\2\\12\end{pmatrix} $$
+      \([A|\mathbf{b}]=\left(\begin{array}{ccc|c}3&-1&2&7\\1&4&-1&2\\2&1&3&12\end{array}\right)\)
+      <p class="mt reveal italic"><strong>Interpretación:</strong> \(x_j\) = ton planta \(j\), cada ecuación = demanda exacta CD \(i\).</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: EJERCICIO 2 -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Planificación de inventario</h2>
+    <p class="reveal"><strong>Enunciado:</strong> \(A = \begin{pmatrix}0.7&0.3\\0.3&0.7\end{pmatrix}, \quad \mathbf{b}=\begin{pmatrix}420\\280\end{pmatrix}\). Resolver manualmente y verificar con MATLAB.</p>
+    <ol class="mt">
+      <li class="reveal">Sistema: \(0.7x_1+0.3x_2=420\) y \(0.3x_1+0.7x_2=280\).</li>
+      <li class="reveal">Matriz aumentada: \(\left(\begin{array}{cc|c}0.7&0.3&420\\0.3&0.7&280\end{array}\right) \xrightarrow{F_2-\frac{3}{7}F_1} \left(\begin{array}{cc|c}0.7&0.3&420\\0&\approx0.5714&100\end{array}\right)\)</li>
+      <li class="reveal">\(\Rightarrow x_2\approx175, x_1=(420-0.3(175))/0.7=525\)</li>
+    </ol>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Resultado</span> P1 despacha 525 ton, P2 despacha 175 ton. Verificar si son viables según capacidad.</div>
+  </div>
+
+  <!-- SLIDE 16: EJERCICIO 3 -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3 — Interpretación y decisión</h2>
+    <div class="alert-block reveal"><span class="b-title">Situación</span> Solución: \(x_1=525, x_2=175\). Capacidades: P1=400, P2=250.</div>
+    <ol class="mt">
+      <li class="reveal">¿Qué planta supera capacidad? ¿En cuánto?</li>
+      <li class="reveal">Si demanda se reduce 20%, ¿sigue inviable?</li>
+      <li class="reveal">¿Qué significa residuo \(\|A\mathbf{x}-\mathbf{b}\|=0\)?</li>
+      <li class="reveal">¿Cuándo conviene infinitas soluciones?</li>
+    </ol>
+    <div class="example-block mt reveal"><span class="b-title">Resolución</span>
+      1. P1 supera en <strong>125 ton</strong>.<br>
+      2. Nuevo \(\mathbf{b}' \Rightarrow x_1=420\) (aún supera 400).<br>
+      3. Residuo 0 = satisface <strong>exactamente</strong> la demanda.<br>
+      4. Infinitas soluciones = <strong>flexibilidad</strong> para elegir planes y minimizar costos.
+    </div>
+  </div>
+
+  <!-- SLIDE 17: RESUMEN -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-clipboard-check"></i> Resumen — sistemas \(A\mathbf{x}=\mathbf{b}\)</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido</span>
+        <ul>
+          <li>Sistema \(\equiv A\mathbf{x}=\mathbf{b}\) (filas=ec, col=incógnitas).</li>
+          <li><strong>Matriz aumentada</strong> \([A|\mathbf{b}]\) para OEF.</li>
+          <li><strong>OEF</strong> no alteran el conjunto solución.</li>
+          <li>MATLAB: <code>x = A\ b</code>; verificar residuo.</li>
+          <li>Solución \(\mathbf{x}^*\) = <strong>plan de despacho</strong>.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-forward"></i> Clase 5</span> Formalizaremos el <strong>método de Gauss</strong> (eliminación sistemática) para cualquier tamaño.</div>
+        <div class="block mt reveal" style="font-size:0.9rem;">
+          <table style="width:100%;"><tr><th>Herramienta</th><th>Uso</th></tr><tr><td>\([A|\mathbf{b}]\)</td><td>Representar sistema</td></tr><tr><td>OEF</td><td>Simplificar filas</td></tr><tr><td><code>A\ b</code></td><td>Resolver en MATLAB</td></tr><tr><td>Residuo</td><td>Verificar solución</td></tr><tr><td><code>rank</code></td><td>Clasificar sistema</td></tr></table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: TAREA -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 5</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
+      <ol>
+        <li><strong>Lectura:</strong> Lay, Sec. 1.2: ``Row Reduction and Echelon Forms''.</li>
+        <li><strong>Ejercicios manuales:</strong> Guía Clase 4 (B1–B4, I1–I3).</li>
+        <li><strong>MATLAB:</strong> Ejecutar <code>clase4_datos.m</code> y responder preguntas.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span> La eliminación manual es propensa a errores. ¿Existe un algoritmo <strong>sistemático</strong> para hacerlo siempre igual? ¿Cómo garantizamos no perder pasos?</div>
+  </div>
+
+  <!-- SLIDE 19: REFERENCIAS -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-quote-left"></i> Referencias y recursos</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-book"></i> Bibliografía</span>
+          <ul><li><strong>Lay</strong> — Álgebra Lineal, Sec. 1.1–1.2 y 1.4</li><li><strong>Poole</strong> — Álgebra Lineal, Cap. 3</li></ul>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-cloud"></i> Recursos</span>
+          <ul><li>Script: <code>clase4_datos.m</code></li><li>Guía sistemas lineales (aula virtual)</li></ul>
+        </div>
+      </div>
+      <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
+        <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
+        <ul class="mt">
+          <li><em>3Blue1Brown</em> — ``Essence of Linear Algebra'', Ep. 7: Inverse matrices, column space</li>
+          <li>MathWorks: MATLAB backslash operator tutorial</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: CIERRE -->
+  <div class="slide" data-slide="20">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem);">¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 5: Método de Gauss — eliminación sistemática</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-envelope"></i> Contacto</span> <span>consultas@mat2logistica.edu | Aula Virtual</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 21</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

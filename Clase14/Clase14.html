@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 14: Vectores en R^n</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* CSS Graphics to replace TikZ */
+    .module-timeline { display: flex; justify-content: space-between; align-items: center; margin: 1rem 0; flex-wrap: wrap; gap: 0.5rem; }
+    .module-card { padding: 0.5rem; border-radius: 6px; text-align: center; font-size: 0.8rem; min-width: 80px; border: 2px solid #cbd5e1; }
+    .module-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .module-active { background: var(--navy); border-color: var(--navy); color: white; font-weight: 600; }
+    .module-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+
+    .vector-graph { width: 220px; height: 180px; position: relative; margin: 0 auto; border-bottom: 2px solid #94a3b8; border-left: 2px solid #94a3b8; }
+    .vg-axis-label { position: absolute; font-size: 0.7rem; color: #64748b; }
+    .vg-axis-x { top: 100%; left: 5px; }
+    .vg-axis-y { top: -15px; left: 5px; }
+    .vg-vector { position: absolute; bottom: 0; left: 0; height: 4px; background: var(--navy); transform-origin: left bottom; }
+    .vg-vector::after { content: ''; position: absolute; right: -8px; top: -4px; border-left: 8px solid var(--navy); border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+    .vg-dash { position: absolute; border: 1px dashed #cbd5e1; }
+    .vg-val { position: absolute; font-size: 0.65rem; color: #64748b; }
+    .vg-label { position: absolute; font-size: 0.7rem; color: var(--navy); font-weight: 600; }
+
+    .op-box { background: rgba(0,82,147,0.1); border-radius: 8px; padding: 0.6rem; margin: 0.4rem 0; border-left: 3px solid var(--navy); }
+    
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-cube" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Vectores en \(\mathbb{R}^n\)<br>Representación de Demanda e Inventarios</h1>
+      <p class="sub">Matemáticas 2 — Módulo 3, Clase 14</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 14</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Apertura del Módulo 3 (Vectores Aplicados)</li>
+      <li>Objetivos de aprendizaje</li>
+      <li>Vectores como estados logísticos</li>
+      <li>Representación visual (\(R^2\), \(R^3\))</li>
+      <li>Normas de vectores (\(L_1\), \(L_2\), \(L_\infty\))</li>
+      <li>Elección de norma según objetivo de gestión</li>
+      <li>Distancia entre vectores (comparación de estados)</li>
+      <li>Operaciones vectoriales en logística</li>
+      <li>Vector unitario y patrón relativo</li>
+      <li>Práctica MATLAB</li>
+      <li>Ejercicios prácticos</li>
+      <li>Resumen y preparación Clase 15</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: APERTURA MODULO 3 -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-door-open"></i> Apertura del Módulo 3 — Vectores Aplicados</h2>
+    <div class="module-timeline reveal">
+      <div class="module-card module-done">Módulo 1<br>Matrices</div>
+      <i class="fas fa-arrow-right" style="color:#cbd5e1;"></i>
+      <div class="module-card module-done">Módulo 2<br>Sistemas</div>
+      <i class="fas fa-arrow-right" style="color:#cbd5e1;"></i>
+      <div class="module-card module-active">Módulo 3<br>Vectores</div>
+      <i class="fas fa-arrow-right" style="color:#cbd5e1;"></i>
+      <div class="module-card module-prox">Módulo 4<br>Espacios</div>
+      <i class="fas fa-arrow-right" style="color:#cbd5e1;"></i>
+      <div class="module-card module-prox">Módulo 5<br>Regresión</div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-book-open"></i> Módulo 3: Clases 14–16</span>
+      <ul>
+        <li><strong>C14 (hoy):</strong> Vectores en \(\mathbb{R}^n\). Normas. Representación de demanda e inventarios.</li>
+        <li><strong>C15:</strong> Producto escalar. Similitud entre perfiles de demanda. Costo ponderado.</li>
+        <li><strong>C16:</strong> Evaluación Parcial 1 (Módulos 1 y 2).</li>
+      </ul>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exchange-alt"></i> Cambio de enfoque</span>
+      En los Módulos 1 y 2 usamos vectores como columnas de matrices. En el Módulo 3 los estudiamos en su propio derecho: estructura geométrica, operaciones y uso directo para describir estados de una red logística.
+    </div>
+  </div>
+
+  <!-- SLIDE 3: OBJETIVOS -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Representar</strong> estados logísticos (demanda, inventario, flujo) como vectores en \(\mathbb{R}^n\).</li>
+      <li class="reveal"><strong>Calcular</strong> la norma \(L_1\), \(L_2\) y \(L_\infty\) de un vector e interpretar cada una en contexto logístico.</li>
+      <li class="reveal"><strong>Operar</strong> vectores: suma, diferencia, escalar. Interpretar cada operación en términos de cambios de estado.</li>
+      <li class="reveal"><strong>Calcular</strong> la distancia entre dos vectores de demanda y usarla para comparar semanas o temporadas.</li>
+      <li class="reveal"><strong>Decidir</strong> qué norma usar según el criterio de gestión: costo total, mayor desvío, variación global.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 4: VECTORES COMO ESTADOS -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-cube"></i> Del escalar al vector: estados de una red</h2>
+    <div class="block reveal"><span class="b-title">Un estado logístico es un vector</span>
+      Cualquier magnitud que se describe por <strong>múltiples valores simultáneos</strong> puede representarse como un vector en \(\mathbb{R}^n\):
+    </div>
+    <div class="col-layout mt">
+      <div class="reveal">
+        <ul>
+          <li class="reveal"><strong>Demanda semanal:</strong> \(\mathbf{d}=(320,280,240,160)^T\in\mathbb{R}^4\) (una componente por CD).</li>
+          <li class="reveal"><strong>Inventario:</strong> \(\mathbf{s}=(450,320,180,270)^T\in\mathbb{R}^4\) (unidades en stock por CD).</li>
+          <li class="reveal"><strong>Plan de despacho:</strong> \(\mathbf{x}=(560,390,0,0,120)^T\in\mathbb{R}^5\) (toneladas por planta).</li>
+          <li class="reveal"><strong>Serie de tiempo:</strong> \(\mathbf{v}=(d_1,d_2,\ldots,d_{52})^T\in\mathbb{R}^{52}\) (demanda anual).</li>
+        </ul>
+      </div>
+      <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-arrows-alt"></i> Operaciones como cambios de estado</span>
+        <ul>
+          <li><strong>Suma</strong> \(\mathbf{d}_1+\mathbf{d}_2\): demanda total de dos fábricas.</li>
+          <li><strong>Diferencia</strong> \(\mathbf{s}-\mathbf{d}\): stock sobrante después de satisfacer la demanda.</li>
+          <li><strong>Escalar</strong> \(1.1\,\mathbf{d}\): demanda con crecimiento del 10%.</li>
+          <li><strong>Norma</strong> \(\|\mathbf{d}-\mathbf{d}'\|\): cuánto difieren dos semanas de demanda.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: REPRESENTACIÓN VISUAL -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-chart-line"></i> Representación visual en \(\mathbb{R}^2\) y \(\mathbb{R}^3\)</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title">Vector en \(\mathbb{R}^2\): dos CDs</span>
+        \(\mathbf{d}=\begin{pmatrix}320\\280\end{pmatrix}\): demanda de D1 y D2.
+        <div class="vector-graph mt">
+          <div class="vg-axis-label vg-axis-x">d1 (D1)</div>
+          <div class="vg-axis-label vg-axis-y">d2 (D2)</div>
+          <!-- Vector at approx 45 degrees for 320,280 -->
+          <div class="vg-vector" style="width: 140px; transform: rotate(-38deg);"></div>
+          <div class="vg-val" style="bottom: -18px; right: 10px;">320</div>
+          <div class="vg-val" style="top: 5px; left: -20px;">280</div>
+          <div class="vg-label" style="top: 25px; right: 0;">d=(320,280)</div>
+          <div class="vg-dash" style="width: 125px; height: 60px; bottom: 0; left: 0;"></div>
+        </div>
+      </div>
+      <div class="block reveal"><span class="b-title">Suma de vectores</span>
+        <div class="vector-graph">
+          <!-- d1 vector -->
+          <div class="vg-vector" style="width: 100px; background: var(--navy); transform: rotate(-25deg);"></div>
+          <div class="vg-label" style="top: 25px; right: 10px; color: var(--navy);">d1</div>
+          <!-- d2 vector starting from tip of d1 -->
+          <div class="vg-vector" style="width: 110px; left: 90px; bottom: 42px; background: var(--green); transform: rotate(-30deg);"></div>
+          <div class="vg-label" style="top: 5px; right: 5px; color: var(--green);">d2</div>
+          <!-- Result vector -->
+          <div class="vg-vector" style="width: 190px; background: var(--red); transform: rotate(-28deg); opacity: 0.8;"></div>
+          <div class="vg-label" style="bottom: -20px; right: 0; color: var(--red);">d1+d2</div>
+        </div>
+        <p class="mt italic text-center">La demanda total es la suma de los vectores de demanda individuales.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: NORMAS -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-ruler-combined"></i> Normas de vectores — tres medidas de magnitud</h2>
+    <div class="block reveal">Para \(\mathbf{v}=(v_1,v_2,\ldots,v_n)^T\in\mathbb{R}^n\):
+      \begin{align*}
+        \|\mathbf{v}\|_1 &= |v_1|+|v_2|+\cdots+|v_n| && \text{(norma }L_1\text{, taxicab)} \\
+        \|\mathbf{v}\|_2 &= \sqrt{v_1^2+v_2^2+\cdots+v_n^2} && \text{(norma }L_2\text{, euclídea)} \\
+        \|\mathbf{v}\|_\infty &= \max(|v_1|,|v_2|,\ldots,|v_n|) && \text{(norma }L_\infty\text{, chebyshev)}
+      \end{align*}
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Ejemplo: desvío semanal</span>
+        \(\mathbf{e} = \mathbf{d}_{\text{real}} - \mathbf{d}_{\text{previsto}} = (20,-15,8,-3)^T\)
+        \[ \begin{aligned}
+          \|\mathbf{e}\|_1 &= 20+15+8+3 = \mathbf{46} \\
+          \|\mathbf{e}\|_2 &= \sqrt{400+225+64+9} \approx \mathbf{26.1} \\
+          \|\mathbf{e}\|_\infty &= \max(20,15,8,3) = \mathbf{20}
+        \end{aligned} \]
+      </div>
+      <div class="block reveal"><span class="b-title"><i class="fas fa-truck-loading"></i> Interpretación logística</span>
+        <ul>
+          <li>\(\|\mathbf{e}\|_1\): <strong>error total</strong> (suma de todos los desvíos). Relacionado con el costo total de reajuste.</li>
+          <li>\(\|\mathbf{e}\|_2\): <strong>error cuadrático</strong>. Base del MSE/RMSE en regresión (Módulo 5).</li>
+          <li>\(\|\mathbf{e}\|_\infty\): <strong>peor desvío individual</strong>. El CD que más se equivocó en la previsión.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: ELECCIÓN DE NORMA -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-tasks"></i> Elección de norma según el objetivo de gestión</h2>
+    <div class="block reveal"><span class="b-title">La norma adecuada depende del criterio de decisión</span>
+      No existe una norma "correcta" en absoluto: cada una mide un aspecto distinto del error o la distancia.
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal" style="font-size:0.85rem;">
+        <span class="b-title"><i class="fas fa-table"></i> Cuándo usar cada norma</span>
+        <table class="compact mt">
+          <tr><th>Norma</th><th>Cuándo usarla</th></tr>
+          <tr><td>\(L_1\)</td><td>Minimizar costo total de ajuste. Cada unidad de error tiene el mismo costo.</td></tr>
+          <tr><td>\(L_2\)</td><td>Penalizar errores grandes más que los pequeños. Base de la regresión.</td></tr>
+          <tr><td>\(L_\infty\)</td><td>Garantizar que ningún CD tenga un desvío mayor que un umbral. Control de calidad.</td></tr>
+        </table>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Ejemplo de decisión</span>
+        Desvío \(\mathbf{e}=(30,1,1,1)^T\):
+        <ul>
+          <li>\(\|\mathbf{e}\|_1=33\) (moderado)</li>
+          <li>\(\|\mathbf{e}\|_2\approx30.1\) (moderado)</li>
+          <li>\(\|\mathbf{e}\|_\infty=30\) (<strong>grande</strong>)</li>
+        </ul>
+        La norma \(L_\infty\) advierte que D1 tiene un desvío crítico. Si el SLA exige que ningún CD supere 20 ton de desvío: el plan <strong>falla</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: DISTANCIA -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-route"></i> Distancia entre vectores — comparación de estados</h2>
+    <div class="block reveal">La <strong>distancia</strong> entre dos vectores \(\mathbf{u},\mathbf{v}\in\mathbb{R}^n\) respecto a la norma \(\|\cdot\|\) es:
+      \[ d(\mathbf{u},\mathbf{v}) = \|\mathbf{u}-\mathbf{v}\| \]
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-code-branch"></i> Aplicaciones logísticas</span>
+        <ul>
+          <li><strong>Similitud de semanas:</strong> \(d(\mathbf{d}_{\text{sem1}},\mathbf{d}_{\text{sem2}})\) mide cuánto difieren dos semanas. Semanas "parecidas" tienen distancia pequeña.</li>
+          <li><strong>Error de previsión:</strong> \(d(\mathbf{d}_{\text{real}},\mathbf{d}_{\text{prev}})\) mide la calidad del pronóstico.</li>
+          <li><strong>Variación estacional:</strong> \(d(\mathbf{d}_{\text{verano}},\mathbf{d}_{\text{invierno}})\) cuantifica el impacto estacional.</li>
+          <li><strong>Comparación de fábricas:</strong> \(d(\mathbf{d}_{F1},\mathbf{d}_{F2})\) mide cuánto difieren dos fábricas.</li>
+        </ul>
+      </div>
+      <div class="block reveal"><span class="b-title"><i class="fas fa-calculator"></i> Ejemplo numérico</span>
+        Demanda sem. 1: \(\mathbf{d}_1=(300,250,200,180)^T\)<br>
+        Demanda sem. 2: \(\mathbf{d}_2=(320,230,210,170)^T\)<br>
+        \(\mathbf{d}_2-\mathbf{d}_1=(20,-20,10,-10)^T\)
+        <ul class="mt">
+          <li>\(d_1=20+20+10+10=60\)</li>
+          <li>\(d_2\approx30.0\)</li>
+          <li>\(d_\infty=20\)</li>
+        </ul>
+        <span class="mt italic block" style="display:block; background:#f1f5f9; padding:0.5rem; border-radius:4px;">En promedio, cada CD varió 15 ton entre semanas.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: OPERACIONES VECTORIALES -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-arrows-alt"></i> Operaciones vectoriales — interpretación práctica</h2>
+    <div class="col-layout">
+      <div>
+        <div class="op-box reveal"><strong>Suma \(\mathbf{u}+\mathbf{v}\):</strong> Demanda agregada de dos fábricas o dos períodos.</div>
+        <div class="op-box reveal"><strong>Diferencia \(\mathbf{u}-\mathbf{v}\):</strong> Desvío entre real y pronosticado. Stock sobrante.</div>
+        <div class="op-box reveal"><strong>Escalar \(c\,\mathbf{v}\):</strong> Demanda escalada (\(c=1.1\): +10%). Precio total = \(\mathbf{p}\cdot\mathbf{v}\).</div>
+        <div class="op-box reveal"><strong>Comb. lineal \(\alpha\mathbf{u}+\beta\mathbf{v}\):</strong> Mezcla de dos escenarios de demanda.</div>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-balance-scale"></i> Balance de inventario vectorial</span>
+          $$ \underbrace{\mathbf{s}_{t+1}}_{\text{stock semana }t+1} = \underbrace{\mathbf{s}_t}_{\text{stock semana }t} + \underbrace{\mathbf{r}_t}_{\text{reposición}} - \underbrace{\mathbf{d}_t}_{\text{demanda}} $$
+          <p class="mt">Una sola ecuación vectorial reemplaza \(n\) ecuaciones escalares de balance (una por CD).</p>
+          <p class="mt bold" style="color:var(--orange);">Condición: \(\mathbf{s}_{t+1}\geq\mathbf{0}\) componente a componente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: VECTOR UNITARIO -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-compass"></i> Vector unitario y dirección de un estado</h2>
+    <div class="block reveal"><span class="b-title">Normalización</span>
+      El <strong>vector unitario</strong> en la dirección de \(\mathbf{v}\) es:
+      \[ \hat{\mathbf{v}} = \frac{\mathbf{v}}{\|\mathbf{v}\|_2} \]
+      Cumple \(\|\hat{\mathbf{v}}\|_2=1\) y apunta en la misma dirección que \(\mathbf{v}\).
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-chart-pie"></i> Interpretación logística</span>
+        Si \(\mathbf{d}=(320,280,240,160)^T\) es la demanda semanal:
+        \(\|\mathbf{d}\|_2\approx524.1\)
+        \(\hat{\mathbf{d}} \approx (0.611,0.534,0.458,0.305)^T\)
+        <p class="mt">Es el <strong>patrón relativo de demanda</strong>: indica qué proporción del total va a cada CD, independientemente del volumen total.</p>
+      </div>
+      <div class="block reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Uso práctico</span>
+        Si la demanda total crece de 1000 a 1200 ton manteniendo el mismo patrón:
+        \[ \mathbf{d}' = 1200\,\hat{\mathbf{d}} \]
+        La dirección (patrón relativo) se mantiene; solo cambia la magnitud (volumen total).<br><br>
+        <em>En logística: separar "cuánto" (norma) de "cómo se distribuye" (dirección).</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: MATLAB -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — normas, distancias y operaciones</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Datos de demanda semanal (4 CDs)</span>
+d_sem1 = <span class="mf">[</span><span class="mn">300</span>; <span class="mn">250</span>; <span class="mn">200</span>; <span class="mn">180</span><span class="mf">]</span>;
+d_sem2 = <span class="mf">[</span><span class="mn">320</span>; <span class="mn">230</span>; <span class="mn">210</span>; <span class="mn">170</span><span class="mf">]</span>;
+
+<span class="mc">% Normas de d_sem1</span>
+n1 = <span class="mf">norm</span>(d_sem1, <span class="mn">1</span>);
+n2 = <span class="mf">norm</span>(d_sem1, <span class="mn">2</span>);
+ni = <span class="mf">norm</span>(d_sem1, <span class="mf">Inf</span>);
+
+<span class="mc">% Distancia entre semanas</span>
+e = d_sem2 - d_sem1;
+<span class="mk">fprintf</span>(<span class="ms">'d_1 = %.1f (total variacion)\n'</span>, <span class="mf">norm</span>(e,<span class="mn">1</span>));
+<span class="mk">fprintf</span>(<span class="ms">'d_2 = %.1f (euclidea)\n'</span>, <span class="mf">norm</span>(e,<span class="mn">2</span>));
+<span class="mk">fprintf</span>(<span class="ms">'d_inf = %.1f (mayor desvio)\n'</span>, <span class="mf">norm</span>(e,<span class="mf">Inf</span>));
+
+<span class="mc">% Balance de inventario</span>
+s0    = <span class="mf">[</span><span class="mn">450</span>; <span class="mn">320</span>; <span class="mn">180</span>; <span class="mn">270</span><span class="mf">]</span>;  <span class="mc">% stock inicial</span>
+repos = <span class="mf">[</span><span class="mn">280</span>; <span class="mn">260</span>; <span class="mn">220</span>; <span class="mn">190</span><span class="mf">]</span>;  <span class="mc">% reposicion</span>
+s1    = s0 + repos - d_sem1;
+
+<span class="mc">% Vector unitario</span>
+d_hat = d_sem1 / <span class="mf">norm</span>(d_sem1, <span class="mn">2</span>);</pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+          <code>||d||_1 = 930.0</code> | <code>||d||_2 = 494.6</code> | <code>||d||_inf = 300.0</code><br>
+          <code>Diferencia d2-d1 = [20 -20 10 -10]</code><br>
+          <code>d_1 = 60.0</code> | <code>d_2 = 30.0</code> | <code>d_inf = 20.0</code><br>
+          <code>Stock final: [430 330 200 280]</code><br>
+          <code>Patron relativo: [0.607 0.506 0.405 0.364]</code>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-info-circle"></i> Nota</span>
+          <code>norm(v)</code> sin segundo argumento calcula la norma \(L_2\) por defecto.<br>
+          <code>norm(v,Inf)</code> calcula \(L_\infty\).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: EJERCICIO 1 -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Calcular normas e interpretar</h2>
+    <p class="reveal"><strong>Enunciado:</strong> El desvío entre la demanda prevista y la real es \(\mathbf{e} = (50, -30, 10, -40, 20)^T\) ton.</p>
+    <ol class="mt reveal">
+      <li>Calcular \(\|\mathbf{e}\|_1\), \(\|\mathbf{e}\|_2\), \(\|\mathbf{e}\|_\infty\).</li>
+      <li>Interpretar cada norma en el contexto del error de previsión.</li>
+      <li>El SLA exige que ningún CD tenga un desvío mayor a 35 ton. ¿Se cumple?</li>
+    </ol>
+    <div class="example-block mt reveal"><span class="b-title">Solución</span>
+      \(\|\mathbf{e}\|_1=50+30+10+40+20=150\) ton (volumen total a reajustar).<br>
+      \(\|\mathbf{e}\|_2=\sqrt{2500+900+100+1600+400}=\sqrt{5500}\approx74.2\) ton.<br>
+      \(\|\mathbf{e}\|_\infty=\max(50,30,10,40,20)=50\) ton.
+      <span class="reveal mt block" style="background:var(--orange-light); border-left:3px solid var(--orange); padding:0.5rem; margin-top:0.5rem;">SLA: el mayor desvío es 50 ton >35 ton. <strong>El SLA no se cumple.</strong> D1 y D4 superan el umbral.</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: EJERCICIO 2 -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Comparación de semanas</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Se tienen demandas de cuatro semanas. ¿Cuáles son las dos semanas más parecidas? Usar distancia \(L_2\).
+      \(\mathbf{d}_1=(300,250,200,180)^T,\; \mathbf{d}_2=(320,230,210,170)^T,\dots\)
+    </p>
+    <div class="example-block mt reveal"><span class="b-title">Matriz de distancias \(d_2(\mathbf{d}_i,\mathbf{d}_j)\)</span>
+      <table class="compact"><tr><th></th><th>S1</th><th>S2</th><th>S3</th><th>S4</th></tr><tr><td>S1</td><td>0</td><td>30.0</td><td>38.1</td><td><strong>14.1</strong></td></tr><tr><td>S2</td><td>30.0</td><td>0</td><td>57.4</td><td>22.5</td></tr><tr><td>S3</td><td>38.1</td><td>57.4</td><td>0</td><td>43.2</td></tr><tr><td>S4</td><td><strong>14.1</strong></td><td>22.5</td><td>43.2</td><td>0</td></tr></table>
+      <span class="reveal mt italic">La menor distancia es entre <strong>S1 y S4</strong> (14.1 ton). Estas semanas son las más similares en patrón de demanda.</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: EJERCICIO 3 -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3 — Balance de inventario vectorial</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Stock inicial \(\mathbf{s}_0=(500,350,200)^T\) ton. Ecuación: \(\mathbf{s}_{t+1} = \mathbf{s}_t + \mathbf{r}_t - \mathbf{d}_t\).</p>
+    <table class="compact mt reveal" style="width:80%; margin:0 auto;">
+      <tr><th>Semana</th><th>Demanda \(\mathbf{d}_t\)</th><th>Reposición \(\mathbf{r}_t\)</th></tr>
+      <tr><td>1</td><td>(200,150,100)</td><td>(180,140,110)</td></tr>
+      <tr><td>2</td><td>(220,160,90)</td><td>(200,150,100)</td></tr>
+      <tr><td>3</td><td>(190,140,110)</td><td>(210,160,90)</td></tr>
+    </table>
+    <div class="example-block mt reveal"><span class="b-title">Resultados</span>
+      <ul>
+        <li class="reveal">\(\mathbf{s}_1=(480,340,210)^T\)</li>
+        <li class="reveal">\(\mathbf{s}_2=(460,330,220)^T\)</li>
+        <li class="reveal">\(\mathbf{s}_3=(480,350,200)^T\)</li>
+      </ul>
+      <p class="mt italic">El sistema vuelve aproximadamente al stock inicial. Operación sostenible.</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: RESUMEN -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-clipboard-check"></i> Resumen — Vectores en \(\mathbb{R}^n\)</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido hoy</span>
+        <ul>
+          <li>Los estados logísticos son vectores en \(\mathbb{R}^n\).</li>
+          <li>Tres normas: \(L_1\) (total), \(L_2\) (euclídea), \(L_\infty\) (peor caso).</li>
+          <li>La elección de norma depende del criterio de gestión (SLA, costo, calidad).</li>
+          <li>La distancia \(d(\mathbf{u},\mathbf{v})=\|\mathbf{u}-\mathbf{v}\|\) compara semanas, fábricas y escenarios.</li>
+          <li>El balance de inventario es una ecuación vectorial: \(\mathbf{s}_{t+1}=\mathbf{s}_t+\mathbf{r}_t-\mathbf{d}_t\).</li>
+          <li>El vector unitario separa magnitud (volumen total) de dirección (patrón relativo).</li>
+        </ul>
+      </div>
+      <div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-forward-step"></i> Conexión Clase 15</span>
+          El <strong>producto escalar</strong> \(\mathbf{u}\cdot\mathbf{v}=\sum_i u_i v_i\) extiende la idea de norma:
+          <ul>
+            <li>Costo total: \(\mathbf{c}\cdot\mathbf{x}\).</li>
+            <li>Similitud: si \(|\mathbf{u}\cdot\mathbf{v}|\approx\|\mathbf{u}\|\|\mathbf{v}\|\), los vectores son similares.</li>
+            <li>Ortogonalidad: \(\mathbf{u}\cdot\mathbf{v}=0\) (sin relación).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: TAREA -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 15</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
+      <ol>
+        <li><strong>Lectura:</strong> Lay, Sec. 6.1: Inner Product, Length, and Orthogonality. Enfocarse en producto escalar y ortogonalidad.</li>
+        <li><strong>Ejercicios:</strong> Guía Clase 14 (B1–B5, I1–I3).</li>
+        <li><strong>MATLAB:</strong> Ejecutar <code>clase14_datos.m</code> completo.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span>
+      Dos vectores de demanda \(\mathbf{d}_1=(100,0,200,0)^T\) y \(\mathbf{d}_2=(0,150,0,250)^T\) tienen producto escalar \(\mathbf{d}_1\cdot\mathbf{d}_2=0\). ¿Qué significa logísticamente que dos patrones de demanda sean ortogonales?
+    </div>
+  </div>
+
+  <!-- SLIDE 17: CIERRE -->
+  <div class="slide" data-slide="17">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem);">¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 15: Producto Escalar — Similitud y Costo Ponderado</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-envelope"></i> Contacto</span> <span>consultas@mat2logistica.edu | Aula Virtual</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 18</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

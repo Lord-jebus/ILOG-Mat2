@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 5: Método de Gauss</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    .col-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout, .col-3 { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    .roadmap { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; align-items: center; margin: 0.8rem 0; }
+    .rm-node { padding: 0.6rem; border-radius: 8px; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); font-size: 0.85rem; text-align: center; min-width: 90px; }
+    .rm-node.active { background: var(--navy); color: white; }
+    .rm-arrow { color: #64748b; }
+
+    .flow-diagram { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin: 0.5rem 0; }
+    .flow-box { padding: 0.5rem; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); border-radius: 8px; text-align: center; font-size: 0.85rem; width: 220px; }
+    .flow-arrow-down { color: var(--orange); font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-sort-amount-down" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Método de Gauss<br>Eliminación hacia Adelante</h1>
+      <p class="sub">Matemáticas 2 — Módulo 1, Clase 5</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 5</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Objetivos de aprendizaje</li>
+      <li>Motivación: ¿por qué un método sistemático?</li>
+      <li>Hoja de ruta y repaso</li>
+      <li>Forma escalonada (FE) y pivotes</li>
+      <li>Algoritmo de eliminación gaussiana</li>
+      <li>Ejemplo completo \(3\times3\) y sustitución hacia atrás</li>
+      <li>Sistema \(4\times4\) con pivoteo</li>
+      <li>Detección del tipo de sistema (única, infinitas, ninguna)</li>
+      <li>Variable libre y solución general</li>
+      <li>MATLAB: <code>A\b</code>, implementación manual y <code>rref</code></li>
+      <li>Ejercicios prácticos y resumen</li>
+      <li>Tarea y preparación Clase 6</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Describir</strong> el algoritmo de Gauss como secuencia ordenada de operaciones elementales de fila.</li>
+      <li class="reveal"><strong>Identificar</strong> la forma escalonada (FE) de una matriz y sus elementos clave: pivotes, posiciones y variables libres.</li>
+      <li class="reveal"><strong>Aplicar</strong> la eliminación gaussiana hacia adelante a sistemas de hasta \(4\times4\) de forma manual.</li>
+      <li class="reveal"><strong>Obtener</strong> la solución por sustitución hacia atrás a partir de la forma escalonada.</li>
+      <li class="reveal"><strong>Reconocer</strong> si un sistema tiene solución única, infinitas o ninguna leyendo su forma escalonada.</li>
+      <li class="reveal"><strong>Comparar</strong> el método manual con MATLAB y decidir cuándo usar cada uno.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 3: MOTIVACIÓN -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-question-circle"></i> ¿Por qué necesitamos un método sistemático?</h2>
+    <div class="col-layout">
+      <div>
+        <div class="alert-block reveal">
+          <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Problema de la Clase 4</span>
+          Resolvimos con eliminación "informal":
+          <ul>
+            <li>Sin criterio fijo de orden.</li>
+            <li>Errores de redondeo acumulados.</li>
+            <li>No sabíamos cuándo terminar.</li>
+          </ul>
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title">Solución: Método de Gauss</span>
+          Algoritmo con pasos <strong>fijos, predecibles y mecánicos</strong>:
+          <ul>
+            <li>Trabaja columna por columna (izq. → der.).</li>
+            <li>Usa el elemento más alto disponible como pivote.</li>
+            <li>Termina en <strong>forma escalonada</strong>.</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="reveal center" style="margin-bottom:1rem;">
+          <div style="font-size:0.95rem; color:var(--navy); font-weight:600; margin-bottom:0.5rem;">
+            Antes (desordenado):
+          </div>
+          $$ \begin{pmatrix}3&1&2&8\\1&4&0&9\\2&1&3&7\end{pmatrix} \;\;\Downarrow\;\; \text{Gauss} $$
+          <div style="font-size:0.95rem; color:var(--navy); font-weight:600; margin:0.5rem 0;">
+            Después (escalonada):
+          </div>
+          $$ \begin{pmatrix}
+            \color{#dc6b1f}{\mathbf{3}} & 1 & 2 & 8\\
+            0 & \color{#dc6b1f}{\mathbf{\frac{11}{3}}} & -\frac{2}{3} & \frac{19}{3}\\
+            0 & 0 & \color{#dc6b1f}{\mathbf{\frac{22}{11}}} & \frac{2}{11}
+          \end{pmatrix} $$
+        </div>
+        <div class="example-block reveal">
+          <span class="b-title"><i class="fas fa-check-circle"></i> Ventaja</span> 
+          La matriz triangular superior permite <strong>leer directamente</strong> la solución de abajo hacia arriba (sustitución hacia atrás).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: HOJA DE RUTA -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-route"></i> Hoja de ruta — Módulo 1</h2>
+    <div class="roadmap reveal">
+      <div class="rm-node">C1 Matrices</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C2 Operaciones</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C3 \(A\mathbf{v}\)</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C4 \(Ax=b\)</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node active"><b>C5 Gauss</b></div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C6 Gauss-Jordan</div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-rotate-left"></i> Repaso Clase 4</span>
+      <ul>
+        <li>\(A\mathbf{x}=\mathbf{b}\): sistema compacto \(m\) ecuaciones, \(n\) incógnitas.</li>
+        <li>Matriz aumentada \([A|\mathbf{b}]\): cada fila es una ecuación.</li>
+        <li>OEF (intercambio, escalar, combinación): no cambian solución.</li>
+      </ul>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Lo nuevo hoy</span> Gauss organiza las OEF en una <strong>secuencia canónica</strong> que siempre funciona, independientemente del tamaño.</div>
+  </div>
+
+  <!-- SLIDE 5: FORMA ESCALONADA -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-layer-group"></i> Forma escalonada (FE) — definición</h2>
+    <div class="block reveal">Una matriz está en <strong>forma escalonada</strong> si:
+      <ol>
+        <li>Filas de ceros (si existen) están <strong>abajo</strong>.</li>
+        <li>El primer elemento no nulo (<strong>pivote</strong>) está más a la derecha que el de la fila anterior.</li>
+        <li>Todos los elementos <strong>debajo de cada pivote</strong> son cero.</li>
+      </ol>
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Ejemplos de FE</span>
+        $$ \begin{pmatrix}\color{#dc6b1f}{\mathbf{2}}&3&1&5\\0&\color{#dc6b1f}{\mathbf{4}}&2&1\\0&0&\color{#dc6b1f}{\mathbf{3}}&7\end{pmatrix} \quad \begin{pmatrix}\color{#dc6b1f}{\mathbf{1}}&2&0&3\\0&0&\color{#dc6b1f}{\mathbf{5}}&2\\0&0&0&0\end{pmatrix} $$
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-times"></i> NO son FE</span>
+          $$ \begin{pmatrix}0&3&1\\\color{#dc6b1f}{\mathbf{2}}&4&2\\0&0&3\end{pmatrix} \text{ (pivote en col 2 antes que 1)} $$
+          $$ \begin{pmatrix}\color{#dc6b1f}{\mathbf{2}}&3&1\\1&4&2\\0&0&3\end{pmatrix} \text{ (no hay cero debajo del pivote col 1)} $$
+        </div>
+        <div class="block mt reveal"><span class="b-title">Vocabulario clave</span> <strong>Columna de pivote</strong> | <strong>Variable básica</strong> (col con pivote) | <strong>Variable libre</strong> (col sin pivote)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: ALGORITMO -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-cogs"></i> Algoritmo de eliminación gaussiana</h2>
+    <div class="block reveal">
+      <ol>
+        <li class="reveal"><strong>Localizar</strong> la columna más a la izquierda con elemento no nulo (col. pivote).</li>
+        <li class="reveal"><strong>Intercambiar</strong> filas para llevar el elemento no nulo más arriba a la posición pivote.</li>
+        <li class="reveal"><strong>Escalar</strong>: el pivote puede ser cualquier valor \(\neq 0\).</li>
+        <li class="reveal"><strong>Eliminar</strong>: usar \(F_i \leftarrow F_i - m_{ij}F_j\), \(m_{ij}=a_{ij}/\text{pivote}\) para ceros debajo.</li>
+        <li class="reveal"><strong>Cubrir</strong> fila/col pivote y repetir en la submatriz restante.</li>
+        <li class="reveal"><strong>Terminar</strong> cuando no haya submatrices o filas restantes sean ceros.</li>
+      </ol>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-flag-checkered"></i> Resultado</span> Al terminar, matriz en <strong>forma escalonada</strong>. Aplicar <strong>sustitución hacia atrás</strong> para obtener la solución.</div>
+  </div>
+
+  <!-- SLIDE 7: EJEMPLO 3x3 PASO 1-2 -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-calculator"></i> Gauss paso a paso — sistema \(3\times3\) logístico</h2>
+    <div class="block reveal">Balance de inventario:
+      $$ [A|\mathbf{b}] = \left(\begin{array}{ccc|c}2&4&2&12\\1&3&4&11\\3&7&2&17\end{array}\right) $$
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Paso 1 — Pivote \((1,1)=\color{#dc6b1f}{\mathbf{2}}\)</span>
+        \(m_{21}=\frac{1}{2}\), \(m_{31}=\frac{3}{2}\)<br>
+        $$ F_2 \leftarrow F_2 - \frac{1}{2}F_1 \quad ; \quad F_3 \leftarrow F_3 - \frac{3}{2}F_1 $$
+        $$ \left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{2}}&4&2&12\\\color{#558b2f}{0}&1&3&5\\\color{#558b2f}{0}&1&-1&-1\end{array}\right) $$
+      </div>
+      <div class="example-block reveal"><span class="b-title">Paso 2 — Pivote \((2,2)=\color{#dc6b1f}{\mathbf{1}}\)</span>
+        \(m_{32}=1\)<br>
+        $$ F_3 \leftarrow F_3 - 1\cdot F_2 $$
+        $$ \left(\begin{array}{ccc|c}2&4&2&12\\0&\color{#dc6b1f}{\mathbf{1}}&3&5\\\color{#558b2f}{0}&\color{#558b2f}{0}&-4&-6\end{array}\right) \quad \Rightarrow \quad \textbf{Forma escalonada} $$
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: SUSTITUCIÓN HACIA ATRÁS -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-arrow-up-right-from-square"></i> Sustitución hacia atrás — resolución completa</h2>
+    <div class="reveal center">$$ \left(\begin{array}{ccc|c}2&4&2&12\\0&1&3&5\\0&0&-4&-6\end{array}\right) $$</div>
+    <div class="example-block mt reveal"><span class="b-title">Paso 3 — Despejar \(x_3\)</span> \(-4x_3 = -6 \Rightarrow x_3 = \mathbf{1.5}\) ton</div>
+    <div class="example-block mt reveal"><span class="b-title">Paso 4 — Despejar \(x_2\)</span> \(x_2 + 3(1.5) = 5 \Rightarrow x_2 = \mathbf{0.5}\) ton</div>
+    <div class="example-block mt reveal"><span class="b-title">Paso 5 — Despejar \(x_1\)</span> \(2x_1 + 4(0.5) + 2(1.5) = 12 \Rightarrow 2x_1 = 7 \Rightarrow x_1 = \mathbf{3.5}\) ton</div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Solución y verificación</span> \(\mathbf{x}^* = (3.5,\;0.5,\;1.5)^T\)<br>
+      Fila 1: \(2(3.5)+4(0.5)+2(1.5)=12 \checkmark\) | Fila 2: \(3.5+1.5+6=11 \checkmark\) | Fila 3: \(10.5+3.5+3=17 \checkmark\)
+    </div>
+  </div>
+
+  <!-- SLIDE 9: 4x4 PASO 1-2 -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-network-wired"></i> Sistema \(4\times4\) con redes logísticas</h2>
+    <div class="block reveal">4 plantas, 4 CDs.
+      $$ [A|\mathbf{b}] = \left(\begin{array}{cccc|c}1&2&0&1&7\\2&5&1&1&14\\0&1&3&2&10\\1&3&2&4&15\end{array}\right) $$
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Paso 1: eliminar col 1 bajo \(\color{#dc6b1f}{\mathbf{1}}\)</span>
+        \(m_{21}=2,\; m_{41}=1\)<br>
+        $$ F_2 \leftarrow F_2-2F_1 \quad ; \quad F_4 \leftarrow F_4-F_1 $$
+        $$ \left(\begin{array}{cccc|c}\color{#dc6b1f}{\mathbf{1}}&2&0&1&7\\\color{#558b2f}{0}&1&1&-1&0\\0&1&3&2&10\\\color{#558b2f}{0}&1&2&3&8\end{array}\right) $$
+      </div>
+      <div class="example-block reveal"><span class="b-title">Paso 2: eliminar col 2 bajo \(\color{#dc6b1f}{\mathbf{1}}\)</span>
+        \(m_{32}=1,\; m_{42}=1\)<br>
+        $$ F_3 \leftarrow F_3-F_2 \quad ; \quad F_4 \leftarrow F_4-F_2 $$
+        $$ \left(\begin{array}{cccc|c}1&2&0&1&7\\0&\color{#dc6b1f}{\mathbf{1}}&1&-1&0\\\color{#558b2f}{0}&\color{#558b2f}{0}&2&3&10\\\color{#558b2f}{0}&\color{#558b2f}{0}&1&4&8\end{array}\right) $$
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: 4x4 PASO 3 Y SOLUCIÓN -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-network-wired"></i> Sistema \(4\times4\) — continuación y solución</h2>
+    <div class="col-layout">
+      <div class="example-block reveal"><span class="b-title">Paso 3: eliminar col 3 bajo \(\color{#dc6b1f}{\mathbf{2}}\)</span>
+        \(m_{43}=\frac{1}{2}\) → \(F_4 \leftarrow F_4-\frac{1}{2}F_3\)
+        $$ \left(\begin{array}{cccc|c}1&2&0&1&7\\0&1&1&-1&0\\0&0&\color{#dc6b1f}{\mathbf{2}}&3&10\\\color{#558b2f}{0}&\color{#558b2f}{0}&\color{#558b2f}{0}&\frac{5}{2}&3\end{array}\right) $$
+        <strong>Forma escalonada. 4 pivotes.</strong>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title">Sustitución hacia atrás</span>
+          \(x_4 = 3/(5/2) = 1.2\)<br>
+          \(2x_3 = 10-3(1.2)=6.4 \Rightarrow x_3=3.2\)<br>
+          \(x_2 = 0-3.2+1.2 = -2.0\)<br>
+          \(x_1 = 7-2(-2)-0-1.2 = 10.8\)
+          $$\mathbf{x}^* = (10.8,\;-2,\;3.2,\;1.2)^T$$
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Interpretación</span> \(x_2=-2\) ton es <strong>negativo</strong>: físicamente imposible. Indica que la red actual no soporta esa demanda. Revisar \(A\) o \(\mathbf{b}\).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: DETECCIÓN TIPO SISTEMA -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-code-branch"></i> Lectura de la forma escalonada — tres casos</h2>
+    <div class="col-3 mt">
+      <div class="block reveal">
+        <strong><i class="fas fa-check-circle" style="color:var(--green)"></i> Caso 1: única</strong>
+        $$ \left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{2}}&1&3&8\\0&\color{#dc6b1f}{\mathbf{3}}&1&5\\0&0&\color{#dc6b1f}{\mathbf{4}}&4\end{array}\right) $$
+        <ul style="font-size:0.9rem;"><li>3 pivotes, 3 inc.</li><li>Sin libres.</li></ul>
+      </div>
+      <div class="block reveal">
+        <strong><i class="fas fa-infinity" style="color:var(--navy)"></i> Caso 2: infinitas</strong>
+        $$ \left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{2}}&1&3&8\\0&\color{#dc6b1f}{\mathbf{3}}&1&5\\0&0&0&0\end{array}\right) $$
+        <ul style="font-size:0.9rem;"><li>2 pivotes, 3 inc.</li><li>\(x_3\) libre. \(\infty\) sols.</li></ul>
+      </div>
+      <div class="alert-block reveal">
+        <strong><i class="fas fa-times-circle" style="color:var(--orange)"></i> Caso 3: incompatible</strong>
+        $$ \left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{2}}&1&3&8\\0&\color{#dc6b1f}{\mathbf{3}}&1&5\\0&0&0&\color{#dc6b1f}{\mathbf{6}}\end{array}\right) $$
+        <ul style="font-size:0.9rem;"><li>Última fila: \(0=6\)</li><li>Sin solución.</li></ul>
+      </div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-compass"></i> Regla rápida</span>
+      <ul><li>Fila \([0\cdots0 \;|\; c], c\neq0\) → <strong>incompatible</strong>.</li><li>Todas las filas tienen pivote en \(A\) → <strong>única</strong> (si \(m=n\)).</li><li>Columna en \(A\) sin pivote → <strong>libres, infinitas</strong>.</li></ul>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: VARIABLE LIBRE -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-sliders"></i> Sistema con variable libre — solución general</h2>
+    <div class="block reveal">Red subutilizada: 
+      $$ \left(\begin{array}{cccc|c}1&2&0&1&5\\2&4&1&3&11\\0&0&1&1&1\end{array}\right) $$
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Aplicar Gauss</span> \(F_2\leftarrow F_2-2F_1\) → \(F_3-F_2\)
+      $$ \left(\begin{array}{cccc|c}\color{#dc6b1f}{\mathbf{1}}&2&0&1&5\\0&0&\color{#dc6b1f}{\mathbf{1}}&1&1\\0&0&0&0&0\end{array}\right) $$
+      Pivotes en col 1 y 3. <strong>Libres:</strong> \(x_2, x_4\).
+    </div>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-square-root-variable"></i> Solución general</span> \(x_2=s,\; x_4=t\):
+      \(x_3 = 1-t\) | \(x_1 = 5-2s-t\)
+      $$ \mathbf{x} = \begin{pmatrix}5\\0\\1\\0\end{pmatrix} + s\begin{pmatrix}-2\\1\\0\\0\end{pmatrix} + t\begin{pmatrix}-1\\0\\-1\\1\end{pmatrix} $$
+      <span class="reveal mt italic">Todos los planes de despacho que satisfacen la demanda. Elegimos \(s,t\) para minimizar costos.</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: MATLAB GAUSS VS BACKSLASH -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — implementación de Gauss y comparación</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Sistema 3x3</span>
+A = <span class="mf">[</span><span class="mn">2</span> <span class="mn">4</span> <span class="mn">2</span>; <span class="mn">1</span> <span class="mn">3</span> <span class="mn">4</span>; <span class="mn">3</span> <span class="mn">7</span> <span class="mn">2</span><span class="mf">]</span>;
+b = <span class="mf">[</span><span class="mn">12</span>; <span class="mn">11</span>; <span class="mn">17</span><span class="mf">]</span>;
+
+<span class="mc">% Metodo 1: A\b</span>
+x_matlab = A <span class="mk">\</span> b;
+
+<span class="mc">% Metodo 2: Gauss manual</span>
+Aug = <span class="mf">[</span>A, b<span class="mf">]</span>;
+Aug(<span class="mn">2</span>,:) = Aug(<span class="mn">2</span>,:) - (Aug(<span class="mn">2</span>,<span class="mn">1</span>)/Aug(<span class="mn">1</span>,<span class="mn">1</span>))*Aug(<span class="mn">1</span>,:);
+Aug(<span class="mn">3</span>,:) = Aug(<span class="mn">3</span>,:) - (Aug(<span class="mn">3</span>,<span class="mn">1</span>)/Aug(<span class="mn">1</span>,<span class="mn">1</span>))*Aug(<span class="mn">1</span>,:);
+Aug(<span class="mn">3</span>,:) = Aug(<span class="mn">3</span>,:) - (Aug(<span class="mn">3</span>,<span class="mn">2</span>)/Aug(<span class="mn">2</span>,<span class="mn">2</span>))*Aug(<span class="mn">2</span>,:);
+
+<span class="mc">% Sustitucion hacia atras</span>
+n = <span class="mn">3</span>; x_g = <span class="mf">zeros</span>(n,<span class="mn">1</span>);
+<span class="mk">for</span> i = n:-<span class="mn">1</span>:<span class="mn">1</span>
+    x_g(i) = (Aug(i,n+<span class="mn">1</span>) - Aug(i,i+<span class="mn">1</span>:n)*x_g(i+<span class="mn">1</span>:n)) / Aug(i,i);
+<span class="mk">end</span></pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida</span>
+          <code>3.5000  0.5000  1.5000</code><br>
+          Residuos MATLAB & Gauss: <code>0.00e+00</code>
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-balance-scale"></i> ¿Cuándo usar cada uno?</span>
+          <ul><li><code>A\ b</code>: siempre en práctica (estable).</li><li>Gauss manual: para <strong>entender</strong> proceso y detectar estructura.</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: MATLAB RREF -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-microchip"></i> MATLAB — <code>rref</code> y detección de variables libres</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Sistema con variable libre</span>
+A_lib = <span class="mf">[</span><span class="mn">1</span> <span class="mn">2</span> <span class="mn">0</span> <span class="mn">1</span>; <span class="mn">2</span> <span class="mn">4</span> <span class="mn">1</span> <span class="mn">3</span>; <span class="mn">0</span> <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span><span class="mf">]</span>;
+b_lib = <span class="mf">[</span><span class="mn">5</span>; <span class="mn">11</span>; <span class="mn">1</span><span class="mf">]</span>;
+Aug_lib = <span class="mf">[</span>A_lib, b_lib<span class="mf">]</span>;
+
+[R, pivots] = <span class="mf">rref</span>(Aug_lib);
+rA  = <span class="mf">rank</span>(A_lib);
+rAb = <span class="mf">rank</span>(Aug_lib);
+n   = <span class="mf">size</span>(A_lib, <span class="mn">2</span>);
+
+<span class="mk">if</span> rA < rAb
+    <span class="mk">disp</span>(<span class="ms">'INCOMPATIBLE'</span>);
+<span class="mk">elseif</span> rA == n
+    <span class="mk">disp</span>(<span class="ms">'UNICA'</span>);
+<span class="mk">else</span>
+    <span class="mk">disp</span>(<span class="ms">'INFINITAS'</span>);
+<span class="mk">end</span></pre>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+          <code>Sistema: INFINITAS SOLUCIONES</code><br>
+          <code>Variables libres: x2 x4</code>
+        </div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-exchange-alt"></i> Gauss vs rref</span>
+          <ul><li><strong>Gauss:</strong> FE triangular, sustitución manual.</li><li><strong>rref</strong> (Gauss-Jordan): FE reducida, solución directa visible (Clase 6).</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: EJERCICIO 1 -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Gauss \(3\times3\) manual</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Resolver 
+      $$ \begin{cases} x_1 + x_2 - x_3 = 3\\ 3x_1 + 2x_2 + x_3 = 13\\ 2x_1 - x_2 + 3x_3 = 5 \end{cases} $$
+    </p>
+    <div class="example-block mt reveal"><span class="b-title">Resolución</span>
+      $$ \left(\begin{array}{ccc|c}1&1&-1&3\\3&2&1&13\\2&-1&3&5\end{array}\right) \xrightarrow{F_2-3F_1, F_3-2F_1} \left(\begin{array}{ccc|c}1&1&-1&3\\0&-1&4&4\\0&-3&5&-1\end{array}\right) $$
+      $$ \xrightarrow{F_3-3F_2} \left(\begin{array}{ccc|c}1&1&-1&3\\0&-1&4&4\\0&0&-7&-13\end{array}\right) $$
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Sustitución</span> \(x_3=\frac{13}{7}\approx1.86\) | \(x_2\approx-3.43\) | \(x_1\approx4.57\)</div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Interpretación</span> \(x_2<0\) indica ruta físicamente inviable. Rediseñar red.</div>
+  </div>
+
+  <!-- SLIDE 16: EJERCICIO 2 -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Identificar tipo de sistema</h2>
+    <p class="reveal">Indicar tipo y variables libres si aplica:</p>
+    <div class="col-3 mt">
+      <div class="reveal center">
+        $$(a)\;\left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{2}}&3&1&5\\0&\color{#dc6b1f}{\mathbf{4}}&2&8\\0&0&\color{#dc6b1f}{\mathbf{3}}&6\end{array}\right)$$
+        <p style="margin-top:0.5rem; color:var(--green); font-weight:600;"><i class="fas fa-check"></i> Solución única. 3 pivotes.</p>
+      </div>
+      <div class="reveal center">
+        $$(b)\;\left(\begin{array}{cccc|c}\color{#dc6b1f}{\mathbf{1}}&2&0&1&3\\0&0&\color{#dc6b1f}{\mathbf{3}}&2&7\\0&0&0&0&0\end{array}\right)$$
+        <p style="margin-top:0.5rem; color:var(--navy); font-weight:600;"><i class="fas fa-infinity"></i> Infinitas. \(x_2, x_4\) libres.</p>
+      </div>
+      <div class="reveal center">
+        $$(c)\;\left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{1}}&2&3&4\\0&\color{#dc6b1f}{\mathbf{1}}&2&3\\0&0&0&5\end{array}\right)$$
+        <p style="margin-top:0.5rem; color:var(--orange); font-weight:600;"><i class="fas fa-times"></i> Incompatible. \(0=5\).</p>
+      </div>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Adicional (b)</span> \(x_2=s, x_4=t \Rightarrow x_3=\frac{7-2t}{3}, x_1=3-2s-t\)</div>
+  </div>
+
+  <!-- SLIDE 17: EJERCICIO 3 DECISIÓN -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-chess"></i> Ejercicio 3 — Decisión: varias soluciones, ¿cuál elegir?</h2>
+    <div class="alert-block reveal"><span class="b-title">Infinitas soluciones = múltiples planes de despacho que satisfacen la demanda.</span></div>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title">Familia de soluciones</span>
+        $$\mathbf{x}(s,t) = \begin{pmatrix}5-2s-t\\s\\1-t\\t\end{pmatrix} \quad s,t\geq0$$
+        Restricciones físicas: \(s,t\geq0\), \(2s+t\leq5\), \(t\leq1\).
+      </div>
+      <div>
+        <div class="example-block reveal"><span class="b-title"><i class="fas fa-coins"></i> Costo \(= (10,8,12,6)\cdot\mathbf{x}\)</span>
+          \(\text{Costo}(s,t) = 10(5-2s-t)+8s+12(1-t)+6t = 62-12s-16t\)<br>
+          Minimizar: maximizar \(s,t\). Con \(t=1 \Rightarrow s=2\).
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-trophy"></i> Solución óptima</span> \((s,t)=(2,1) \Rightarrow \mathbf{x}^*=(0,2,0,1)^T\)<br>
+          Costo = \(\mathbf{22}\) USD/ton. Solo plantas 2 y 4.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: RESUMEN -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-clipboard-check"></i> Resumen — Método de Gauss</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido</span>
+        <ul>
+          <li><strong>Gauss:</strong> eliminación col. a col. con multiplicadores \(m_{ij}\).</li>
+          <li><strong>FE:</strong> pivotes en diagonal escalonada, ceros debajo.</li>
+          <li><strong>Sustitución hacia atrás:</strong> de última ec. hacia arriba.</li>
+          <li><strong>Tres casos:</strong> única, infinitas (variables libres), ninguna.</li>
+          <li><strong>Variables libres:</strong> columnas sin pivote \(\Rightarrow\) familia parametrizada.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-forward"></i> Diferencia con Clase 6</span>
+          <div class="flow-diagram">
+            <div class="flow-box"><strong>Gauss (hoy)</strong><br>FE triangular<br>Sustitución manual</div>
+            <i class="fas fa-arrow-down flow-arrow-down"></i>
+            <div class="flow-box"><strong>Gauss-Jordan (C6)</strong><br>FE <em>reducida</em><br>Solución directa visible</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: TAREA -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 6</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
+      <ol>
+        <li><strong>Lectura:</strong> Lay, Sec. 1.2: RREF y Gauss-Jordan.</li>
+        <li><strong>Ejercicios manuales:</strong> Guía Clase 5 (B1–B5, I1–I3).</li>
+        <li><strong>MATLAB:</strong> Ejecutar <code>clase5_datos.m</code> y responder preguntas.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span> ¿Podríamos continuar con OEF para que la solución quede <strong>directamente visible</strong>, sin sustituir? ¿Qué habría que hacer?</div>
+  </div>
+
+  <!-- SLIDE 20: REFERENCIAS -->
+  <div class="slide" data-slide="20">
+    <h2><i class="fas fa-quote-left"></i> Referencias y recursos</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-book"></i> Bibliografía</span>
+          <ul><li><strong>Lay</strong> — Sec. 1.2: Row Reduction and Echelon Forms</li><li>Plantilla de ejercicios (aula virtual)</li></ul>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-cloud"></i> Recursos</span>
+          <ul><li>Script: <code>clase5_datos.m</code></li><li>Plantilla cuadriculada para matrices aumentadas (PDF)</li></ul>
+        </div>
+      </div>
+      <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
+        <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
+        <ul class="mt">
+          <li>Khan Academy: ``Gaussian elimination''</li>
+          <li><em>3Blue1Brown</em> — ``Essence of Linear Algebra'', Ep. 7: Null space</li>
+          <li>MathWorks: MATLAB <code>rref</code> tutorial</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 21: CIERRE -->
+  <div class="slide" data-slide="21">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem);">¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 6: Gauss-Jordan — eliminación completa y solución directa</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-envelope"></i> Contacto</span> <span>consultas@mat2logistica.edu | Aula Virtual</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 22</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

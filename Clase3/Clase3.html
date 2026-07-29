@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 3: Multiplicación Matriz-Vector y Flujos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.95em; }
+    th, td { padding: 0.45rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: center; }
+    th { background: #f1f5f9; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.72rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-vector-square" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Multiplicación Matriz-Vector<br>e Interpretación de Flujos Logísticos</h1>
+      <p class="sub">Matemáticas 2 — Módulo 1, Clase 3</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 3</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Objetivos de aprendizaje</li>
+      <li>Hoja de ruta y repaso</li>
+      <li>Definición del producto matriz-vector \(A\mathbf{v}\)</li>
+      <li>Caso logístico: flujos de carga</li>
+      <li>Cálculo paso a paso \(C\mathbf{v}\)</li>
+      <li>Flujos recibidos por cada CD (\(F\mathbf{u}\))</li>
+      <li>Diagrama de red logística</li>
+      <li>Propiedades y casos especiales</li>
+      <li>Práctica en MATLAB y ejercicios</li>
+      <li>Resumen y preparación Clase 4</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Definir</strong> el producto matriz-vector \(A\mathbf{v}\) como caso especial del producto matricial.</li>
+      <li class="reveal"><strong>Calcular</strong> \(A\mathbf{v}\) manualmente usando la regla fila \(\times\) columna.</li>
+      <li class="reveal"><strong>Interpretar</strong> \(A\mathbf{v}\) como el flujo total de carga recibido o despachado por cada nodo.</li>
+      <li class="reveal"><strong>Identificar</strong> qué almacén recibe más carga y proponer acciones operativas concretas.</li>
+      <li class="reveal"><strong>Implementar</strong> la multiplicación matriz-vector en MATLAB y visualizar los resultados.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 3: HOJA DE RUTA -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-route"></i> Hoja de ruta — dónde estamos</h2>
+    <div class="reveal center" style="display:flex; flex-wrap:wrap; justify-content:center; gap:0.6rem; align-items:center; margin:1rem 0;">
+      <div style="background:#dbeafe; padding:0.6rem; border-radius:8px; border:2px solid var(--navy); font-size:0.85rem;">Clase 1<br>Estructura</div>
+      <i class="fas fa-arrow-right" style="color:#64748b;"></i>
+      <div style="background:#dbeafe; padding:0.6rem; border-radius:8px; border:2px solid var(--navy); font-size:0.85rem;">Clase 2<br>Operaciones</div>
+      <i class="fas fa-arrow-right" style="color:#64748b;"></i>
+      <div style="background:var(--navy); color:white; padding:0.6rem; border-radius:8px; font-weight:700; font-size:0.85rem;">Clase 3<br>Producto \(A\mathbf{v}\)</div>
+      <i class="fas fa-arrow-right" style="color:#64748b;"></i>
+      <div style="background:#dbeafe; padding:0.6rem; border-radius:8px; border:2px solid var(--navy); font-size:0.85rem;">Clase 4–6<br>Sistemas \(Ax=b\)</div>
+      <i class="fas fa-arrow-right" style="color:#64748b;"></i>
+      <div style="background:#dbeafe; padding:0.6rem; border-radius:8px; border:2px solid var(--navy); font-size:0.85rem;">Clase 7<br>Mini-caso</div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-rotate-left"></i> Repaso Clase 2</span>
+      <ul>
+        <li>\(A(m\times p)\cdot B(p\times n) = C(m\times n)\): dimensiones internas deben coincidir.</li>
+        <li>\((AB)_{ij} = \sum_{k=1}^{p} a_{ik}b_{kj}\) → (fila \(i\) de \(A\)) \(\cdot\) (columna \(j\) de \(B\)).</li>
+      </ul>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-bridge"></i> Pregunta puente</span> Si \(B\) tiene <strong>una sola columna</strong>, ¿qué dimensión tiene \(AB\)? <span class="reveal">→ <strong>vector columna</strong> de \(m\) componentes. Eso es exactamente \(A\mathbf{v}\).</span></div>
+  </div>
+
+  <!-- SLIDE 4: DEFINICIÓN -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-square-root-variable"></i> Producto matriz-vector — definición</h2>
+    <div class="block reveal">Dada \(A\in\mathbb{R}^{m\times n}\) y \(\mathbf{v}\in\mathbb{R}^{n}\) (vector columna), el producto \(\mathbf{b} = A\mathbf{v}\in\mathbb{R}^{m}\) tiene componentes:
+      $$ b_i = \sum_{j=1}^{n} a_{ij}v_j = a_{i1}v_1 + \cdots + a_{in}v_n = \text{fila }i\text{ de }A \;\cdot\; \mathbf{v} $$
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Condición dimensional</span>
+        $$ \underbrace{A}_{m\times n} \cdot \underbrace{\mathbf{v}}_{n\times 1} = \underbrace{\mathbf{b}}_{m\times 1} $$
+        \(\mathbf{v}\) debe tener <strong>tantos elementos como columnas</strong> tiene \(A\).
+      </div>
+      <div class="example-block reveal"><span class="b-title">Interpretación alternativa</span>
+        \(A\mathbf{v}\) también es <strong>combinación lineal</strong> de las columnas de \(A\):
+        $$ A\mathbf{v} = v_1\,\mathbf{a}_1 + v_2\,\mathbf{a}_2 + \cdots + v_n\,\mathbf{a}_n $$
+        Clave en Módulos 4 y 5.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: CASO LOGÍSTICO -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-network-wired"></i> El caso logístico — red de distribución</h2>
+    <div class="block reveal">3 plantas envían carga a 4 centros de distribución (CD). \(C\) = costo unitario (USD/ton), \(\mathbf{v}\) = volumen despachado por planta (ton/sem).</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Matriz de costos \(C\) (USD/ton) — \(3\times 4\)</span>
+        $$ C = \begin{pmatrix} 12 & 35 & 48 & 8\\ 40 & 15 & 22 & 38\\ 52 & 28 & 10 & 60 \end{pmatrix} $$
+        <small>Filas = plantas | Columnas = CDs</small>
+      </div>
+      <div>
+        <div class="example-block reveal"><span class="b-title">Vector de volúmenes \(\mathbf{v}\) (ton) — \(4\times 1\)</span>
+          $$ \mathbf{v} = \begin{pmatrix}50\\80\\30\\60\end{pmatrix} $$
+          <ul style="font-size:0.9rem; margin-top:0.3rem;"><li>Maldonado: 50</li><li>Paysandú: 80</li><li>Tacuarembó: 30</li><li>Colonia: 60</li></ul>
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-circle-question"></i> Pregunta</span> ¿Cuánto cuesta operar cada planta esta semana?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: CÁLCULO PASO A PASO -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-calculator"></i> Cálculo paso a paso — \(C\mathbf{v}\)</h2>
+    <div class="reveal center">
+      $$ C\mathbf{v} = \begin{pmatrix}12&35&48&8\\40&15&22&38\\52&28&10&60\end{pmatrix} \begin{pmatrix}50\\80\\30\\60\end{pmatrix} = \mathbf{b}\in\mathbb{R}^3 $$
+    </div>
+    <div class="col-layout mt" style="grid-template-columns:1fr 1fr 1fr; gap:0.8rem;">
+      <div class="example-block reveal center">Planta 1 (Mvd)<br>\(b_1 = 12(50)+35(80)+48(30)+8(60) = \mathbf{\$5\,320}\)</div>
+      <div class="example-block reveal center">Planta 2 (Salto)<br>\(b_2 = 40(50)+15(80)+22(30)+38(60) = \mathbf{\$6\,140}\)</div>
+      <div class="example-block reveal center">Planta 3 (Rivera)<br>\(b_3 = 52(50)+28(80)+10(30)+60(60) = \mathbf{\$8\,740}\)</div>
+    </div>
+    <div class="block mt reveal">
+      <span class="b-title">Resultado</span>
+      $$ C\mathbf{v} = \begin{pmatrix}5320\\6140\\8740\end{pmatrix}\text{ USD/sem} \quad\Rightarrow\quad \text{Planta más cara: Rivera (\$8,740)} $$
+    </div>
+  </div>
+
+  <!-- SLIDE 7: FLUJOS CD -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-truck-loading"></i> Flujos: lo que recibe cada CD</h2>
+    <div class="block reveal">Usamos la <strong>transpuesta</strong>: \(F\mathbf{u}\), donde \(\mathbf{u}\) son despachos por planta y \(F\) fracciones de distribución.</div>
+    <div class="col-layout mt">
+      <div>
+        <div class="example-block reveal"><span class="b-title">Despachos \(\mathbf{u}\) (ton)</span> \(\mathbf{u} = (200, 150, 100)^T\)</div>
+        <div class="example-block mt reveal"><span class="b-title">Matriz de flujo \(F\) — \(4\times 3\)</span>
+          $$ F = \begin{pmatrix} 0.40 & 0.20 & 0.10\\ 0.10 & 0.50 & 0.20\\ 0.20 & 0.10 & 0.40\\ 0.30 & 0.20 & 0.30 \end{pmatrix} $$
+          \(f_{ij}\) = fracción de planta \(j\) al CD \(i\).
+        </div>
+      </div>
+      <div class="example-block reveal" style="font-size:0.9rem;">
+        <span class="b-title">Carga recibida: \(F\mathbf{u}\)</span>
+        <ul>
+          <li>CD1 (Mald.): \(0.40(200)+0.20(150)+0.10(100) = \mathbf{120}\) ton</li>
+          <li>CD2 (Pays.): \(0.10(200)+0.50(150)+0.20(100) = \mathbf{115}\) ton</li>
+          <li>CD3 (Tac.): \(0.20(200)+0.10(150)+0.40(100) = \mathbf{95}\) ton</li>
+          <li>CD4 (Col.): \(0.30(200)+0.20(150)+0.30(100) = \mathbf{120}\) ton</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: DIAGRAMA DE FLUJOS (ACTUALIZADO CON IMAGEN) -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-project-diagram"></i> Diagrama de flujos — red logística</h2>
+    <div class="col-layout">
+      <div>
+        <!-- Imagen de la red logística -->
+        <div class="reveal center mt" style="margin-bottom: 1rem;">
+          <img src="red_ejemplo.png" alt="Diagrama de red logística" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: white; padding: 10px;">
+        </div>
+        
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-eye"></i> Lectura</span>
+          <ul>
+            <li>Cada flecha = flujo de carga.</li>
+            <li>\(F\mathbf{u}\) = total recibido por cada CD.</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div>
+        <div class="alert-block reveal">
+          <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Nodos más cargados</span>
+          CD1 (Maldonado) y CD4 (Colonia) reciben igual: <strong>120 ton</strong>. Mayor demanda.
+        </div>
+        
+        <div class="example-block mt reveal">
+          <span class="b-title"><i class="fas fa-check-circle"></i> Verificación</span>
+          Total recibido: \(120+115+95+120 = 450\) ton<br>
+          Total despachado: \(200+150+100 = 450\) ton<br>
+          <strong>Balance correcto. \(\checkmark\)</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: PROPIEDADES -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-scale-balanced"></i> Propiedades del producto \(A\mathbf{v}\)</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title">Propiedades algebraicas</span>
+        <ol>
+          <li><strong>Distributiva:</strong> \(A(\mathbf{u}+\mathbf{v}) = A\mathbf{u}+A\mathbf{v}\)</li>
+          <li><strong>Escalar:</strong> \(A(c\mathbf{v}) = c(A\mathbf{v})\)</li>
+          <li><strong>Nulo:</strong> \(A\mathbf{0} = \mathbf{0}\)</li>
+          <li><strong>Identidad:</strong> \(I\mathbf{v} = \mathbf{v}\)</li>
+        </ol>
+        <p class="mt italic">Definen la linealidad de \(\mathbf{v}\mapsto A\mathbf{v}\).</p>
+      </div>
+      <div>
+        <div class="example-block reveal"><span class="b-title"><i class="fas fa-users"></i> Aplicación: superposición</span> Si \(\mathbf{v} = \mathbf{v}_A + \mathbf{v}_B\) (volumen de dos clientes):<br> \(C(\mathbf{v}_A+\mathbf{v}_B) = C\mathbf{v}_A + C\mathbf{v}_B\)<br> Permite analizar cada cliente por separado.</div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-link"></i> Clave Clase 9</span> Si \(A\mathbf{v}=\mathbf{0}\) con \(\mathbf{v}\neq\mathbf{0}\): "flujos que no generan costo neto". Anticipa <strong>sistemas homogéneos</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: CASOS ESPECIALES -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-star"></i> Casos especiales importantes</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title">Vector de unos \(\mathbf{1}\)</span> Si \(\mathbf{v}=(1,1,\ldots,1)^T\): \((A\mathbf{1})_i = \sum a_{ij}\) → <strong>sumas por fila</strong>.<br> <em>Logística:</em> costo total de enviar desde planta \(i\) a <strong>todos</strong> los CDs (1 unid/ruta).</div>
+        <div class="example-block mt reveal"><span class="b-title">Ejemplo</span> \(C\mathbf{1}= (103, 115, 150)^T\)</div>
+      </div>
+      <div>
+        <div class="block reveal"><span class="b-title">Vector canónico \(\mathbf{e}_j\)</span> 1 en pos \(j\), 0 resto. \(A\mathbf{e}_j = \mathbf{a}_j\) (columna \(j\)).<br> <em>Logística:</em> costo de enviar <strong>solo</strong> al CD \(j\).</div>
+        <div class="example-block mt reveal"><span class="b-title">Ejemplo: solo a Maldonado (\(j=1\))</span> \(C\mathbf{e}_1 = (12, 40, 52)^T\)</div>
+        <div class="block mt reveal"><span class="b-title">Vector de pesos \(\mathbf{w}\)</span> \(w_j\geq0, \sum w_j=1 \Rightarrow A\mathbf{w}\) = costo promedio ponderado.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: MATLAB BÁSICO -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — producto matriz-vector básico</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Matriz de costos (3x4) y vector v (4x1)</span>
+C = <span class="mf">[</span><span class="mn">12</span> <span class="mn">35</span> <span class="mn">48</span>  <span class="mn">8</span>;
+     <span class="mn">40</span> <span class="mn">15</span> <span class="mn">22</span> <span class="mn">38</span>;
+     <span class="mn">52</span> <span class="mn">28</span> <span class="mn">10</span> <span class="mn">60</span><span class="mf">]</span>;
+v = <span class="mf">[</span><span class="mn">50</span>; <span class="mn">80</span>; <span class="mn">30</span>; <span class="mn">60</span><span class="mf">]</span>;
+
+<span class="mc">% Costo total por planta</span>
+b = C * v;
+
+<span class="mc">% Extremos</span>
+[cMax, iMax] = <span class="mf">max</span>(b);
+[cMin, iMin] = <span class="mf">min</span>(b);
+<span class="mk">fprintf</span>(<span class="ms">'Max: P%d ($%.0f) | Min: P%d ($%.0f)'</span>,...
+        iMax, cMax, iMin, cMin);</pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+          <code>Max: P3 ($8740)</code><br><code>Min: P1 ($5320)</code><br><code>Diferencia: $3420</code>
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-balance-scale"></i> Decisión</span> P3 (Rivera) cuesta <strong>65% más</strong> que P1. ¿Redirigir carga? Depende de la capacidad disponible (Clase 4–6).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: MATLAB FLUJOS -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — flujos recibidos y análisis</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Matriz de flujo F (4x3) y despachos u (3x1)</span>
+F = <span class="mf">[</span><span class="mn">0.40</span> <span class="mn">0.20</span> <span class="mn">0.10</span>;
+     <span class="mn">0.10</span> <span class="mn">0.50</span> <span class="mn">0.20</span>;
+     <span class="mn">0.20</span> <span class="mn">0.10</span> <span class="mn">0.40</span>;
+     <span class="mn">0.30</span> <span class="mn">0.20</span> <span class="mn">0.30</span><span class="mf">]</span>;
+u = <span class="mf">[</span><span class="mn">200</span>; <span class="mn">150</span>; <span class="mn">100</span><span class="mf">]</span>;
+
+<span class="mc">% Carga por CD</span>
+carga_CD = F * u;
+
+<span class="mc">% Verificación balance</span>
+<span class="mk">fprintf</span>(<span class="ms">'Total rec.: %.0f\n'</span>, <span class="mf">sum</span>(carga_CD));
+<span class="mk">fprintf</span>(<span class="ms">'Total desp.: %.0f\n'</span>, <span class="mf">sum</span>(u));
+
+<span class="mc">% Visualización (bar chart)</span>
+<span class="mf">figure</span>; <span class="mf">bar</span>(carga_CD); <span class="mf">grid</span> on;</pre>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-weight"></i> Verificación</span> \(\sum (F\mathbf{u})_i = \mathbf{1}^T F\mathbf{u}\). Si columnas de \(F\) suman 1, el balance se cumple.</div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Análisis operativo</span>
+          <ul><li>CD1 y CD4: 120 t</li><li>CD3: 95 t (flujo menor)</li><li>¿Concentrar carga en CD3?</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: EJERCICIO 1 -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Cálculo manual de \(A\mathbf{v}\)</h2>
+    <p class="reveal"><strong>Red:</strong> \(A = \begin{pmatrix} 3&0&2\\1&4&0\\0&2&5 \end{pmatrix}\), \(\mathbf{v} = (10, 8, 6)^T\). \(a_{ij}\) = costo unid., \(v_j\) = unidades.</p>
+    <ol class="mt">
+      <li class="reveal">¿Está definida? ¿Dimensión resultado?</li>
+      <li class="reveal">Calcula \(A\mathbf{v}\) paso a paso.</li>
+      <li class="reveal">¿Qué almacén tiene mayor costo?</li>
+    </ol>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check"></i> Resolución</span> \(3\times3 \cdot 3\times1 \Rightarrow 3\times1\) \(\checkmark\)
+      \begin{align*} b_1 &= 3(10)+0+2(6)=\mathbf{42} \\ b_2 &= 1(10)+4(8)+0=\mathbf{42} \\ b_3 &= 0+2(8)+5(6)=\mathbf{46} \end{align*}
+      <span class="reveal">Mayor costo: <strong>Almacén 3</strong> ($46). Acción: redistribuir producto C.</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: EJERCICIO 2 -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Superposición de flujos</h2>
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title">Datos (Matriz \(C\) del caso)</span>
+        $$ C = \begin{pmatrix} 12 & 35 & 48 & 8\\ 40 & 15 & 22 & 38\\ 52 & 28 & 10 & 60 \end{pmatrix} $$
+        Clientes: \(\mathbf{v}_A=(20,10,0,5)^T\), \(\mathbf{v}_B=(30,0,40,10)^T\)
+      </div>
+      <div>
+        <ol class="mt">
+          <li class="reveal">Calcula \(C\mathbf{v}_A\) y \(C\mathbf{v}_B\).</li>
+          <li class="reveal">Calcula \(C(\mathbf{v}_A+\mathbf{v}_B)\) directamente.</li>
+          <li class="reveal">Verifica \(C\mathbf{v}_A + C\mathbf{v}_B = C(\mathbf{v}_A+\mathbf{v}_B)\).</li>
+          <li class="reveal">¿Qué propiedad se verifica?</li>
+        </ol>
+      </div>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Resolución</span>
+      \(C\mathbf{v}_A = \begin{pmatrix}630\\1140\\1620\end{pmatrix}\), \(C\mathbf{v}_B = \begin{pmatrix}2360\\2460\\2560\end{pmatrix}\)<br>
+      <span class="reveal">Suma: \(\begin{pmatrix}2990\\3600\\4180\end{pmatrix} = C(\mathbf{v}_A+\mathbf{v}_B)\) \(\checkmark \quad \textbf{Propiedad distributiva.}\)</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: EJERCICIO 3 DECISIÓN -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-chess"></i> Ejercicio 3 — Decisión operativa</h2>
+    <div class="alert-block reveal"><span class="b-title"><i class="fas fa-exclamation-circle"></i> Situación</span> CD mayor carga (120 t) opera al <strong>85%</strong> de capacidad (140 t). Crecimiento: <strong>12% mensual</strong>.</div>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title">Proyección \(A\mathbf{v}\)</span> \(\mathbf{v}_t = 1.12^t\mathbf{u}_0 \Rightarrow \text{Carga}_t = 1.12^t F\mathbf{u}_0\)
+        <table class="mt">
+          <tr><th>Semana</th><th>Carga CD1 (ton)</th></tr>
+          <tr><td>0</td><td>120.0</td></tr>
+          <tr><td>1</td><td>134.4</td></tr>
+          <tr><td>2</td><td><strong>150.5</strong></td></tr>
+          <tr><td>3</td><td>168.6</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="example-block reveal"><span class="b-title"><i class="fas fa-cogs"></i> Opciones</span>
+          <ol><li>Ampliar CD1 (cap. 200 t)</li><li>Redistribuir flujo a CD4</li><li>Añadir CD (cambia \(F\))</li></ol>
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-toolbox"></i> Herramienta</span> Cada opción genera nueva \(F\) y nuevo \(F\mathbf{u}\). Las matrices permiten <strong>simular escenarios</strong> antes de invertir.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: RESUMEN -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-clipboard-check"></i> Resumen — producto \(A\mathbf{v}\) en logística</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido hoy</span>
+        <ul>
+          <li>\(A\mathbf{v}\): fila \(i\) de \(A\) por \(\mathbf{v}\) \(\Rightarrow\) componente \(i\).</li>
+          <li>Condición: \(A(m\times n)\), \(\mathbf{v}(n)\) \(\Rightarrow\) resultado \(m\).</li>
+          <li><strong>Interpretación:</strong> costo total, carga recibida, flujo acumulado.</li>
+          <li><strong>Distributiva:</strong> \(A(\mathbf{u}+\mathbf{v})=A\mathbf{u}+A\mathbf{v}\).</li>
+          <li>MATLAB: <code>b = A * v</code> (columna).</li>
+        </ul>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-forward"></i> Conexión Clase 4</span> \(A\mathbf{v}\) aparece en \(A\mathbf{x}=\mathbf{b}\): dado \(A\) y \(\mathbf{b}\), <strong>encontrar</strong> \(\mathbf{x}\). Problema inverso.</div>
+        <div class="center mt reveal" style="display:flex; justify-content:center; gap:1rem; align-items:center; margin-top:1rem;">
+          <div style="background:#dbeafe; padding:0.5rem; border-radius:8px; border:2px solid var(--navy); font-size:0.85rem;">\(\mathbf{v}\) conocido \(\downarrow\) \(A\mathbf{v}=\mathbf{b}\) (Hoy)</div>
+          <i class="fas fa-arrow-right" style="color:#94a3b8;"></i>
+          <div style="background:#fff3e0; padding:0.5rem; border-radius:8px; border:2px solid var(--orange); font-size:0.85rem;">\(\mathbf{b}\) conocido \(\downarrow\) \(A\mathbf{x}=\mathbf{b}\) (Clase 4)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: TAREA -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 4</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
+      <ol>
+        <li><strong>Lectura:</strong> Lay, Sec. 1.4: \(A\mathbf{x}=\mathbf{b}\) (existencia/unicidad).</li>
+        <li><strong>Ejercicios manuales:</strong> Guía Clase 3 (B1–B4, I1–I2).</li>
+        <li><strong>MATLAB:</strong> Ejecutar <code>clase3_datos.m</code> y responder las 5 preguntas.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-brain"></i> Reflexión</span> Si conoces \(\mathbf{b}\) (demanda) y \(C\), ¿cómo hallarías \(\mathbf{x}\) (despacho)? ¿Siempre existe solución? ¿Puede haber más de una?</div>
+  </div>
+
+  <!-- SLIDE 18: REFERENCIAS -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-quote-left"></i> Referencias y recursos</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-book"></i> Bibliografía</span>
+          <ul>
+            <li><strong>Lay, D. C.</strong> — Álgebra Lineal, Sección 1.3: ``The Matrix Equation \(A\mathbf{x}=\mathbf{b}\)''</li>
+            <li><strong>Dataset:</strong> flujo de productos (<code>flujos.csv</code>)</li>
+            <li><strong>Ejercicios resueltos</strong> (aula virtual)</li>
+          </ul>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-cloud"></i> Recursos digitales</span>
+          <ul><li>Script: <code>clase3_datos.m</code></li><li>Guía de clase (PDF)</li></ul>
+        </div>
+      </div>
+      <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
+        <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
+        <ul class="mt">
+          <li><em>3Blue1Brown</em> — ``Essence of Linear Algebra'', Ep. 3: Linear transformations</li>
+          <li>MathWorks: MATLAB Matrix-vector multiplication</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: CIERRE -->
+  <div class="slide" data-slide="19">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem);">¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 4: Sistemas \(A\mathbf{x}=\mathbf{b}\) y balance de inventarios</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-envelope"></i> Contacto</span> <span>jesus.martinez@utec.edu.uy | Aula Virtual Moodle</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 20</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 8: Rango de una Matriz y Clasificación de Sistemas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    .col-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout, .col-3 { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+    table.compact tr:last-child td { border-bottom: 2px solid #94a3b8; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    .roadmap { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; align-items: center; margin: 0.8rem 0; }
+    .rm-node { padding: 0.4rem; border-radius: 6px; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); font-size: 0.75rem; text-align: center; min-width: 80px; }
+    .rm-node.active { background: var(--navy); color: white; }
+    .rm-arrow { color: #64748b; font-size: 0.8rem; }
+
+    .flow-diag { display: flex; justify-content: center; gap: 1rem; align-items: center; margin: 0.5rem 0; flex-wrap: wrap; }
+    .flow-box { padding: 0.5rem; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); border-radius: 8px; text-align: center; font-size: 0.85rem; min-width: 140px; }
+    .flow-arrow { color: #64748b; }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-layer-group" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Rango de una Matriz<br>Clasificación de Sistemas</h1>
+      <p class="sub">Matemáticas 2 — Módulo 2, Clase 8</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 8</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Objetivos de aprendizaje</li>
+      <li>Apertura del Módulo 2</li>
+      <li>Definición de rango y cálculo manual</li>
+      <li>Rango por inspección y casos especiales</li>
+      <li>Teorema de clasificación (Rouché-Frobenius)</li>
+      <li>Aplicación a sistemas logísticos</li>
+      <li>Interpretación logística: rutas y flexibilidad</li>
+      <li>Procedimiento de cálculo paso a paso</li>
+      <li>MATLAB: cálculo automático y detección de redundancias</li>
+      <li>Ejercicios prácticos y decisión operativa</li>
+      <li>Resumen y preparación Clase 9</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Definir</strong> el rango de una matriz como número de filas no nulas en su forma escalonada.</li>
+      <li class="reveal"><strong>Calcular</strong> el rango usando forma escalonada o <code>rank</code> en MATLAB.</li>
+      <li class="reveal"><strong>Clasificar</strong> sistemas (única, infinitas, incompatible) usando \(\operatorname{rang}(A)\) y \(\operatorname{rang}([A|\mathbf{b}])\).</li>
+      <li class="reveal"><strong>Interpretar</strong> el rango en términos logísticos: independencia de rutas, redundancia y flexibilidad.</li>
+      <li class="reveal"><strong>Decidir</strong> si conviene tener múltiples soluciones o una sola en una red de distribución.</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 3: HOJA DE RUTA MÓDULO 2 -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-route"></i> Hoja de ruta — Módulo 2</h2>
+    <div class="roadmap reveal">
+      <div class="rm-node active"><b>C8 Rango</b></div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C9 Sist. Homogéneos</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C10 \(AX=B\)</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C11 Det. e Inversa</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C12 Grados Libertad</div><i class="fas fa-arrow-right rm-arrow"></i>
+      <div class="rm-node">C13 Mini-caso 2</div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-link"></i> Conexión con Módulo 1</span> En el Módulo 1 usamos <code>rank</code> para clasificar. Hoy formalizamos:
+      <ul><li>¿Qué mide exactamente el rango?</li><li>¿Cómo se calcula sin MATLAB?</li><li>¿Qué significa operativamente en una red logística?</li></ul>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Pregunta motivadora</span> Red logística: 3 plantas, 4 rutas. Si \(\operatorname{rang}(A) = 2\), ¿qué implica? ¿Hay rutas <strong>redundantes</strong>?</div>
+  </div>
+
+  <!-- SLIDE 4: DEFINICIÓN DE RANGO -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-book-open"></i> Definición de rango</h2>
+    <div class="block reveal">El <strong>rango</strong> de \(A\in\mathbb{R}^{m\times n}\), denotado \(\operatorname{rang}(A)\), es el <strong>número de filas no nulas</strong> en cualquier forma escalonada de \(A\). Equivalentemente: el número de <strong>posiciones de pivote</strong>.</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Ejemplo: cálculo del rango</span>
+        $$ A = \begin{pmatrix}1&2&3\\4&5&6\\7&8&9\end{pmatrix} \xrightarrow{\text{Gauss}} \begin{pmatrix}\color{#dc6b1f}{\mathbf{1}}&2&3\\0&\color{#dc6b1f}{\mathbf{-3}}&-6\\0&0&0\end{pmatrix} $$
+        2 filas no nulas \(\Rightarrow\) \(\operatorname{rang}(A) = 2\).
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title">Propiedades del rango</span>
+          <ol>
+            <li>\(0 \leq \operatorname{rang}(A) \leq \min(m,n)\)</li>
+            <li>\(\operatorname{rang}(A) = \operatorname{rang}(A^T)\)</li>
+            <li>Invariante bajo OEF</li>
+            <li>Si \(A\) es cuadrada \(n\times n\): \(\operatorname{rang}(A)=n \iff A\) invertible</li>
+          </ol>
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-laptop-code"></i> En MATLAB</span> <code>rank(A)</code> calcula el rango numéricamente usando SVD. Para matrices con decimales, puede haber errores de redondeo.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: RANGO POR INSPECCIÓN -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-eye"></i> Rango por inspección — casos especiales</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title">Rango máximo (full rank)</span> \(\operatorname{rang}(A) = \min(m,n)\).
+          <ul><li>\(m\leq n\): todas las filas son l.i.</li><li>\(m\geq n\): todas las columnas son l.i.</li></ul>
+          <em>En logística:</em> ninguna restricción de balance es redundante.
+        </div>
+        <div class="example-block mt reveal"><span class="b-title">Matrices especiales</span>
+          <ul><li>\(\operatorname{rang}(I_n) = n\)</li><li>\(\operatorname{rang}(O) = 0\)</li><li>\(\operatorname{rang}(\mathbf{u}\mathbf{v}^T) = 1\) (\(\mathbf{u},\mathbf{v}\neq\mathbf{0}\))</li><li>\(\operatorname{rang}(kA) = \operatorname{rang}(A)\)</li></ul>
+        </div>
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Rango deficiente</span> \(\operatorname{rang}(A) < \min(m,n)\). <strong>Rank-deficient</strong>.
+          Causas en logística: rutas combinaciones de otras, CDs correlacionados, patrones replicados.
+        </div>
+        <div class="block mt reveal"><span class="b-title">Ejemplo: rango 1</span>
+          $$ B = \begin{pmatrix}2&4&6\\1&2&3\\3&6&9\end{pmatrix} $$
+          \(\operatorname{rang}(B)=1\): todas las filas son múltiplos de \((1,2,3)\).
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- SLIDE 6: TEOREMA DE CLASIFICACIÓN -->
+<div class="slide" data-slide="6">
+  <h2><i class="fas fa-gavel"></i> Teorema fundamental de clasificación</h2>
+  <div class="block reveal">
+    <span class="b-title">Teorema (Rouché-Frobenius)</span>
+    Sea \(A\mathbf{x}=\mathbf{b}\) con matriz aumentada \([A|\mathbf{b}]\):
+    <ol>
+      <li class="reveal"><strong>Incompatible</strong> (sin solución) \(\iff \mathrm{rang}(A) \lt \mathrm{rang}([A|\mathbf{b}])\)</li>
+      <li class="reveal"><strong>Solución única</strong> \(\iff \mathrm{rang}(A) = \mathrm{rang}([A|\mathbf{b}]) = n\)</li>
+      <li class="reveal"><strong>Infinitas soluciones</strong> \(\iff \mathrm{rang}(A) = \mathrm{rang}([A|\mathbf{b}]) \lt n\) (\(n-\mathrm{rang}(A)\) variables libres)</li>
+    </ol>
+  </div>
+  <div class="example-block mt reveal">
+    <span class="b-title"><i class="fas fa-diagram-project"></i> Resumen visual</span>
+    <div class="flow-diag">
+      <div class="flow-box" style="border-color:var(--red); color:var(--red);">
+        \(\mathrm{rang}(A)\lt\mathrm{rang}([\cdot])\)<br><strong>Incompatible</strong>
+      </div>
+      <i class="fas fa-arrows-left-right flow-arrow"></i>
+      <div class="flow-box" style="border-color:var(--green); color:var(--green);">
+        \(\mathrm{rang}(A)=\mathrm{rang}([\cdot])=n\)<br><strong>Única</strong>
+      </div>
+      <i class="fas fa-arrows-left-right flow-arrow"></i>
+      <div class="flow-box" style="border-color:var(--navy); color:var(--navy);">
+        \(\mathrm{rang}(A)=\mathrm{rang}([\cdot])\lt n\)<br><strong>Infinitas</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- SLIDE 7: APLICACIÓN LOGÍSTICA -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-truck-fast"></i> Aplicación a sistemas logísticos</h2>
+    <div class="example-block reveal">Misma red, distintos \(\mathbf{b}\).
+      $$ A = \begin{pmatrix}1&2&1\\2&4&2\\1&1&3\end{pmatrix} \xrightarrow{\text{Gauss}} \begin{pmatrix}\color{#dc6b1f}{\mathbf{1}}&2&1\\0&\color{#dc6b1f}{\mathbf{-1}}&2\\0&0&0\end{pmatrix} \quad \operatorname{rang}(A)=2,\; n=3 \Rightarrow 1 \text{ libre (si compatible)} $$
+    </div>
+    <div class="col-3 mt">
+      <div class="block reveal center"><strong>Caso (a)</strong> \(\mathbf{b}=(4,8,3)^T\)<br>Fila ceros \(\to 0=0\). \(\operatorname{rang}([\cdot])=2\).<br><span style="color:var(--navy); font-weight:600;"><i class="fas fa-infinity"></i> Infinitas</span></div>
+      <div class="block reveal center"><strong>Caso (b)</strong> \(\mathbf{b}=(4,8,4)^T\)<br>Fila ceros \(\to 0=0\). \(\operatorname{rang}([\cdot])=2\).<br><span style="color:var(--navy); font-weight:600;"><i class="fas fa-infinity"></i> Infinitas</span></div>
+      <div class="alert-block reveal center"><strong>Caso (c)</strong> \(\mathbf{b}=(4,8,6)^T\)<br>Fila: \([0\;0\;0\;|\;c\neq0]\). \(\operatorname{rang}([\cdot])=3\).<br><span style="color:var(--red); font-weight:600;"><i class="fas fa-times"></i> Incompatible</span></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: INTERPRETACIÓN COLUMNAS -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-road"></i> Rango y rutas logísticas</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-eye"></i> Interpretación por columnas</span> Columnas de \(A\) = "perfiles de distribución" de cada planta. \(\operatorname{rang}(A)\) = perfiles <strong>linealmente independientes</strong>.
+      <ul><li>\(\operatorname{rang}(A)=n\): cada ruta aporta info única.</li><li>\(\operatorname{rang}(A)<n\): hay <strong>rutas redundantes</strong> (combinación de otras).</li></ul>
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">Red con ruta redundante</span>
+        $$ A = \begin{pmatrix} \mathbf{0.6} & 0.3 & \mathbf{0.9}\\ \mathbf{0.4} & 0.5 & \mathbf{0.6}\\ \mathbf{0.0} & 0.2 & \mathbf{0.0} \end{pmatrix} $$
+        Col 3 = Col 1 + Col 2. \(\operatorname{rang}(A)=2\). Planta 3 es redundante.
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-cogs"></i> Implicación operativa</span> Ruta redundante = planta 3 <strong>no aporta nueva capacidad</strong>. Eliminarla no cambia demandas alcanzables. Pero si tiene menor costo, puede ser preferible.</div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-circle-question"></i> Pregunta de decisión</span> ¿Conviene mantener ruta redundante? Depende de costo, capacidad y resiliencia.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: INTERPRETACIÓN FILAS -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-sliders"></i> Rango y flexibilidad de la red</h2>
+    <div class="block reveal"><span class="b-title">Interpretación por filas</span> Filas de \(A\) = restricciones de balance de cada CD. Si \(\operatorname{rang}(A) < m\): <strong>ecuaciones de balance redundantes</strong>. Algunos CDs tienen demandas combinación de otros.</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-chart-bar"></i> Número de variables libres</span> Sistema compatible \(A\mathbf{x}=\mathbf{b}\):
+        $$ \text{Variables libres} = n - \operatorname{rang}(A) $$
+        <ul><li>\(n-\operatorname{rang}(A)=0\): plan único (sin flexibilidad)</li><li>\(=1\): optimizar 1D</li><li>\(\geq2\): optimizar multi-D</li></ul>
+      </div>
+      <div class="alert-block reveal center"><span class="b-title">Analogía logística</span>
+        <div class="flow-diag" style="flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
+          <div class="flow-box" style="min-width:200px;">\(n-r=0\) → Plan fijo / Sin elección</div>
+          <div class="flow-box" style="min-width:200px;">\(n-r=1\) → 1 variable libre / Optimizar 1D</div>
+          <div class="flow-box" style="min-width:200px;">\(n-r\geq2\) → Múltiple libertad / Optimizar multi-D</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: PROCEDIMIENTO -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-calculator"></i> Procedimiento para calcular el rango</h2>
+    <div class="block reveal">
+      <ol><li class="reveal">Aplicar Gauss a \(A\) hasta obtener FE.</li><li class="reveal">Contar número de <strong>filas no nulas</strong>.</li><li class="reveal">Ese número es \(\operatorname{rang}(A)\).</li></ol>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Ejemplo paso a paso</span>
+      $$ A = \begin{pmatrix}2&4&0&8\\1&2&1&5\\3&6&1&13\\0&0&2&4\end{pmatrix} $$
+      <span class="reveal mt">\(\xrightarrow{F_2-\frac{1}{2}F_1, F_3-\frac{3}{2}F_1} \begin{pmatrix}\color{#dc6b1f}{\mathbf{2}}&4&0&8\\0&0&\color{#dc6b1f}{\mathbf{1}}&1\\0&0&1&1\\0&0&2&4\end{pmatrix}\)</span>
+      <span class="reveal mt">\(\xrightarrow{F_3-F_2, F_4-2F_2, F_3\leftrightarrow F_4} \begin{pmatrix}2&4&0&8\\0&0&1&1\\0&0&0&\color{#dc6b1f}{\mathbf{2}}\\0&0&0&0\end{pmatrix}\)</span>
+      <span class="reveal mt bold">3 filas no nulas \(\Rightarrow \operatorname{rang}(A) = \mathbf{3}\).</span>
+    </div>
+  </div>
+
+ <!-- SLIDE 11: CLASIFICACIÓN COMPLETA -->
+<div class="slide" data-slide="11">
+  <h2><i class="fas fa-compass"></i> Clasificación completa con el rango</h2>
+  <p class="reveal">Sistema anterior: \(A\in\mathbb{R}^{4\times4}\), \(\mathrm{rang}(A)=3\), \(n=4\).</p>
+  <div class="col-layout mt">
+    <div class="example-block reveal"><span class="b-title">Caso compatible: \(\mathbf{b}=(8,5,13,4)^T\)</span>
+      \(F_4\) de \([A|\mathbf{b}]\) es \([0\;0\;0\;0\;|\;0]\). \(\mathrm{rang}([\cdot])=3=\mathrm{rang}(A)\).<br>
+      Como \(3\lt 4\): <strong>infinitas soluciones</strong>. 1 variable libre.<br>
+      <em>Logística:</em> grado de libertad para optimizar distribución.
+    </div>
+    <div class="alert-block reveal"><span class="b-title">Caso incompatible: \(\mathbf{b}=(8,5,13,6)^T\)</span>
+      \(F_4\) de \([A|\mathbf{b}]\) es \([0\;0\;0\;0\;|\;2]\). \(\mathrm{rang}([\cdot])=4\gt\mathrm{rang}(A)\).<br>
+      <strong style="color:var(--red)">Incompatible.</strong><br>
+      <em>Logística:</em> demanda inconsistente con estructura de red. Revisar \(A\) o \(\mathbf{b}\).
+    </div>
+  </div>
+  <div class="block mt reveal center"><span class="b-title">Regla de clasificación (resumen)</span>
+    <table class="compact" style="width:70%; margin:0 auto;">
+      <tr><th>\(\mathrm{rang}(A)\) vs \(\mathrm{rang}([A|\mathbf{b}])\)</th><th>\(\mathrm{rang}(A)\) vs \(n\)</th><th>Clasificación</th></tr>
+      <tr><td>\(\lt\)</td><td>—</td><td>Incompatible</td></tr>
+      <tr><td>\(=\)</td><td>\(=n\)</td><td>Solución única</td></tr>
+      <tr><td>\(=\)</td><td>\(\lt n\)</td><td>Infinitas (\(n-r\) libres)</td></tr>
+    </table>
+  </div>
+</div>
+
+  <!-- SLIDE 12: MATLAB CÁLCULO -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — cálculo y análisis automático</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Matrices del caso logistico</span>
+A = <span class="mf">[</span><span class="mn">2</span> <span class="mn">4</span> <span class="mn">0</span> <span class="mn">8</span>; <span class="mn">1</span> <span class="mn">2</span> <span class="mn">1</span> <span class="mn">5</span>;
+     <span class="mn">3</span> <span class="mn">6</span> <span class="mn">1</span> <span class="mn">13</span>; <span class="mn">0</span> <span class="mn">0</span> <span class="mn">2</span> <span class="mn">4</span><span class="mf">]</span>;
+
+rA = <span class="mf">rank</span>(A);
+<span class="mk">fprintf</span>(<span class="ms">'rang(A) = %d\n'</span>, rA);
+<span class="mk">fprintf</span>(<span class="ms">'Variables libres: %d\n'</span>, size(A,<span class="mn">2</span>) - rA);
+
+<span class="mc">% Clasificar con distintos b</span>
+b_casos = {<span class="mf">[</span><span class="mn">8</span>;<span class="mn">5</span>;<span class="mn">13</span>;<span class="mn">4</span><span class="mf">]</span>, <span class="mf">[</span><span class="mn">8</span>;<span class="mn">5</span>;<span class="mn">13</span>;<span class="mn">6</span><span class="mf">]</span>};
+<span class="mk">for</span> k = <span class="mn">1</span>:<span class="mn">2</span>
+  bk = b_casos{k};
+  rAb = <span class="mf">rank</span>(<span class="mf">[</span>A, bk<span class="mf">]</span>);
+  <span class="mk">if</span> rA < rAb
+    <span class="mk">fprintf</span>(<span class="ms">'=> INCOMPATIBLE\n'</span>);
+  <span class="mk">elseif</span> rA == size(A,<span class="mn">2</span>)
+    <span class="mk">fprintf</span>(<span class="ms">'=> UNICA\n'</span>);
+  <span class="mk">else</span>
+    <span class="mk">fprintf</span>(<span class="ms">'=> INFINITAS (%d libres)\n'</span>, size(A,<span class="mn">2</span>)-rA);
+  <span class="mk">end</span>
+<span class="mk">end</span></pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+          <code>rang(A) = 3</code> | <code>Variables libres: 1</code><br>
+          <code>b=[8 5 13 4]: INFINITAS (1 libre)</code><br>
+          <code>b=[8 5 13 6]: INCOMPATIBLE</code>
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-circle"></i> Precaución numérica</span> <code>rank</code> usa tolerancia. Para decimales: <code>rank(A, tol)</code> permite especificar tolerancia manualmente.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: MATLAB RUTAS REDUNDANTES -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-network-wired"></i> MATLAB — detección de rutas redundantes</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Red con posible redundancia</span>
+A_red = <span class="mf">[</span><span class="mn">0.6</span> <span class="mn">0.3</span> <span class="mn">0.9</span>;
+         <span class="mn">0.4</span> <span class="mn">0.5</span> <span class="mn">0.6</span>;
+         <span class="mn">0.0</span> <span class="mn">0.2</span> <span class="mn">0.0</span><span class="mf">]</span>;
+
+rango_red = <span class="mf">rank</span>(A_red);
+<span class="mk">fprintf</span>(<span class="ms">'Rango red: %d | Columnas: %d\n'</span>, rango_red, size(A_red,<span class="mn">2</span>));
+
+<span class="mk">if</span> rango_red < size(A_red,<span class="mn">2</span>)
+  <span class="mk">disp</span>(<span class="ms">'La red tiene RUTAS REDUNDANTES.'</span>);
+<span class="mk">end</span>
+
+<span class="mc">% Encontrar columnas independientes</span>
+[~, jb] = <span class="mf">rref</span>(A_red);
+<span class="mk">fprintf</span>(<span class="ms">'Rutas esenciales: %s\n'</span>, mat2str(jb));
+
+<span class="mc">% Verificar combinacion</span>
+dif = A_red(:,<span class="mn">3</span>) - A_red(:,<span class="mn">1</span>) - A_red(:,<span class="mn">2</span>);
+<span class="mk">fprintf</span>(<span class="ms">'Col3 es comb. de Col1+Col2: %s\n'</span>, norm(dif)<span class="mn">&lt;1e-10</span>);</pre>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida</span>
+          <code>Rango red: 2 | Columnas: 3</code><br>
+          <code>La red tiene RUTAS REDUNDANTES.</code><br>
+          <code>Rutas esenciales: [1 2]</code>
+        </div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-balance-scale"></i> Decisión logística</span> Planta 3 = mismo patrón que P1+P2.
+          <ul><li><strong>Eliminarla</strong> si costo mayor.</li><li><strong>Mantenerla</strong> como respaldo.</li><li>Usarla para <strong>reducir carga</strong> en P1/P2.</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: EJERCICIO 1 -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Calcular el rango manualmente</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Calcula \(\operatorname{rang}(A)\) y \(\operatorname{rang}(B)\) usando Gauss.
+      $$ A = \begin{pmatrix}1&2&3&4\\0&1&2&3\\1&3&5&7\\2&3&5&7\end{pmatrix} \quad B = \begin{pmatrix}1&0&2\\2&1&5\\3&1&7\end{pmatrix} $$
+    </p>
+    <div class="example-block mt reveal"><span class="b-title">Resolución de \(A\)</span>
+      \(\xrightarrow{F_3-F_1, F_4-2F_1} \begin{pmatrix}1&2&3&4\\0&1&2&3\\0&1&2&3\\0&-1&-1&-1\end{pmatrix} \xrightarrow{F_3-F_2, F_4+F_2} \begin{pmatrix}1&2&3&4\\0&1&2&3\\0&0&0&0\\0&0&1&2\end{pmatrix}\)
+      <span class="reveal mt">Intercambiando \(F_3\leftrightarrow F_4\): 3 filas no nulas. \(\operatorname{rang}(A)=\mathbf{3}\).</span>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Resolución de \(B\)</span>
+      \(\xrightarrow{F_2-2F_1, F_3-3F_1} \begin{pmatrix}1&0&2\\0&1&1\\0&1&1\end{pmatrix} \xrightarrow{F_3-F_2} \begin{pmatrix}1&0&2\\0&1&1\\0&0&0\end{pmatrix}\)
+      <span class="reveal mt">2 filas no nulas. \(\operatorname{rang}(B)=\mathbf{2}\). (Implica: columnas linealmente dependientes).</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: EJERCICIO 2 -->
+<div class="slide" data-slide="15">
+  <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Clasificar sistemas sin resolver</h2>
+  <div class="col-3 mt">
+    <div class="block reveal center">
+      $$(a)\quad A=\begin{pmatrix}1&2\\3&6\end{pmatrix},\;\mathbf{b}=\begin{pmatrix}4\\12\end{pmatrix}$$
+      FE: \(\begin{pmatrix}1&2&4\\0&0&0\end{pmatrix}\)<br>
+      \(\mathrm{rang}(A)=1=\mathrm{rang}([\cdot]) \lt n=2\).<br>
+      <span style="color:var(--navy); font-weight:600;">Infinitas (1 libre)</span>
+    </div>
+    <div class="block reveal center">
+      $$(b)\quad A=\begin{pmatrix}1&2\\3&6\end{pmatrix},\;\mathbf{b}=\begin{pmatrix}4\\13\end{pmatrix}$$
+      FE: \(\begin{pmatrix}1&2&4\\0&0&1\end{pmatrix}\)<br>
+      \(\mathrm{rang}([\cdot])=2 \gt \mathrm{rang}(A)=1\).<br>
+      <span style="color:var(--red); font-weight:600;">Incompatible</span>
+    </div>
+    <div class="block reveal center">
+      $$(c)\quad A=\begin{pmatrix}2&1&0\\0&3&1\\1&0&2\end{pmatrix},\;\mathbf{b}=\begin{pmatrix}5\\4\\3\end{pmatrix}$$
+      FE \(A\): 3 filas no nulas. \(\mathrm{rang}(A)=3=n\).<br>
+      Verificar compatibilidad.<br>
+      <span style="color:var(--green); font-weight:600;">Solución única</span>
+    </div>
+  </div>
+  <div class="block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Regla rápida</span> Si \(\mathrm{rang}(A)=n\), siempre hay única o incompatibilidad. Si \(\mathrm{rang}(A) \lt n\), hay variables libres <strong>si</strong> es compatible.</div>
+</div>
+
+  <!-- SLIDE 16: EJERCICIO 3 -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-chess"></i> Ejercicio 3 — Decisión logística</h2>
+    <div class="alert-block reveal"><span class="b-title">Situación</span> Red A: \(\operatorname{rang}(A)=n\) (única). Red B: \(\operatorname{rang}(B)=n-2\) (2 grados libertad). ¿Cuál conviene operativamente?</div>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Red A (única)</span>
+        <ul><li><strong>Simplicidad:</strong> un solo plan.</li><li><strong>Control:</strong> operación determinada.</li><li><strong>Auditoría:</strong> fácil verificar cumplimiento.</li></ul>
+      </div>
+      <div class="block reveal"><span class="b-title"><i class="fas fa-sliders"></i> Red B (múltiples)</span>
+        <ul><li><strong>Flexibilidad:</strong> elegir menor costo.</li><li><strong>Resiliencia:</strong> planes alternativos si falla planta.</li><li><strong>Optimización:</strong> 2 grados de libertad permiten minimizar costos/tiempos.</li></ul>
+      </div>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-flag-checkered"></i> Conclusión</span> En logística avanzada, <strong>generalmente se prefieren grados de libertad</strong> para optimizar. Requiere restricciones adicionales (capacidad, costo, tiempo). Base de la <strong>programación lineal</strong>.</div>
+  </div>
+
+  <!-- SLIDE 17: RESUMEN -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-clipboard-check"></i> Resumen — Rango y clasificación</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido hoy</span>
+        <ul>
+          <li>\(\operatorname{rang}(A)\) = filas no nulas FE = número de pivotes.</li>
+          <li>\(0 \leq \operatorname{rang}(A) \leq \min(m,n)\); invariante bajo OEF.</li>
+          <li><strong>Teorema:</strong> compatible \(\iff \operatorname{rang}(A)=\operatorname{rang}([A|\mathbf{b}])\).</li>
+          <li>Variables libres = \(n - \operatorname{rang}(A)\) (si hay solución).</li>
+          <li>Rango deficiente \(\Rightarrow\) rutas redundantes / ecuaciones dependientes.</li>
+          <li>MATLAB: <code>rank(A)</code>, <code>rank([A b])</code>.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-forward"></i> Conexión Clase 9</span> Sistemas homogéneos \(A\mathbf{x}=\mathbf{0}\):
+          <ul><li>Siempre compatibles (\(\mathbf{x}=\mathbf{0}\)).</li><li>Soluciones no triviales \(\iff \operatorname{rang}(A)<n\).</li><li>Soluciones = <strong>espacio nulo</strong> de \(A\).</li></ul>
+        </div>
+        <div class="alert-block mt reveal center"><span class="b-title"><i class="fas fa-square-root-variable"></i> Fórmula esencial</span>
+          $$ n = \underbrace{\operatorname{rang}(A)}_{\text{básicas}} + \underbrace{(n-\operatorname{rang}(A))}_{\text{libres}} $$
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: TAREA -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 9</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
+      <ol>
+        <li><strong>Lectura:</strong> Lay, Sec. 1.5: ``Solution Sets of Linear Systems''. Diferencia homogéneo vs no homogéneo.</li>
+        <li><strong>Ejercicios manuales:</strong> Guía Clase 8 (B1–B5, I1–I3). Calcular rango por eliminación.</li>
+        <li><strong>MATLAB:</strong> Ejecutar <code>clase8_datos.m</code> y responder preguntas.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span> \(A\mathbf{x}=\mathbf{0}\) siempre tiene solución trivial. ¿Cuándo tiene <strong>soluciones no triviales</strong>? ¿Qué significa logísticamente que un flujo no nulo ``no genere costo neto''?</div>
+  </div>
+
+  <!-- SLIDE 19: REFERENCIAS -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-quote-left"></i> Referencias y recursos</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-book"></i> Bibliografía</span>
+          <ul><li><strong>Lay</strong> — Sec. 2.4: Rango y ecuaciones matriciales</li><li><strong>Poole</strong> — Cap. 3: Ejercicios de clasificación</li></ul>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-cloud"></i> Recursos</span>
+          <ul><li>Script: <code>clase8_datos.m</code></li><li>Dataset: <code>redes_logisticas.mat</code></li><li>Guía de ejercicios (aula virtual)</li></ul>
+        </div>
+      </div>
+      <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
+        <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
+        <ul class="mt">
+          <li>Khan Academy: ``Matrix rank''</li>
+          <li><em>3Blue1Brown</em> — Ep. 7: Null space and column space</li>
+          <li>MathWorks: MATLAB <code>rank</code> docs</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: CIERRE -->
+  <div class="slide" data-slide="20">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem);">¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 9: Sistemas Homogéneos \(A\mathbf{x}=\mathbf{0}\) y Lazos Cerrados Logísticos</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-envelope"></i> Contacto</span> <span>consultas@mat2logistica.edu | Aula Virtual</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 21</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

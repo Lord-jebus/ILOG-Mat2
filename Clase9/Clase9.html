@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 9: Sistemas Homogéneos y Lazos Cerrados</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    /* CSS Diagrams replacing TikZ */
+    .flow-tree { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; margin: 0.8rem 0; }
+    .flow-row { display: flex; justify-content: center; gap: 1rem; align-items: center; flex-wrap: wrap; }
+    .flow-node { padding: 0.5rem 0.8rem; border-radius: 8px; text-align: center; font-size: 0.85rem; min-width: 140px; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+    .fn-navy { background: rgba(0,82,147,0.1); border: 2px solid var(--navy); }
+    .fn-green { background: var(--green-light); border: 2px solid var(--green); }
+    .fn-orange { background: var(--orange-light); border: 2px solid var(--orange); font-size: 0.8rem; }
+    .arrow-down { color: #94a3b8; font-size: 1.2rem; }
+    .note-small { font-size: 0.75rem; color: #64748b; margin-top: 4px; }
+
+    .geo-plot { width: 220px; height: 180px; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; position: relative; margin: 0 auto; }
+    .geo-line { position: absolute; border-radius: 2px; }
+    .geo-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-arrows-spin" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Sistemas Homogéneos \(A\mathbf{x}=\mathbf{0}\)<br>Lazos Cerrados Logísticos</h1>
+      <p class="sub">Matemáticas 2 — Módulo 2, Clase 9</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 9</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Objetivos de aprendizaje</li>
+      <li>De \(A\mathbf{x}=\mathbf{b}\) a \(A\mathbf{x}=\mathbf{0}\)</li>
+      <li>Estructura de las soluciones</li>
+      <li>El espacio nulo de \(A\)</li>
+      <li>Resolución de sistemas homogéneos</li>
+      <li>Solución general y base del espacio nulo</li>
+      <li>Lazos cerrados en redes de distribución</li>
+      <li>Sistema con múltiples lazos cerrados</li>
+      <li>Soluciones paramétricas completas</li>
+      <li>Práctica MATLAB y optimización sobre lazos</li>
+      <li>Ejercicios prácticos, resumen y tarea</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ul class="mt">
+      <li class="reveal"><strong>Definir</strong> el sistema homogéneo \(A\mathbf{x}=\mathbf{0}\) y distinguirlo del no homogéneo.</li>
+      <li class="reveal"><strong>Explicar</strong> por qué siempre es compatible y cuándo tiene soluciones no triviales.</li>
+      <li class="reveal"><strong>Resolver</strong> \(A\mathbf{x}=\mathbf{0}\) y expresar la solución general en forma paramétrica.</li>
+      <li class="reveal"><strong>Interpretar</strong> el espacio nulo \(\operatorname{Nul}(A)\) como flujos que no generan carga neta.</li>
+      <li class="reveal"><strong>Identificar</strong> lazos cerrados logísticos: flujos internos que no afectan la demanda.</li>
+      <li class="reveal"><strong>Decidir</strong> qué movimientos no afectan el sistema y cómo aprovecharlos operativamente.</li>
+    </ul>
+  </div>
+
+ <!-- SLIDE 3: DE AX=B A AX=0 -->
+<div class="slide" data-slide="3">
+  <h2><i class="fas fa-exchange-alt"></i> De \(A\mathbf{x}=\mathbf{b}\) a \(A\mathbf{x}=\mathbf{0}\)</h2>
+  <div class="block reveal"><span class="b-title">Definición</span> Un sistema \(A\mathbf{x}=\mathbf{0}\) (con \(\mathbf{b}=\mathbf{0}\)) se llama <strong>sistema homogéneo</strong>. Su lado derecho es el vector nulo.</div>
+  <div class="col-layout mt">
+    <div>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Propiedad fundamental</span>
+        Un sistema homogéneo <strong>siempre es compatible</strong>.<br>
+        La <strong>solución trivial</strong> \(\mathbf{x}=\mathbf{0}\) siempre existe: \(A\cdot\mathbf{0} = \mathbf{0} \checkmark\)
+      </div>
+      <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-circle-question"></i> Pregunta clave</span> ¿Cuándo existen soluciones <strong>no triviales</strong> \(\mathbf{x}\neq\mathbf{0}\)?<br><span class="reveal mt">Exactamente cuando \(\mathrm{rang}(A) \lt n\), es decir, cuando hay variables libres.</span></div>
+    </div>
+    <div class="reveal">
+      <div class="flow-tree">
+        <div class="flow-node fn-navy">\(A\mathbf{x}=\mathbf{b}\) Sistema general</div>
+        <i class="fas fa-arrow-down arrow-down"></i>
+        <div class="flow-node fn-green">\(A\mathbf{x}=\mathbf{0}\) Sistema homogéneo</div>
+        <div class="flow-row">
+          <div>
+            <i class="fas fa-arrow-down arrow-down"></i>
+            <div class="flow-node fn-orange">\(\mathrm{rang}(A)=n\)<br>Solo sol. trivial<br><span class="note-small">\(n-r=0\) libres</span></div>
+          </div>
+          <div>
+            <i class="fas fa-arrow-down arrow-down"></i>
+            <div class="flow-node fn-orange" style="border-color:var(--navy); background:rgba(0,82,147,0.1);">\(\mathrm{rang}(A) \lt n\)<br>Sol. no triviales<br><span class="note-small">\(n-r \gt 0\) libres</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- SLIDE 4: ESTRUCTURA DE SOLUCIONES -->
+<div class="slide" data-slide="4">
+  <h2><i class="fas fa-layer-group"></i> Estructura de las soluciones</h2>
+  <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Teorema</span> Si \(\mathbf{x}^*\) es una solución particular de \(A\mathbf{x}=\mathbf{b}\), entonces <strong>toda solución</strong> tiene la forma: \(\mathbf{x} = \mathbf{x}^* + \mathbf{x}_h\) donde \(\mathbf{x}_h\) es cualquier solución de \(A\mathbf{x}=\mathbf{0}\).</div>
+  <div class="col-layout mt">
+    <div class="example-block reveal"><span class="b-title">Demostración</span>
+      Si \(A\mathbf{x}^*=\mathbf{b}\) y \(A\mathbf{x}_h=\mathbf{0}\), entonces:
+      \[ A(\mathbf{x}^*+\mathbf{x}_h) = A\mathbf{x}^* + A\mathbf{x}_h = \mathbf{b}+\mathbf{0} = \mathbf{b} \]
+      Cualquier suma \(\mathbf{x}^*+\mathbf{x}_h\) es también solución. \(\checkmark\)
+    </div>
+    <div>
+      <div class="block reveal"><span class="b-title">Interpretación geométrica</span>
+        <div class="geo-plot" style="position:relative; width:220px; height:180px; margin:0 auto;">
+          <!-- Línea verde: Nul(A) pasa por el origen -->
+          <div class="geo-line" style="width:160px; height:2px; background:var(--green); top:140px; left:20px; transform:rotate(-30deg); transform-origin:left center;"></div>
+          <div style="position:absolute; top:150px; left:130px; font-size:0.7rem; color:var(--green);">\(\mathrm{Nul}(A)\)</div>
+          
+          <!-- Línea azul: soluciones de Ax=b (paralela, desplazada) -->
+          <div class="geo-line" style="width:160px; height:2px; background:var(--navy); top:80px; left:20px; transform:rotate(-30deg); transform-origin:left center;"></div>
+          <div style="position:absolute; top:50px; left:120px; font-size:0.7rem; color:var(--navy);">sol. de \(A\mathbf{x}=\mathbf{b}\)</div>
+          
+          <!-- Origen -->
+          <div class="geo-dot" style="top:136px; left:16px; background:var(--green);"></div>
+          <div style="position:absolute; top:145px; left:0px; font-size:0.7rem; color:#334155;">\(\mathbf{0}\)</div>
+          
+          <!-- Punto x* SOBRE la línea azul -->
+          <div class="geo-dot" style="top:76px; left:80px; background:var(--orange);"></div>
+          <div style="position:absolute; top:60px; left:85px; font-size:0.75rem; color:var(--orange); font-weight:600;">\(\mathbf{x}^*\)</div>
+          
+          <!-- Vector de traslación (origen → x*) -->
+          <svg style="position:absolute; top:0; left:0; width:220px; height:180px; pointer-events:none;">
+            <defs>
+              <marker id="arrow-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                <polygon points="0 0, 8 3, 0 6" fill="var(--orange)"/>
+              </marker>
+            </defs>
+            <line x1="20" y1="140" x2="82" y2="82" stroke="var(--orange)" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arrow-orange)"/>
+          </svg>
+          <div style="position:absolute; top:100px; left:25px; font-size:0.7rem; color:var(--orange); font-style:italic;">traslación</div>
+        </div>
+        <p class="mt italic">El conjunto de soluciones es una <strong>traslación</strong> del espacio nulo.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- SLIDE 5: ESPACIO NULO -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-box"></i> El espacio nulo de \(A\)</h2>
+    <div class="block reveal"><span class="b-title">Definición</span> El <strong>espacio nulo</strong> de \(A\in\mathbb{R}^{m\times n}\) es: \(\operatorname{Nul}(A) = \{\mathbf{x}\in\mathbb{R}^n \;:\; A\mathbf{x}=\mathbf{0}\}\). Es el conjunto de <strong>todas las soluciones</strong> del sistema homogéneo.</div>
+    <div class="col-layout mt">
+      <div>
+        <div class="block mt reveal"><span class="b-title">Propiedades algebraicas</span> \(\operatorname{Nul}(A)\) es un <strong>subespacio vectorial</strong> de \(\mathbb{R}^n\):
+          <ol>
+            <li>\(\mathbf{0}\in\operatorname{Nul}(A)\)</li>
+            <li>Si \(\mathbf{u},\mathbf{v}\in\operatorname{Nul}(A) \Rightarrow \mathbf{u}+\mathbf{v}\in\operatorname{Nul}(A)\)</li>
+            <li>Si \(\mathbf{u}\in\operatorname{Nul}(A), c\in\mathbb{R} \Rightarrow c\mathbf{u}\in\operatorname{Nul}(A)\)</li>
+          </ol>
+        </div>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-ruler-combined"></i> Dimensión del espacio nulo</span>
+          \[ \dim(\operatorname{Nul}(A)) = n - \operatorname{rang}(A) \]
+          Teorema rango-nulidad: \(\underbrace{\operatorname{rang}(A)}_{\text{básicas}} + \underbrace{\dim(\operatorname{Nul}(A))}_{\text{libres}} = n\)
+        </div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-laptop-code"></i> En MATLAB</span> <code>null(A)</code> devuelve base ortonormal. <code>size(null(A),2)</code> = dimensión.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: RESOLUCIÓN PASO A PASO -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-calculator"></i> Resolución de \(A\mathbf{x}=\mathbf{0}\) — paso a paso</h2>
+    <div class="block reveal"><span class="b-title">Procedimiento</span> Aplicar Gauss/G-J a \([A|\mathbf{0}]\). La última columna es ceros, se trabaja directamente con \(A\).</div>
+    <div class="example-block mt reveal"><span class="b-title">Ejemplo: red con flujo circular</span>
+      \[ A = \begin{pmatrix}1&2&1\\2&4&3\\1&2&0\end{pmatrix}, \quad A\mathbf{x}=\mathbf{0} \]
+      Gauss sobre \(A\): \(\xrightarrow{F_2-2F_1;\;F_3-F_1} \begin{pmatrix}1&2&1\\0&0&1\\0&0&-1\end{pmatrix} \xrightarrow{F_3+F_2} \begin{pmatrix}1&2&1\\0&0&1\\0&0&0\end{pmatrix}\)
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Gauss-Jordan (RREF)</span>
+      \(F_1\leftarrow F_1-F_2\): \(\begin{pmatrix}1&2&0\\0&0&1\\0&0&0\end{pmatrix}\)<br>
+      Pivotes en col 1 y 3. Variable libre: \(x_2=t\).<br>
+      <span class="reveal mt">\(x_1 = -2t\), \(x_2 = t\), \(x_3 = 0\).</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: SOLUCIÓN GENERAL Y BASE -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-vector-square"></i> Solución general y base del espacio nulo</h2>
+    <p class="reveal">RREF de \(A\): variable libre \(x_2=t\). \(\mathbf{x} = t\begin{pmatrix}-2\\1\\0\end{pmatrix}, \quad t\in\mathbb{R}\)</p>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-fingerprint"></i> Vector base</span>
+        El vector \(\mathbf{n}_1 = (-2,1,0)^T\) forma una <strong>base</strong> del espacio nulo:
+        \[ \operatorname{Nul}(A) = \left\{t\begin{pmatrix}-2\\1\\0\end{pmatrix}:\; t\in\mathbb{R}\right\}, \quad \dim=1 \]
+        <strong>Verificación:</strong> \(A\mathbf{n}_1 = \mathbf{0}\) \checkmark
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-network-wired"></i> Interpretación logística</span>
+        \(\mathbf{n}_1=(-2,1,0)^T\) representa un <strong>reajuste</strong> de despacho:
+        <ul>
+          <li>Planta 1 reduce 2 unidades</li>
+          <li>Planta 2 aumenta 1 unidad</li>
+          <li>Planta 3 no cambia</li>
+        </ul>
+        No altera la carga en ningún CD. Es un <strong>lazo cerrado</strong> de la red.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: LAZOS CERRADOS -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-circle-nodes"></i> Lazos cerrados en redes de distribución</h2>
+    <div class="block reveal"><span class="b-title">Definición operativa</span> Un <strong>lazo cerrado</strong> es un flujo de ajuste \(\mathbf{n}\in\operatorname{Nul}(A)\), \(\mathbf{n}\neq\mathbf{0}\), tal que \(A\mathbf{n} = \mathbf{0}\). No genera ningún cambio en la carga de los CDs.</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-diagram-project"></i> Ejemplo gráfico — lazo P1-P2</span>
+        <div style="display:flex; gap:2rem; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:1rem;">
+          <div style="display:flex; flex-direction:column; gap:1rem;">
+            <div style="background:rgba(0,82,147,0.1); padding:0.5rem; border-radius:50%; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border:2px solid var(--navy); font-weight:bold; color:var(--navy);">P1</div>
+            <div style="background:rgba(0,82,147,0.1); padding:0.5rem; border-radius:50%; width:50px; height:50px; display:flex; align-items:center; justify-content:center; border:2px solid var(--navy); font-weight:bold; color:var(--navy);">P2</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
+            <i class="fas fa-arrow-right" style="color:var(--orange); transform:rotate(-20deg); font-size:1.2rem;"></i>
+            <div style="background:rgba(220,107,31,0.2); padding:0.3rem 0.6rem; border-radius:4px; font-size:0.8rem; color:var(--orange);">\(-2t\)</div>
+            <div style="background:rgba(220,107,31,0.2); padding:0.3rem 0.6rem; border-radius:4px; font-size:0.8rem; color:var(--orange);">\(t\)</div>
+            <i class="fas fa-arrow-left" style="color:var(--orange); transform:rotate(-20deg); font-size:1.2rem;"></i>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:1rem;">
+            <div style="background:rgba(0,130,80,0.1); padding:0.4rem 0.6rem; border-radius:6px; border:2px solid var(--green); color:var(--green);">D1</div>
+            <div style="background:rgba(0,130,80,0.1); padding:0.4rem 0.6rem; border-radius:6px; border:2px solid var(--green); color:var(--green);">D2</div>
+            <div style="background:rgba(0,130,80,0.1); padding:0.4rem 0.6rem; border-radius:6px; border:2px solid var(--green); color:var(--green);">D3</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-eye"></i> Lectura del lazo</span> Si \(t>0\): P1 reduce, P2 aumenta. CDs reciben misma carga. Si \(t<0\): se invierte. Se usa para <strong>optimizar costos</strong> sin afectar servicio.</div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-coins"></i> Valor práctico</span> Si P2 tiene menor tarifa que P1: usar \(t>0\) reduce costo total manteniendo demanda satisfecha.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: MÚLTIPLES LAZOS -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-code-branch"></i> Sistema con múltiples lazos cerrados</h2>
+    <div class="block reveal">Red con 2 variables libres: \( A = \begin{pmatrix}1&0&2&1\\0&1&1&-1\\1&1&3&0\end{pmatrix}, \quad A\mathbf{x}=\mathbf{0} \)</div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title">RREF de \(A\)</span>
+        \(\operatorname{rang}(A)=2\), libres: \(x_3=s, x_4=t\).
+        \[ \begin{pmatrix}1&0&2&1\\0&1&1&-1\\0&0&0&0\end{pmatrix} \]
+        Solución general:
+        \[ \mathbf{x} = s\underbrace{\begin{pmatrix}-2\\-1\\1\\0\end{pmatrix}}_{\mathbf{n}_1} + t\underbrace{\begin{pmatrix}-1\\1\\0\\1\end{pmatrix}}_{\mathbf{n}_2} \]
+      </div>
+      <div>
+        <div class="block reveal"><span class="b-title"><i class="fas fa-circle-nodes"></i> Dos lazos independientes</span>
+          <ul>
+            <li>\(\mathbf{n}_1=(-2,-1,1,0)^T\): lazo con P1, P2, P3.</li>
+            <li>\(\mathbf{n}_2=(-1,1,0,1)^T\): lazo con P1, P2, P4.</li>
+          </ul>
+          Combinación \(s\mathbf{n}_1+t\mathbf{n}_2\) = lazo válido.
+        </div>
+        <div class="example-block mt reveal"><span class="b-title">Verificación</span> \(A\mathbf{n}_1=\mathbf{0}\) \checkmark | \(A\mathbf{n}_2=\mathbf{0}\) \checkmark<br>Linealmente independientes: \(\dim(\operatorname{Nul}(A))=2\).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: SOLUCIONES PARAMÉTRICAS -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-pen-ruler"></i> Soluciones paramétricas — forma completa</h2>
+    <div class="block reveal">Si \(\mathbf{x}^*\) es sol. particular de \(A\mathbf{x}=\mathbf{b}\), la general es: \(\mathbf{x} = \mathbf{x}^* + s\mathbf{n}_1 + t\mathbf{n}_2 + \cdots\)</div>
+    <div class="example-block mt reveal"><span class="b-title">Ejemplo completo con la red del caso</span> \(A\mathbf{x}=\mathbf{b}\) con \(\mathbf{b}=(3,1,4)^T\).
+      <ol>
+        <li class="reveal">Sol. particular (libres=0): \(\mathbf{x}^*=(3,1,0,0)^T\).</li>
+        <li class="reveal">Espacio nulo: \(\{\mathbf{n}_1,\mathbf{n}_2\}\) calculados.</li>
+        <li class="reveal">Sol. general: \(\mathbf{x} = \begin{pmatrix}3\\1\\0\\0\end{pmatrix} + s\begin{pmatrix}-2\\-1\\1\\0\end{pmatrix} + t\begin{pmatrix}-1\\1\\0\\1\end{pmatrix}\)</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación completa</span> \(\mathbf{x}^*\) satisface la demanda ("plan base"). Los lazos son <strong>ajustes posibles</strong> que no cambian la demanda. El par \((s,t)\) se elige para minimizar costos.</div>
+  </div>
+
+  <!-- SLIDE 11: MATLAB ESPACIO NULO -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB — espacio nulo y lazos cerrados</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Sistema homogeneo</span>
+A = <span class="mf">[</span><span class="mn">1</span> <span class="mn">2</span> <span class="mn">1</span>; <span class="mn">2</span> <span class="mn">4</span> <span class="mn">3</span>; <span class="mn">1</span> <span class="mn">2</span> <span class="mn">0</span><span class="mf">]</span>;
+
+<span class="mc">% Metodo 1: null(A) - base ortonormal</span>
+N_ort = <span class="mf">null</span>(A);
+<span class="mk">fprintf</span>(<span class="ms">'dim(Nul(A)) = %d\n'</span>, <span class="mf">size</span>(N_ort,<span class="mn">2</span>));
+<span class="mk">fprintf</span>(<span class="ms">'Residuo A*N = %.2e\n'</span>, <span class="mf">norm</span>(A*N_ort));
+
+<span class="mc">% Metodo 2: rref - base simbolica</span>
+[R, piv] = <span class="mf">rref</span>(A);
+n = <span class="mf">size</span>(A,<span class="mn">2</span>);
+libres = <span class="mf">setdiff</span>(<span class="mn">1</span>:n, piv);
+
+<span class="mc">% Construir base via rref</span>
+n1 = <span class="mf">zeros</span>(n,<span class="mn">1</span>); n1(libres(<span class="mn">1</span>)) = <span class="mn">1</span>;
+n1(piv) = -R(<span class="mn">1</span>:<span class="mf">length</span>(piv), libres(<span class="mn">1</span>));
+<span class="mk">fprintf</span>(<span class="ms">'Base via rref: [%s]\n'</span>, num2str(n1',<span class="ms">'%.4f '</span>));</pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+          <code>dim(Nul(A)) = 1</code><br>
+          <code>Residuo A*N = 0.00e+00</code><br>
+          <code>Variables libres: x2</code><br>
+          <code>Base via rref: [-2.0000  1.0000  0.0000]</code>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-balance-scale"></i> Diferencia</span>
+          <ul><li><code>null(A)</code>: base <strong>ortonormal</strong> (cálculos numéricos).</li><li>Vía <code>rref</code>: base <strong>simbólica</strong> (legible, fracciones exactas). Mejor para interpretación.</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: MATLAB OPTIMIZACIÓN -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-chart-line"></i> MATLAB — solución general y optimización</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Sistema no homogeneo con lazos</span>
+A2 = <span class="mf">[</span><span class="mn">1</span> <span class="mn">0</span> <span class="mn">2</span> <span class="mn">1</span>; <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">-1</span>; <span class="mn">1</span> <span class="mn">1</span> <span class="mn">3</span> <span class="mn">0</span><span class="mf">]</span>;
+b2 = <span class="mf">[</span><span class="mn">3</span>; <span class="mn">1</span>; <span class="mn">4</span><span class="mf">]</span>; c = <span class="mf">[</span><span class="mn">8</span>; <span class="mn">12</span>; <span class="mn">15</span>; <span class="mn">10</span><span class="mf">]</span>;
+
+<span class="mc">% Solucion particular</span>
+[R2, piv2] = <span class="mf">rref</span>(<span class="mf">[</span>A2, b2<span class="mf">]</span>);
+xp = <span class="mf">zeros</span>(<span class="mf">size</span>(A2,<span class="mn">2</span>),<span class="mn">1</span>);
+xp(piv2) = R2(<span class="mn">1</span>:<span class="mf">rank</span>(A2), <span class="mf">end</span>);
+
+<span class="mc">% Base espacio nulo</span>
+N2 = <span class="mf">null</span>(A2, <span class="ms">'r'</span>);
+
+<span class="mc">% Costo en lazos</span>
+dc = c' * N2;
+<span class="mk">fprintf</span>(<span class="ms">'Costo xp: $%.2f\n'</span>, c'*xp);
+<span class="mk">fprintf</span>(<span class="ms">'Costo s=1,t=0: $%.2f\n'</span>, c'*(xp+N2(:,<span class="mn">1</span>)));</pre>
+      </div>
+      <div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-sliders"></i> Clave de la optimización</span> El costo es <strong>lineal</strong> en \((s,t)\):
+          \[ C(s,t) = \mathbf{c}^T\mathbf{x}^* + s(\mathbf{c}^T\mathbf{n}_1) + t(\mathbf{c}^T\mathbf{n}_2) \]
+          <ul><li>Si \(\mathbf{c}^T\mathbf{n}_i<0\): aumentar \(s_i\) reduce costo.</li><li>Si \(\mathbf{c}^T\mathbf{n}_i>0\): disminuir \(s_i\) reduce costo.</li></ul>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-network-wired"></i> Conexión con LP</span> La restricción \(\mathbf{x}\geq\mathbf{0}\) limita \((s,t)\). Esto es <strong>programación lineal en redes</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: EJERCICIO 1 -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Resolver sistema homogéneo</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Encuentra solución general y base de \(\operatorname{Nul}(A)\).
+      \[ A = \begin{pmatrix}1&3&-1&2\\2&6&-2&4\\-1&-3&1&-2\end{pmatrix} \]
+    </p>
+    <div class="example-block mt reveal"><span class="b-title">Paso 1: Gauss</span>
+      \(F_2-2F_1\), \(F_3+F_1\) \(\Rightarrow\) \(\begin{pmatrix}1&3&-1&2\\0&0&0&0\\0&0&0&0\end{pmatrix}\)<br>
+      \(\operatorname{rang}(A)=1\), \(n=4\). Libres: \(x_2=s, x_3=t, x_4=u\).
+    </div>
+    <div class="example-block mt reveal"><span class="b-title">Solución general</span> \(x_1 = -3s+t-2u\).
+      \[ \mathbf{x} = s\begin{pmatrix}-3\\1\\0\\0\end{pmatrix} + t\begin{pmatrix}1\\0\\1\\0\end{pmatrix} + u\begin{pmatrix}-2\\0\\0\\1\end{pmatrix} \]
+      <span class="reveal mt">\(\dim(\operatorname{Nul}(A))=3\). <em>Logística:</em> 3 lazos cerrados independientes. Máxima flexibilidad operativa.</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: EJERCICIO 2 -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Verificar pertenencia a \(\operatorname{Nul}(A)\)</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Para \(A=\begin{pmatrix}0.5&0.2&0.3\\0.3&0.6&0.1\\0.2&0.2&0.6\end{pmatrix}\), ¿cuáles pertenecen a \(\operatorname{Nul}(A)\)?
+      \[ \mathbf{v}_1=\begin{pmatrix}2\\-3\\1\end{pmatrix}, \mathbf{v}_2=\begin{pmatrix}1\\1\\-2\end{pmatrix}, \mathbf{v}_3=\begin{pmatrix}0\\0\\0\end{pmatrix} \]
+    </p>
+    <div class="example-block mt reveal"><span class="b-title">Verificación</span>
+      \[ A\mathbf{v}_1 = \begin{pmatrix}0.5(2)+0.2(-3)+0.3(1)\\0.3(2)+0.6(-3)+0.1(1)\\0.2(2)+0.2(-3)+0.6(1)\end{pmatrix} = \begin{pmatrix}0.7\\-1.1\\0.2\end{pmatrix}\neq\mathbf{0} \]
+      <span class="reveal mt">\(\mathbf{v}_1\notin\operatorname{Nul}(A)\). Verifica \(\mathbf{v}_2\) y \(\mathbf{v}_3\) con <code>norm(A*v)</code>.</span>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title">Interpretación</span> \(\mathbf{v}_1\) altera carga. \(\mathbf{v}_3=\mathbf{0}\) siempre está (no hacer nada).</div>
+  </div>
+
+  <!-- SLIDE 15: EJERCICIO 3 -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3 — Lazos y reducción de costos</h2>
+    <div class="alert-block reveal"><span class="b-title">Situación</span> \(\mathbf{x}^*=(400,300,200,100)^T\). Base \(\operatorname{Nul}(A)\): \(\mathbf{n}_1=(2,-1,-1,0)^T\). Tarifas \(\mathbf{c}=(10,8,12,6)^T\).</div>
+    <div class="col-layout mt">
+      <div>
+        <div class="block reveal"><span class="b-title">Costo base</span> \(C_0 = 10(400)+8(300)+12(200)+6(100) = \$9400\)</div>
+        <div class="example-block mt reveal"><span class="b-title">Efecto del lazo</span> \(\mathbf{c}^T\mathbf{n}_1 = 10(2)+8(-1)+12(-1)+0 = -10\)<br>Cada unidad de \(t\) <strong>reduce costo en \$10</strong>. Aplicar con \(t>0\) es beneficioso.</div>
+      </div>
+      <div>
+        <div class="block reveal"><span class="b-title">Restricciones \(\geq 0\)</span>
+          \(400+2t\geq0 \Rightarrow t\geq-200\)<br>
+          \(300-t\geq0 \Rightarrow t\leq300\)<br>
+          \(200-t\geq0 \Rightarrow t\leq200\)<br>
+          Rango: \(-200\leq t\leq200\).
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-trophy"></i> Solución óptima</span> \(t=200\): costo \(=9400-10(200)=\$7400\).<br>Plan: \((800,100,0,100)^T\) ton.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: RESUMEN -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-clipboard-check"></i> Resumen — Sistemas homogéneos y lazos</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido hoy</span>
+        <ul>
+          <li>\(A\mathbf{x}=\mathbf{0}\) siempre compatible (\(\mathbf{x}=\mathbf{0}\)).</li>
+          <li>Sol. no triviales \(\iff \operatorname{rang}(A)<n\).</li>
+          <li>\(\operatorname{Nul}(A)\) es subespacio. \(\dim=n-\operatorname{rang}(A)\).</li>
+          <li>Solución general \(A\mathbf{x}=\mathbf{b}\): \(\mathbf{x}^*\) + cualquier elemento de \(\operatorname{Nul}(A)\).</li>
+          <li><strong>Lazos cerrados:</strong> ajustes sin alterar demanda. Optimización lineal sobre parámetros.</li>
+          <li>MATLAB: <code>null(A)</code> (ortonormal) o <code>rref(A)</code> (simbólica).</li>
+        </ul>
+      </div>
+      <div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-forward"></i> Conexión Clase 10</span> Resolver \(AX=B\) con múltiples \(\mathbf{b}\) simultáneamente. El espacio nulo no cambia; varían \(\mathbf{x}^*\) por columna.</div>
+        <div class="block mt reveal center"><span class="b-title">Ecuación fundamental</span>
+          \[ \text{Sol. general} = \underbrace{\mathbf{x}^*}_{\text{particular}} + \underbrace{\operatorname{Nul}(A)}_{\text{lazos}} \]
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: TAREA -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 10</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
+      <ol>
+        <li><strong>Lectura:</strong> Lay, Sec. 2.1: ``Matrix Operations'' (mult. por columnas).</li>
+        <li><strong>Ejercicios:</strong> Guía Clase 9 (B1–B5, I1–I3). Practicar bases de \(\operatorname{Nul}(A)\) desde RREF.</li>
+        <li><strong>MATLAB:</strong> Ejecutar <code>clase9_datos.m</code> y responder preguntas.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span> Si tenemos múltiples demandas \(\mathbf{b}_1, \ldots, \mathbf{b}_k\), ¿cómo resolver \(A\mathbf{x}=\mathbf{b}_j\) simultáneamente? (Pista: \(A\backslash B\)).</div>
+  </div>
+
+  <!-- SLIDE 18: CIERRE -->
+  <div class="slide" data-slide="18">
+    <div class="portada">
+      <i class="fas fa-graduation-cap" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem);">¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 10: Ecuaciones Matriciales \(AX=B\) — Distribución Multi-Origen</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-envelope"></i> Contacto</span> <span>consultas@mat2logistica.edu | Aula Virtual</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 19</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

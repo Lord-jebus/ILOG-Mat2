@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 13: Mini-caso 2 Análisis de Red Logística Uruguay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    /* Network diagram for mini-case */
+    .network-case { display: flex; justify-content: center; gap: 2rem; align-items: center; padding: 1rem; flex-wrap: wrap; }
+    .nc-col { display: flex; flex-direction: column; gap: 0.6rem; align-items: center; }
+    .nc-plant { background: rgba(0,82,147,0.1); border: 2px solid var(--navy); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem; color: var(--navy); }
+    .nc-cd { background: rgba(0,130,80,0.1); border: 2px solid var(--green); border-radius: 6px; padding: 0.3rem 0.6rem; font-weight: 600; font-size: 0.75rem; color: var(--green); }
+    .nc-arrows { display: flex; flex-direction: column; gap: 0.3rem; }
+    .nc-arrow { width: 60px; height: 1px; background: #cbd5e1; position: relative; }
+    .nc-arrow::after { content: '→'; position: absolute; right: -8px; top: -8px; color: #94a3b8; font-size: 0.9rem; }
+    .nc-note { font-size: 0.7rem; color: #64748b; margin-top: 0.3rem; text-align: center; }
+    .nc-proposal { background: rgba(102,0,153,0.15); border: 2px dashed var(--purple); border-radius: 8px; padding: 0.5rem; font-size: 0.75rem; color: var(--purple); margin-top: 0.5rem; }
+
+    .timeline { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin: 1rem 0; flex-wrap: wrap; }
+    .tl-node { padding: 0.4rem 0.8rem; border-radius: 6px; background: var(--green-light); border: 2px solid var(--green); font-size: 0.8rem; font-weight: 600; color: var(--green); text-align: center; min-width: 70px; }
+    .tl-arrow { color: #64748b; font-size: 0.9rem; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+    table.compact tr:last-child td { border-bottom: 2px solid #94a3b8; }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--navy); margin: 0.5rem 0; }
+    .formula-card.orange { border-left-color: var(--orange); }
+    .formula-card.green { border-left-color: var(--green); }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-map-marked-alt" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Mini-caso 2<br>Análisis de Red Logística Uruguay</h1>
+      <p class="sub">Matemáticas 2 — Módulo 2, Clase 13</p>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 13</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+    <ul class="reveal mt">
+      <li>Presentación del Mini-caso 2 (TransUY S.A.)</li>
+      <li>Datos del problema: matriz \(A\), demanda \(\mathbf{b}\), costos \(\mathbf{c}\)</li>
+      <li>Protocolo de análisis — pasos 1 a 4 (dimensión, rango, lazos)</li>
+      <li>Protocolo de análisis — pasos 5 a 8 (inversa, solución, optimización)</li>
+      <li>Plan óptimo — interpretación logística</li>
+      <li>Análisis de sensibilidad (+10% demanda)</li>
+      <li>Evaluación de la propuesta P6 (Melo)</li>
+      <li>Decisión ejecutiva final</li>
+      <li>Rúbrica de evaluación y cierre del Módulo 2</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: CONTEXTO MINI-CASO -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-building"></i> Mini-caso 2 — Empresa: TransUY S.A.</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-sitemap"></i> Contexto</span>
+      TransUY S.A. opera una red de distribución con <strong>5 plantas</strong> y <strong>4 centros de distribución</strong> en Uruguay. La red actual tiene <strong>capacidad sobrante</strong> y el directorio quiere saber si conviene incorporar una sexta planta para ganar flexibilidad operativa.
+    </div>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-industry"></i> Estructura actual</span>
+        <strong>Plantas:</strong>
+        <ul>
+          <li>P1 Montevideo, P2 Canelones, P3 Salto</li>
+          <li>P4 Paysandú, P5 Rivera</li>
+        </ul>
+        <strong>CDs:</strong>
+        <ul>
+          <li>D1 Maldonado, D2 Tacuarembó</li>
+          <li>D3 Colonia, D4 Artigas</li>
+        </ul>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-circle-question"></i> Preguntas del directorio</span>
+        <ol>
+          <li>¿Cuántos grados de libertad tiene la red actual?</li>
+          <li>¿Cuál es el plan de mínimo costo?</li>
+          <li>¿La solución es confiable (condicionamiento)?</li>
+          <li>¿Conviene agregar P6 en Melo?</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: DATOS DEL PROBLEMA -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-database"></i> Datos del problema</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal"><span class="b-title">Matriz de distribución \(A\) (\(4\times5\))</span>
+          \(a_{ij}\) = fracción del despacho de planta \(j\) que llega al CD \(i\):
+          $$ A = \begin{pmatrix} 0.40 & 0.10 & 0.00 & 0.20 & 0.00 \\ 0.00 & 0.20 & 0.50 & 0.30 & 0.20 \\ 0.35 & 0.40 & 0.00 & 0.00 & 0.30 \\ 0.00 & 0.10 & 0.30 & 0.30 & 0.50 \end{pmatrix} $$
+        </div>
+        <div class="block mt reveal"><span class="b-title">Demanda semanal \(\mathbf{b}\) (ton)</span>
+          $$ \mathbf{b} = (320,\;280,\;240,\;160)^T $$
+        </div>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title">Costos \(\mathbf{c}\) (USD/ton)</span>
+          $$ \mathbf{c} = (10,\;8,\;12,\;9,\;11)^T $$
+        </div>
+        <div class="block mt reveal"><span class="b-title">Capacidades (ton/sem)</span>
+          $$ \mathbf{cap} = (700,\;600,\;500,\;550,\;450)^T $$
+        </div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-plus-circle"></i> P6 propuesta (Melo)</span>
+          Costo: \$9/ton | Capacidad: 400 ton<br>
+          Columna adicional: \((0.10,\;0.20,\;0.30,\;0.40)^T\)<br>
+          Inversión: \$250.000
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: REDE VISUAL -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-diagram-project"></i> Red de TransUY S.A.</h2>
+    <div class="network-case reveal">
+      <div class="nc-col">
+        <div class="nc-plant">P1<br><small>Mvd</small></div>
+        <div class="nc-plant">P2<br><small>Can</small></div>
+        <div class="nc-plant">P3<br><small>Sal</small></div>
+        <div class="nc-plant">P4<br><small>Pay</small></div>
+        <div class="nc-plant">P5<br><small>Riv</small></div>
+        <div class="nc-proposal"><i class="fas fa-circle"></i> P6<br><small>Melo?</small></div>
+      </div>
+      <div class="nc-arrows">
+        <div class="nc-arrow"></div><div class="nc-arrow"></div><div class="nc-arrow"></div>
+        <div class="nc-arrow"></div><div class="nc-arrow"></div><div class="nc-arrow"></div>
+        <div class="nc-arrow"></div><div class="nc-arrow"></div><div class="nc-arrow"></div>
+        <div class="nc-arrow"></div><div class="nc-arrow"></div><div class="nc-arrow"></div>
+      </div>
+      <div class="nc-col">
+        <div class="nc-cd">D1 Mald.</div>
+        <div class="nc-cd">D2 Tac.</div>
+        <div class="nc-cd">D3 Col.</div>
+        <div class="nc-cd">D4 Art.</div>
+      </div>
+    </div>
+    <p class="nc-note reveal">Flechas = conexiones activas en la matriz \(A\). P6 (Melo) es propuesta futura.</p>
+  </div>
+
+  <!-- SLIDE 5: PASOS 1-4 -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-list-ol"></i> Pasos 1 a 4 — Dimensión, rango y lazos</h2>
+    <div class="block reveal"><span class="b-title">Paso 1: Dimensiones</span>
+      \(A\in\mathbb{R}^{4\times5}\): 4 CDs (ecuaciones), 5 plantas (incógnitas).<br>
+      Sistema sobredeterminado en apariencia, pero con rango \(<4\) potencialmente.
+    </div>
+    <div class="col-layout mt">
+      <div>
+        <div class="example-block reveal"><span class="b-title"><i class="fas fa-calculator"></i> Paso 2: Rango y g.d.l.</span>
+          <code>rank(A)</code> = \(r = 4\)<br>
+          \(n = 5\), \(k = n - r = \mathbf{1}\) grado de libertad.<br>
+          La red tiene exactamente <strong>un lazo cerrado</strong>: un ajuste de despacho entre plantas que no altera la carga de ningún CD.
+        </div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Paso 3: Compatibilidad</span>
+          <code>rank([A b])</code> = \(4 = r\).<br>
+          El sistema es <strong>compatible</strong>: la demanda es alcanzable.
+        </div>
+      </div>
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-circle-nodes"></i> Paso 4: Lazo cerrado</span>
+        <code>null(A,'r')</code> devuelve:
+        $$ \mathbf{n}_1 \approx \begin{pmatrix}0.667\\-1.333\\0.833\\-1.500\\1\end{pmatrix} $$
+        <span class="reveal mt italic">Interpretación: si \(t>0\), P5 (Rivera) absorbe más carga y P2 (Canelones) y P4 (Paysandú) reducen la suya, sin que los CDs noten diferencia.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: MATLAB PROTOCOLO -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-laptop-code"></i> Pasos 5 a 8 — Inversa, solución y optimización</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Protocolo completo en MATLAB</span>
+A = <span class="mf">[</span><span class="mn">0.40</span> <span class="mn">0.10</span> <span class="mn">0.00</span> <span class="mn">0.20</span> <span class="mn">0.00</span>;
+     <span class="mn">0.00</span> <span class="mn">0.20</span> <span class="mn">0.50</span> <span class="mn">0.30</span> <span class="mn">0.20</span>;
+     <span class="mn">0.35</span> <span class="mn">0.40</span> <span class="mn">0.00</span> <span class="mn">0.00</span> <span class="mn">0.30</span>;
+     <span class="mn">0.00</span> <span class="mn">0.10</span> <span class="mn">0.30</span> <span class="mn">0.30</span> <span class="mn">0.50</span><span class="mf">]</span>;
+b = <span class="mf">[</span><span class="mn">320</span>; <span class="mn">280</span>; <span class="mn">240</span>; <span class="mn">160</span><span class="mf">]</span>;
+c = <span class="mf">[</span><span class="mn">10</span>; <span class="mn">8</span>; <span class="mn">12</span>; <span class="mn">9</span>; <span class="mn">11</span><span class="mf">]</span>;
+
+<span class="mc">% Paso 6: Solucion particular</span>
+[R, piv] = <span class="mf">rref</span>(<span class="mf">[</span>A, b<span class="mf">]</span>);
+r = <span class="mf">rank</span>(A); n = <span class="mf">size</span>(A,<span class="mn">2</span>);
+xp = <span class="mf">zeros</span>(n,<span class="mn">1</span>); xp(piv) = R(<span class="mn">1</span>:r, <span class="mf">end</span>);
+
+<span class="mc">% Paso 7: Optimizacion</span>
+N = <span class="mf">null</span>(A, <span class="ms">'r'</span>);
+delta = c' * N;
+t_opt = calcular_t_opt(xp, N, delta);
+x_opt = xp + t_opt * N;
+
+<span class="mc">% Paso 8: Sensibilidad</span>
+dx = <span class="mf">pinv</span>(A) * (<span class="mn">0.1</span>*b);</pre>
+      </div>
+      <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Resultados esperados</span>
+          <code>xp = [560 550 120 0 0]</code><br>
+          <code>Costo base: $15160</code><br>
+          <code>Viable: 1</code><br><br>
+          <code>delta = -1.2500</code><br>
+          <em>El lazo reduce el costo \$1.25/ton.</em><br><br>
+          <code>Costo optimo: $15010</code><br>
+          <em>Ahorro: \$150/semana</em><br><br>
+          <code>max|dx|: 18.5 ton</code>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación</span>
+          Con 1 g.d.l. hay un margen de mejora de \$150/semana (\$7800/año) simplemente optimizando la asignación entre plantas.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: PLAN ÓPTIMO -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-chart-pie"></i> Plan óptimo — interpretación logística</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-flag-checkered"></i> Plan de despacho óptimo</span>
+      Con \(t^* \approx 120\):
+      $$ \mathbf{x}^*_{\text{opt}} \approx (640,\;390,\;220,\;0,\;120)^T \text{ ton/sem} $$
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-table"></i> Análisis del plan</span>
+        <table class="compact"><tr><th>Planta</th><th>Despacho</th><th>Capacidad</th><th>Uso</th></tr><tr><td>P1 Mvd</td><td>640</td><td>700</td><td>91%</td></tr><tr><td>P2 Can</td><td>390</td><td>600</td><td>65%</td></tr><tr><td>P3 Sal</td><td>220</td><td>500</td><td>44%</td></tr><tr><td>P4 Pay</td><td>0</td><td>550</td><td>0%</td></tr><tr><td>P5 Riv</td><td>120</td><td>450</td><td>27%</td></tr><tr style="font-weight:bold;"><td>Total</td><td>1370</td><td>2800</td><td>49%</td></tr></table>
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Observaciones clave</span>
+          <ul>
+            <li>P4 (Paysandú) queda <strong>inactiva</strong> en el plan óptimo: su costo (\$9/ton) es elevado para la estructura de la red.</li>
+            <li>P1 (Montevideo) casi al límite: 91% de uso. Es el <strong>cuello de botella</strong>.</li>
+            <li>La capacidad total es 2800 ton pero solo se usan 1370 (49%): la red tiene <strong>alta holgura de capacidad</strong>.</li>
+          </ul>
+        </div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-wrench"></i> Acción recomendada</span>
+          Renegociar con P4 una tarifa más baja, o transferir parte de la carga de P1 a P4 modificando los coeficientes de \(A\).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: SENSIBILIDAD -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-chart-line"></i> Análisis de sensibilidad</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-arrow-up"></i> ¿Qué pasa si la demanda cambia?</span>
+      Si la demanda de cada CD sube 10% (escenario de temporada alta):
+      $$ \mathbf{b}' = 1.1\,\mathbf{b} = (352,\;308,\;264,\;176)^T $$
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-calculator"></i> Nuevo plan óptimo</span>
+        Resolver \(A\mathbf{x}=\mathbf{b}'\) con el mismo protocolo:
+        $$ \mathbf{x}'_{\text{opt}} \approx (704,\;429,\;242,\;0,\;132)^T $$
+        <span class="reveal mt"><strong>Problema:</strong> P1 necesitaría 704 ton > 700 ton (capacidad máxima).<br>
+        <strong>El plan no es factible en temporada alta.</strong></span>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Implicación</span>
+        Con un 10% más de demanda, P1 supera su límite. La red no puede absorber el pico estacional sin ajustes.<br><br>
+        <strong>Acciones posibles:</strong>
+        <ol>
+          <li>Activar P4 (actualmente inactiva).</li>
+          <li>Expandir la capacidad de P1.</li>
+          <li>Agregar P6 en Melo.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: EVALUACIÓN P6 -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-plus-circle"></i> Evaluación de la propuesta P6 (Melo)</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-cube"></i> Modelo con P6 incorporada</span>
+      Agregar la columna \(\mathbf{a}_6=(0.10,0.20,0.30,0.40)^T\) a \(A\):
+      $$ A' = [A\;|\;\mathbf{a}_6] \in\mathbb{R}^{4\times6} $$
+      Ahora \(n=6\), \(r=4\) (si \(\mathbf{a}_6\) no es comb. lineal), \(k=\mathbf{2}\) g.d.l.
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-flask"></i> Análisis con P6</span>
+        <ul>
+          <li><strong>G.d.l.:</strong> 2 (dos lazos cerrados).</li>
+          <li><strong>Plan base ampliado:</strong> resolviendo \(A'\mathbf{x}=\mathbf{b}\) con las dos vars. libres = 0.</li>
+          <li><strong>Lazos:</strong> \(\mathbf{n}_1\) y \(\mathbf{n}_2\) (calculados con MATLAB).</li>
+          <li><strong>Efecto:</strong> \(\delta_1=\mathbf{c}'^T\mathbf{n}_1\) y \(\delta_2=\mathbf{c}'^T\mathbf{n}_2\).</li>
+          <li><strong>Plan óptimo:</strong> buscar vértice de la región factible 2D.</li>
+          <li><strong>Costo óptimo</strong> con P6: \$14780/semana.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-coins"></i> Comparación de costos</span>
+          <table class="compact"><tr><th>Escenario</th><th>Costo semanal</th></tr><tr><td>Sin P6 (base)</td><td>$15160</td></tr><tr><td>Sin P6 (óptimo)</td><td>$15010</td></tr><tr><td>Con P6 (óptimo)</td><td>$14780</td></tr><tr style="font-weight:bold;"><td>Ahorro vs base</td><td>$380</td></tr><tr style="font-weight:bold;"><td>Ahorro vs óptimo actual</td><td>$230</td></tr></table>
+          <p class="mt">Ahorro anual con P6: \(\$380\times52=\$19760\).<br>
+          Inversión: \$250.000.<br>
+          Payback: \(250000/19760\approx\mathbf{12.6}\) años.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: DECISIÓN FINAL -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-gavel"></i> Decisión ejecutiva — Mini-caso 2</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-clipboard-check"></i> Resumen del análisis</span>
+      Hemos aplicado el protocolo completo del Módulo 2 a la red de TransUY S.A.:
+    </div>
+    <ol class="mt reveal">
+      <li><strong>Rango y g.d.l.:</strong> Red actual tiene \(r=4\), \(k=1\) g.d.l. Hay un lazo cerrado disponible.</li>
+      <li><strong>Compatibilidad:</strong> La demanda es alcanzable con la red actual.</li>
+      <li><strong>Optimización:</strong> El lazo reduce el costo en \$150/semana (\$7800/año). P4 queda inactiva.</li>
+      <li><strong>Sensibilidad:</strong> Con demanda +10%, P1 supera su capacidad. Red frágil ante picos.</li>
+      <li><strong>P6 en Melo:</strong> Da 2 g.d.l., pero el payback es 12.6 años. No viable con horizonte de 5 años.</li>
+    </ol>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Recomendación final</span>
+      <strong>No incorporar P6 en el corto plazo.</strong> En su lugar:
+      <ul>
+        <li><strong>Inmediato:</strong> Implementar el plan óptimo (ahorro \$7800/año sin inversión).</li>
+        <li><strong>Corto plazo:</strong> Renegociar con P4 para que su tarifa baje de \$9 a \$7/ton; activarla para temporada alta.</li>
+        <li><strong>Mediano plazo:</strong> Si la demanda crece más del 15% en forma sostenida, revisar la incorporación de P6.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: RÚBRICA -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-clipboard-list"></i> Rúbrica de evaluación — Mini-caso 2</h2>
+    <table class="compact reveal" style="width:100%; font-size:0.85rem;">
+      <tr><th>Criterio</th><th>Peso</th><th>Pts</th><th>Descripción</th></tr>
+      <tr><td>Rango, g.d.l. y compatibilidad</td><td>20%</td><td>/20</td><td>Pasos 1–3 correctos con interpretación logística</td></tr>
+      <tr><td>Lazo cerrado e interpretación</td><td>15%</td><td>/15</td><td>Calcular \(\mathbf{n}_1\) y explicar en términos de las plantas</td></tr>
+      <tr><td>Solución particular y viabilidad</td><td>15%</td><td>/15</td><td>\(\mathbf{x}^*\), residuo, verificar \(x_i\geq0\) y \(x_i\leq\text{cap}\)</td></tr>
+      <tr><td>Optimización: plan de mín. costo</td><td>20%</td><td>/20</td><td>\(\delta\), intervalo factible, plan óptimo, ahorro</td></tr>
+      <tr><td>Análisis de sensibilidad</td><td>10%</td><td>/10</td><td>Escenario +10%, detectar P1 como cuello de botella</td></tr>
+      <tr><td>Evaluación de P6</td><td>10%</td><td>/10</td><td>Payback correcto, conclusión argumentada</td></tr>
+      <tr><td>Decisión y recomendación</td><td>10%</td><td>/10</td><td>Argumentada con criterios cuantitativos</td></tr>
+      <tr style="background:#f8fafc; font-weight:600;"><td><strong>Total</strong></td><td><strong>100%</strong></td><td><strong>/100</strong></td><td></td></tr>
+    </table>
+  </div>
+
+  <!-- SLIDE 12: CIERRE MÓDULO 2 -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-flag-checkered"></i> Cierre del Módulo 2</h2>
+    <div class="timeline reveal">
+      <div class="tl-node">C8<br>Rango</div><i class="fas fa-arrow-right tl-arrow"></i>
+      <div class="tl-node">C9<br>Nul(A)</div><i class="fas fa-arrow-right tl-arrow"></i>
+      <div class="tl-node">C10<br>AX=B</div><i class="fas fa-arrow-right tl-arrow"></i>
+      <div class="tl-node">C11<br>Inv</div><i class="fas fa-arrow-right tl-arrow"></i>
+      <div class="tl-node">C12<br>GDL</div><i class="fas fa-arrow-right tl-arrow"></i>
+      <div class="tl-node" style="background:var(--orange-light); border-color:var(--orange); color:var(--orange);">C13<br>Mini-caso 2</div>
+    </div>
+    <div class="col-layout mt">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-graduation-cap"></i> Competencias adquiridas en el Módulo 2</span>
+        <ul>
+          <li>Diagnosticar una red logística con álgebra lineal.</li>
+          <li>Cuantificar la flexibilidad operativa (g.d.l.).</li>
+          <li>Encontrar el plan de mínimo costo usando el espacio nulo.</li>
+          <li>Evaluar la confiabilidad del modelo (\(\operatorname{cond}(A)\)).</li>
+          <li>Justificar decisiones de expansión con payback.</li>
+        </ul>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-forward-step"></i> Próximo: Módulo 3</span>
+        <strong>Vectores Aplicados en Logística</strong>
+        <ul>
+          <li>C14: Vectores en \(\mathbb{R}^n\) (demanda, inventario)</li>
+          <li>C15: Producto escalar (costo ponderado, similitud)</li>
+          <li>C16: Evaluación Parcial 1</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: CIERRE FINAL -->
+  <div class="slide" data-slide="13">
+    <div class="portada">
+      <i class="fas fa-cubes-stacked" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
+      <h1 style="font-size:clamp(1.8rem, 3.2vw, 2.8rem); color:var(--navy);">Fin del Módulo 2</h1>
+      <p class="sub" style="color:var(--orange); font-weight:600;">Estructura de Sistemas y Decisiones</p>
+      <div class="block mt reveal"><span class="b-title"><i class="fas fa-arrow-right"></i> Próximo</span> Módulo 3 — Vectores Aplicados en Logística</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 14</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>
