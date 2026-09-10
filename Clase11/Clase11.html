@@ -104,7 +104,7 @@
       line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
     }
     .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
-    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; }
     code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
 
     #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
@@ -143,7 +143,11 @@
 
     .warning-box { background: #fef3c7; border: 2px solid var(--orange); border-radius: 8px; padding: 0.8rem; margin: 0.5rem 0; font-size: 0.9rem; }
     .warning-box::before { content: "⚠️ "; font-weight: bold; }
+
+    .step-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 0.7rem 0.9rem; margin: 0.5rem 0; }
+    .step-box .step-num { display: inline-block; background: var(--navy); color: #fff; border-radius: 50%; width: 22px; height: 22px; line-height: 22px; text-align: center; font-size: 0.8rem; font-weight: 700; margin-right: 0.4rem; }
   </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -156,11 +160,11 @@
       <i class="fas fa-calculator" style="font-size:4rem; color:var(--navy); margin-bottom:1rem;"></i>
       <h1>Determinante e Inversa<br>Estabilidad Numérica del Modelo</h1>
       <p class="sub">Matemáticas 2 — Módulo 2, Clase 11</p>
-      <div class="block reveal">
+      <div class="block">
         <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
         <span>Ingeniería en Logística</span>
       </div>
-      <p class="info mt reveal"><i class="fas fa-calendar-day"></i> Clase 11</p>
+      <p class="info mt"><i class="fas fa-calendar-day"></i> Clase 11</p>
     </div>
   </div>
 
@@ -176,10 +180,12 @@
       <li>Fórmula para inversa 2×2</li>
       <li>Gauss-Jordan para inversa 3×3</li>
       <li>Número de condición: definición e interpretación</li>
+      <li>Cálculo de cond(A) con normas 1 e ∞</li>
+      <li>¿Cuándo cond(A) es aceptable? Criterio aplicado</li>
       <li>Práctica MATLAB: det, inv, cond</li>
       <li>Análisis de estabilidad numérica</li>
       <li>Caso logístico: confiabilidad del modelo</li>
-      <li>Ejercicios prácticos y decisión operativa</li>
+      <li>Ejercicios prácticos (con solución paso a paso)</li>
       <li>Resumen y preparación Clase 12</li>
     </ul>
   </div>
@@ -194,6 +200,7 @@
       <li class="reveal"><strong>Calcular</strong> \(A^{-1}\) para \(2\times2\) por fórmula y para \(3\times3\) por Gauss-Jordan sobre \([A|I]\).</li>
       <li class="reveal"><strong>Usar</strong> <code>det(A)</code>, <code>inv(A)</code> y <code>cond(A)</code> en MATLAB.</li>
       <li class="reveal"><strong>Definir</strong> el número de condición \(\operatorname{cond}(A)=\|A\|\cdot\|A^{-1}\|\) e interpretarlo como amplificador de errores.</li>
+      <li class="reveal"><strong>Calcular</strong> \(\operatorname{cond}_1(A)\) y \(\operatorname{cond}_\infty(A)\) a mano para matrices pequeñas.</li>
       <li class="reveal"><strong>Diagnosticar</strong> la confiabilidad de un modelo logístico usando \(\det\), \(\operatorname{cond}\) y el residuo.</li>
       <li class="reveal"><strong>Proponer</strong> acciones correctivas cuando el modelo es numéricamente inestable.</li>
     </ul>
@@ -211,7 +218,7 @@
       <div class="rm-node">C13 Mini-caso 2</div>
     </div>
     <div class="block mt reveal"><span class="b-title"><i class="fas fa-link"></i> Conexión con Clase 10</span>
-      En Clase 10 resolvimos \(AX=B\) con \texttt{A\b}. Hoy:
+      En Clase 10 resolvimos \(AX=B\) con <code>A\b</code>. Hoy:
       <ul><li>¿Cuándo existe \(A^{-1}\)?</li><li>¿Cómo medimos la "calidad" de \(A\) para resolver sistemas?</li><li>¿Qué pasa si los datos tienen errores pequeños?</li></ul>
     </div>
   </div>
@@ -248,7 +255,7 @@
       </div>
       <div>
         <div class="alert-block reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Interpretación logística</span>
-          <ul><li>\(\det(A)=0\): rutas redundantes o dependientes.</li><li>\(\det(A)\) pequeño: matriz "casi singular", sensible a errores.</li><li>\(\det(A)\) grande: no implica mejor condicionamiento (ver Clase 11).</li></ul>
+          <ul><li>\(\det(A)=0\): rutas redundantes o dependientes.</li><li>\(\det(A)\) pequeño: matriz "casi singular", sensible a errores.</li><li>\(\det(A)\) grande: no implica mejor condicionamiento (ver más adelante).</li></ul>
         </div>
         <div class="warning-box mt reveal">
           <strong>Confusión frecuente:</strong> El determinante solo se calcula para matrices <strong>cuadradas</strong>. No calcular \(\det([A|\mathbf{b}])\).
@@ -284,7 +291,7 @@
     <div class="example-block mt reveal"><span class="b-title">Ejemplo con red logística</span>
       \(A = \begin{pmatrix}0.5&0.3\\0.5&0.7\end{pmatrix}\), \(\det(A)=0.20\)<br>
       $$ A^{-1} = \frac{1}{0.20}\begin{pmatrix}0.7&-0.3\\-0.5&0.5\end{pmatrix} = \begin{pmatrix}3.5&-1.5\\-2.5&2.5\end{pmatrix} $$
-      <span class="reveal mt">Verificación: \(A\cdot A^{-1} = I\) \checkmark</span>
+      <span class="reveal mt">Verificación: \(A\cdot A^{-1} = I\) \(\checkmark\)</span>
     </div>
     <div class="warning-box mt reveal">
       <strong>Error frecuente:</strong> No intercambiar la diagonal principal o olvidar el signo negativo en la anti-diagonal. Practicar con la regla mnemotécnica.
@@ -300,7 +307,8 @@
       \([A|I] = \left(\begin{array}{ccc|ccc}1&2&3&1&0&0\\0&1&4&0&1&0\\5&6&0&0&0&1\end{array}\right)\)
       <span class="reveal mt">\(\xrightarrow{F_3-5F_1} \left(\begin{array}{ccc|ccc}1&2&3&1&0&0\\0&1&4&0&1&0\\0&-4&-15&-5&0&1\end{array}\right)\)</span>
       <span class="reveal mt">\(\xrightarrow{F_3+4F_2} \left(\begin{array}{ccc|ccc}1&2&3&1&0&0\\0&1&4&0&1&0\\0&0&1&-5&4&1\end{array}\right)\)</span>
-      <span class="reveal mt">Fase atrás: \(A^{-1} = \begin{pmatrix}24&-18&5\\-20&15&-4\\5&-4&1\end{pmatrix}\)</span>
+      <span class="reveal mt">Fase atrás: \(F_2 \to F_2 - 4F_3\), \(F_1 \to F_1 - 2F_2 - 3F_3\), lo que da \(A^{-1} = \begin{pmatrix}-24&18&5\\20&-15&-4\\-5&4&1\end{pmatrix}\)</span>
+      <span class="reveal mt italic">Verificación: \(\det(A)=1\neq0\) (invertible) y \(A\cdot A^{-1}=I\) \(\checkmark\)</span>
     </div>
   </div>
 
@@ -309,7 +317,7 @@
     <h2><i class="fas fa-balance-scale"></i> Número de condición: definición e interpretación</h2>
     <div class="block reveal"><span class="b-title">Definición</span>
       $$ \operatorname{cond}(A) = \|A\|\cdot\|A^{-1}\| $$
-      Para norma 2: \(\operatorname{cond}_2(A) = \sigma_{\max}/\sigma_{\min}\) (valores singulares).
+      Mención: para la norma 2, \(\operatorname{cond}_2(A) = \sigma_{\max}/\sigma_{\min}\) (valores singulares). <em>Veremos el cálculo práctico con normas 1 e \(\infty\) en la próxima diapositiva.</em>
     </div>
     <div class="col-layout mt">
       <div class="alert-block reveal"><span class="b-title"><i class="fas fa-chart-line"></i> Interpretación</span>
@@ -320,6 +328,57 @@
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-table"></i> Clasificación práctica</span>
         <table class="compact"><tr><th>\(\operatorname{cond}(A)\)</th><th>Interpretación</th></tr><tr><td>\(\approx 1\)</td><td>Excelente: errores no se amplifican</td></tr><tr><td>\(10^1-10^3\)</td><td>Bueno: pérdida de 1-3 cifras</td></tr><tr><td>\(10^4-10^8\)</td><td>Aceptable con precaución</td></tr><tr><td>\(>10^8\)</td><td>Peligroso: modelo inestable</td></tr></table>
       </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9B (NUEVA): CÁLCULO DE cond(A) NORMA 1 E INFINITO -->
+  <div class="slide" data-slide="9.5">
+    <h2><i class="fas fa-ruler-combined"></i> Cálculo práctico de \(\operatorname{cond}(A)\): normas 1 e \(\infty\)</h2>
+    <div class="col-layout">
+      <div class="block reveal"><span class="b-title"><i class="fas fa-columns"></i> Norma 1 ("máxima suma por columna")</span>
+        $$ \|A\|_1 = \max_{j}\sum_{i=1}^{n}|a_{ij}| $$
+        <span class="reveal mt"><strong>Procedimiento:</strong> sumar valores absolutos por <em>columna</em>, tomar el máximo. Idem para \(A^{-1}\):</span>
+        $$ \operatorname{cond}_1(A) = \|A\|_1 \cdot \|A^{-1}\|_1 $$
+      </div>
+      <div class="block reveal"><span class="b-title"><i class="fas fa-bars"></i> Norma \(\infty\) ("máxima suma por fila")</span>
+        $$ \|A\|_\infty = \max_{i}\sum_{j=1}^{n}|a_{ij}| $$
+        <span class="reveal mt"><strong>Procedimiento:</strong> sumar valores absolutos por <em>fila</em>, tomar el máximo. Idem para \(A^{-1}\):</span>
+        $$ \operatorname{cond}_\infty(A) = \|A\|_\infty \cdot \|A^{-1}\|_\infty $$
+      </div>
+    </div>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-calculator"></i> Ejemplo numérico — red logística \(2\times2\)</span>
+      \(A = \begin{pmatrix}0.5&0.3\\0.5&0.7\end{pmatrix}\), \(A^{-1} = \begin{pmatrix}3.5&-1.5\\-2.5&2.5\end{pmatrix}\)<br>
+      <span class="reveal mt">\(\|A\|_1 = \max(0.5+0.5,\;0.3+0.7) = \max(1.0,1.0) = 1.0\); \(\|A^{-1}\|_1 = \max(3.5+2.5,\;1.5+2.5) = \max(6.0,4.0) = 6.0\) \(\Rightarrow \operatorname{cond}_1(A)=1.0\times6.0=\mathbf{6}\)</span><br><br>
+      <span class="reveal mt">\(\|A\|_\infty = \max(0.5+0.3,\;0.5+0.7) = \max(0.8,1.2) = 1.2\); \(\|A^{-1}\|_\infty = \max(3.5+1.5,\;2.5+2.5) = \max(5.0,5.0) = 5.0\) \(\Rightarrow \operatorname{cond}_\infty(A)=1.2\times5.0=\mathbf{6}\)</span><br><br>
+      <span class="reveal mt italic">El valor exacto depende de la norma (p. ej. \(\operatorname{cond}_2=5\) aquí), pero el orden de magnitud es lo que importa para el diagnóstico.</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 9C (NUEVA): RANGO ACEPTABLE DE cond(A) -->
+  <div class="slide" data-slide="9.6">
+    <h2><i class="fas fa-thumbs-up"></i> ¿Cuándo es aceptable \(\operatorname{cond}(A)\)? Criterio aplicado</h2>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-calculator"></i> Regla práctica</span>
+      $$\text{error relativo en el plan} \;\lesssim\; \operatorname{cond}(A)\times\text{error relativo en los datos}$$
+      <strong>Si \(\operatorname{cond}(A)\times\) error de datos \(\leq 10\%\), el plan se considera confiable</strong> sin acciones correctivas.
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal"><span class="b-title"><i class="fas fa-truck"></i> Ejemplo 1 — red bien condicionada</span>
+        Red con \(\operatorname{cond}_\infty(A)=6\) (ejemplo anterior). Sensores de demanda con error de <strong>2%</strong>:<br>
+        \(\text{error en plan} \lesssim 6\times2\% = 12\%\) — <strong>aceptable con monitoreo.</strong><br>
+        Si se mejora la medición a 1%: \(6\times1\%=6\%\) — <strong>plena confianza en el plan.</strong>
+      </div>
+      <div class="alert-block reveal"><span class="b-title"><i class="fas fa-triangle-exclamation"></i> Ejemplo 2 — red con precaución</span>
+        Red con \(\operatorname{cond}(A)=2500\) (ver Ejercicio 3). Error de medición de 1%:<br>
+        \(2500\times1\% = 25\% > 10\%\) — <strong>no confiable: requiere acciones correctivas</strong> (mejorar datos, diversificar rutas o regularizar).
+      </div>
+    </div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-table"></i> Tabla de decisión rápida (con error de datos ~1%)</span>
+      <table class="compact">
+        <tr><th>\(\operatorname{cond}(A)\)</th><th>Error máx. en plan</th><th>¿Aceptable?</th><th>Decisión operativa</th></tr>
+        <tr><td>\(\leq 10\)</td><td>\(\leq 10\%\)</td><td>Sí</td><td>Implementar el plan directamente</td></tr>
+        <tr><td>\(10-100\)</td><td>\(10\%-100\%\)</td><td>Con precaución</td><td>Verificar residuo y perturbar datos antes de decidir</td></tr>
+        <tr><td>\(>10^3\)</td><td>\(>1000\%\)</td><td>No</td><td>Acciones correctivas obligatorias</td></tr>
+      </table>
     </div>
   </div>
 
@@ -343,8 +402,10 @@ A_inv = <span class="mf">inv</span>(A);
 <span class="mf">disp</span>(A * A_inv)
 
 <span class="mc">% 3. Numero de condicion</span>
-c = <span class="mf">cond</span>(A);
-<span class="mk">fprintf</span>(<span class="ms">'cond(A) = %.2f\n'</span>, c);
+c = <span class="mf">cond</span>(A);  <span class="mc">% cond_2 por defecto</span>
+c1 = <span class="mf">cond</span>(A,<span class="mn">1</span>);  <span class="mc">% cond_1</span>
+ci = <span class="mf">cond</span>(A,<span class="mk">inf</span>); <span class="mc">% cond_inf</span>
+<span class="mk">fprintf</span>(<span class="ms">'cond=%.2f, cond1=%.2f, condinf=%.2f\n'</span>, c, c1, ci);
 
 <span class="mc">% 4. Sensibilidad: perturbar b en 1%</span>
 b = <span class="mf">[</span><span class="mn">300</span>; <span class="mn">200</span>; <span class="mn">150</span><span class="mf">]</span>;
@@ -401,14 +462,14 @@ x_pert = A <span class="mk">\</span> b_pert;
     <div class="block reveal"><span class="b-title"><i class="fas fa-sitemap"></i> Situación</span> Red \(A\) de 3 plantas a 3 CDs. Solución \(\mathbf{x}^*=(324,229,102)^T\) para demanda \(\mathbf{b}=(300,200,150)^T\). Pero \(x_2=-20\) en otro escenario y \(\operatorname{cond}(A)=850\).</div>
     <div class="col-layout mt">
       <div class="alert-block reveal"><span class="b-title"><i class="fas fa-triangle-exclamation"></i> Diagnóstico</span>
-        <ul><li>\(\operatorname{cond}(A)=850\): aceptable con precaución (pérdida de ~3 cifras).</li><li>\(x_2<0\): plan no viable físicamente.</li><li>Posible causa: demanda inconsistente con estructura de red.</li></ul>
+        <ul><li>\(\operatorname{cond}(A)=850\): aceptable con precaución (pérdida de ~3 cifras).</li><li>\(x_2&lt;0\): plan no viable físicamente.</li><li>Posible causa: demanda inconsistente con estructura de red.</li></ul>
       </div>
       <div>
         <div class="example-block reveal"><span class="b-title"><i class="fas fa-flask"></i> Simulación en MATLAB</span>
           <code>A_pert = A + 0.001*randn(size(A));</code><br>
           <code>x_pert = A_pert \ b;</code><br>
           <code>fprintf('Cambio en x: %.2f%%\n', norm(x_pert-x)/norm(x)*100);</code>
-          <span class="reveal mt">Si cambio > 10× perturbación: modelo sensible.</span>
+          <span class="reveal mt">Si cambio \(>10\times\) perturbación: modelo sensible.</span>
         </div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-wrench"></i> Acciones correctivas</span>
           <ul><li><strong>Revisar datos:</strong> ¿coeficientes de \(A\) medidos con precisión?</li><li><strong>Diversificar rutas:</strong> reducir solapamiento entre plantas.</li><li><strong>Escalar:</strong> normalizar filas/columnas de \(A\) para equilibrar magnitudes.</li></ul>
@@ -423,7 +484,7 @@ x_pert = A <span class="mk">\</span> b_pert;
     <p class="reveal"><strong>Enunciado:</strong> Calcular \(\det(A)\) e indicar si es invertible. Si lo es, calcular \(A^{-1}\).
       \[ A = \begin{pmatrix}4&2\\3&1\end{pmatrix},\quad B = \begin{pmatrix}2&4\\1&2\end{pmatrix},\quad C = \begin{pmatrix}1&2&3\\0&4&5\\0&0&6\end{pmatrix} \]
     </p>
-    <div class="example-block mt reveal"><span class="b-title">Resolución</span>
+    <div class="example-block mt reveal"><span class="b-title">Resolución (resumen)</span>
       <ul>
         <li>\(\det(A)=4(1)-2(3)=-2\neq0 \Rightarrow\) invertible. \(A^{-1}=\frac{1}{-2}\begin{pmatrix}1&-2\\-3&4\end{pmatrix}\)</li>
         <li>\(\det(B)=2(2)-4(1)=0 \Rightarrow\) no invertible (filas proporcionales).</li>
@@ -431,8 +492,20 @@ x_pert = A <span class="mk">\</span> b_pert;
       </ul>
     </div>
     <div class="warning-box mt reveal">
-      <strong>Recordatorio:</strong> Para matrices triangulares, \(\det\) = producto de diagonales. Para \(3\times3\), usar Sarrus o expansión por cofactores.
+      <strong>Recordatorio:</strong> Para matrices triangulares, \(\det\) = producto de diagonales. Para \(3\times3\), usar Sarrus o expansión por cofactores. <em>La solución paso a paso está en la siguiente diapositiva.</em>
     </div>
+  </div>
+
+  <!-- SLIDE 13B (NUEVA): EJERCICIO 1 SOLUCIÓN PASO A PASO -->
+  <div class="slide" data-slide="13.5">
+    <h2><i class="fas fa-list-ol"></i> Ejercicio 1 — Solución paso a paso</h2>
+    <div class="step-box reveal"><span class="step-num">1</span><strong>Matriz \(A\):</strong> \(\det(A) = (4)(1) - (2)(3) = 4 - 6 = -2\).</div>
+    <div class="step-box reveal"><span class="step-num">2</span><strong>¿Invertible \(A\)?</strong> \(\det(A)=-2\neq0\) \(\Rightarrow\) <strong>sí</strong>. Aplicar la fórmula \(2\times2\): intercambiar diagonal \((1,4)\), negar anti-diagonal \((-2,-3)\), dividir por \(\det\):</div>
+    <div class="step-box reveal">$$ A^{-1} = \frac{1}{-2}\begin{pmatrix}1&-2\\-3&4\end{pmatrix} = \begin{pmatrix}-0.5&1\\1.5&-2\end{pmatrix} $$</div>
+    <div class="step-box reveal"><span class="step-num">3</span><strong>Verificación de \(A^{-1}\):</strong> \(A\,A^{-1} = \begin{pmatrix}4&2\\3&1\end{pmatrix}\begin{pmatrix}-0.5&1\\1.5&-2\end{pmatrix} = \begin{pmatrix}-2+3&4-4\\-1.5+1.5&3-2\end{pmatrix} = \begin{pmatrix}1&0\\0&1\end{pmatrix} = I\) \(\checkmark\)</div>
+    <div class="step-box reveal"><span class="step-num">4</span><strong>Matriz \(B\):</strong> \(\det(B) = (2)(2) - (4)(1) = 4 - 4 = 0\) \(\Rightarrow\) <strong>no invertible</strong>. Causa: fila 2 = \(\tfrac{1}{2}\times\) fila 1 (proporcionales), luego \(\operatorname{rang}(B)=1 &lt; 2\).</div>
+    <div class="step-box reveal"><span class="step-num">5</span><strong>Matriz \(C\):</strong> es triangular superior \(\Rightarrow \det(C) = (1)(4)(6) = 24\neq0\) \(\Rightarrow\) <strong>invertible</strong>. No se pide \(C^{-1}\), pero se podría obtener por Gauss-Jordan sobre \([C|I]\).</div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Idea clave</span> El teorema de invertibilidad conecta todo: \(\det\neq0\) \(\Leftrightarrow\) invertible \(\Leftrightarrow\) rango pleno \(\Leftrightarrow\) solución única para todo \(\mathbf{b}\).</div>
   </div>
 
   <!-- SLIDE 14: EJERCICIO 2 -->
@@ -447,6 +520,19 @@ x_pert = A <span class="mk">\</span> b_pert;
     <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación</span>
       \(\det(A)=0.0100\) (pequeño pero no cero). \(\operatorname{cond}(A)\approx 10\) (bueno).<br>
       <strong>Conclusión:</strong> modelo confiable. Pequeño \(\det\) no implica mal condicionamiento aquí.
+    </div>
+  </div>
+
+  <!-- SLIDE 14B (NUEVA): EJERCICIO 2 SOLUCIÓN PASO A PASO -->
+  <div class="slide" data-slide="14.5">
+    <h2><i class="fas fa-list-ol"></i> Ejercicio 2 — Solución paso a paso</h2>
+    <div class="step-box reveal"><span class="step-num">1</span><strong>Determinante:</strong> la matriz tiene una estructura especial: \(A = 0.1\,I + 0.3\,\mathbf{1}\mathbf{1}^T\) (diagonal \(0.4\), resto \(0.3\)). Sus autovalores son \(1.0\) (una vez, autovector \((1,1,1)^T\)) y \(0.1\) (dos veces). Entonces: \(\det(A) = 1.0\times0.1\times0.1 = \mathbf{0.01}\).</div>
+    <div class="step-box reveal"><span class="step-num">2</span><strong>Número de condición (norma 2):</strong> \(\operatorname{cond}_2(A) = \lambda_{\max}/\lambda_{\min} = 1.0/0.1 = \mathbf{10}\). Coincide con MATLAB (<code>cond(A)</code> usa norma 2 por defecto).</div>
+    <div class="step-box reveal"><span class="step-num">3</span><strong>Verificación con norma \(\infty\):</strong> \(\|A\|_\infty = 0.4+0.3+0.3 = 1.0\). Como \(A^{-1} = 10I - 3\,\mathbf{1}\mathbf{1}^T = \begin{pmatrix}7&-3&-3\\-3&7&-3\\-3&-3&7\end{pmatrix}\), \(\|A^{-1}\|_\infty = 7+3+3 = 13\) \(\Rightarrow \operatorname{cond}_\infty(A) = 1.0\times13 = \mathbf{13}\).</div>
+    <div class="step-box reveal"><span class="step-num">4</span><strong>¿Confiable?</strong> Con error de medición típico de 1% en la demanda: error en el plan \(\lesssim 10\times1\% = 10\%\) (norma 2) o \(13\times1\% = 13\%\) (norma \(\infty\)). <strong>Conclusión: modelo confiable</strong>, aunque \(\det(A)=0.01\) sea pequeño — lo que manda es el condicionamiento, no el determinante.</div>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida MATLAB esperada</span>
+      <code>det=0.0100, cond=10.00</code><br>
+      <code>cond_1 = 13.00, cond_inf = 13.00</code>
     </div>
   </div>
 
@@ -467,7 +553,26 @@ x_pert = A <span class="mk">\</span> b_pert;
         </ol>
       </div>
     </div>
-    <div class="block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Criterio de decisión</span> Si \(\operatorname{cond}(A)\times\text{error\_datos} > 10\%\), considerar acciones correctivas antes de implementar el plan.</div>
+    <div class="block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Criterio de decisión</span> Si \(\operatorname{cond}(A)\times\text{error\_datos} &gt; 10\%\), considerar acciones correctivas antes de implementar el plan.</div>
+  </div>
+
+  <!-- SLIDE 15B (NUEVA): EJERCICIO 3 SOLUCIÓN PASO A PASO -->
+  <div class="slide" data-slide="15.5">
+    <h2><i class="fas fa-list-ol"></i> Ejercicio 3 — Solución paso a paso</h2>
+    <div class="step-box reveal"><span class="step-num">1</span><strong>Cota teórica de amplificación:</strong> \(\dfrac{\|\delta\mathbf{x}\|}{\|\mathbf{x}\|} \leq \operatorname{cond}(A)\cdot\dfrac{\|\delta\mathbf{b}\|}{\|\mathbf{b}\|} = 2500 \times 0.01 = 0.25\). El plan podría variar hasta <strong>~25%</strong> solo por el error de medición.</div>
+    <div class="step-box reveal"><span class="step-num">2</span><strong>Test empírico en MATLAB</strong> (perturbar la demanda ±1%):
+      <pre><span class="mc">% Test de sensibilidad</span>
+b1 = b * <span class="mn">1.01</span>;  x1 = A <span class="mk">\</span> b1;
+b2 = b * <span class="mn">0.99</span>;  x2 = A <span class="mk">\</span> b2;
+<span class="mk">fprintf</span>(<span class="ms">'Cambio +: %.2f%% | Cambio -: %.2f%%\n'</span>,...
+  <span class="mf">norm</span>(x1-x)/<span class="mf">norm</span>(x)*<span class="mn">100</span>, <span class="mf">norm</span>(x2-x)/<span class="mf">norm</span>(x)*<span class="mn">100</span>);</pre>
+      <span class="reveal">Resultado esperado: cambios del orden de <strong>20–25%</strong>, consistente con la cota teórica.</span>
+    </div>
+    <div class="step-box reveal"><span class="step-num">3</span><strong>Aplicar el criterio de decisión:</strong> \(25\% &gt; 10\%\) \(\Rightarrow\) <strong>el plan NO es confiable tal cual</strong>; se requieren acciones correctivas.</div>
+    <div class="step-box reveal"><span class="step-num">4</span><strong>Acción 1 — mejorar precisión de datos:</strong> si el error baja a 0.1%: \(2500\times0.001 = 2.5\% &lt; 10\%\) \(\Rightarrow\) <strong>confiable</strong>.</div>
+    <div class="step-box reveal"><span class="step-num">5</span><strong>Acción 2 — reestructurar la red:</strong> diversificar rutas para bajar \(\operatorname{cond}(A)\), p. ej. de 2500 a 100: \(100\times1\% = 1\%\) de error en el plan.</div>
+    <div class="step-box reveal"><span class="step-num">6</span><strong>Acción 3 — regularización:</strong> añadir penalización al plan (suavidad) para que pequeñas perturbaciones de \(\mathbf{b}\) no generen planes radicalmente distintos.</div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-flag-checkered"></i> Conclusión operativa</span> No implementar el plan original. La opción más rentable suele ser <strong>Acción 1</strong> (mejor medición), salvo que la estructura de la red pueda rediseñarse a bajo costo (Acción 2).</div>
   </div>
 
   <!-- SLIDE 16: RESUMEN -->
@@ -480,15 +585,17 @@ x_pert = A <span class="mk">\</span> b_pert;
           <li>\(A\) invertible \(\Leftrightarrow \det(A)\neq0 \Leftrightarrow \operatorname{rang}(A)=n\).</li>
           <li>\(A^{-1}\): fórmula \(2\times2\), Gauss-Jordan \([A|I]\) para \(3\times3\).</li>
           <li>\(\operatorname{cond}(A)=\|A\|\cdot\|A^{-1}\|\): amplificador de errores.</li>
+          <li>Cálculo manual con normas 1 e \(\infty\); \(\operatorname{cond}_2\) solo mencionado (\(\sigma_{\max}/\sigma_{\min}\)).</li>
+          <li>Criterio: \(\operatorname{cond}(A)\times\) error de datos \(\leq 10\%\) \(\Rightarrow\) plan confiable.</li>
           <li>Diagnóstico: \(\det\), \(\operatorname{cond}\), residuo, perturbación.</li>
           <li>Acciones: mejorar datos, diversificar rutas, escalar.</li>
         </ul>
       </div>
       <div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-forward-step"></i> Conexión Clase 12</span> Grados de libertad y optimización:
-          <ul><li>Si \(\operatorname{rang}(A)<n\): infinitas soluciones \(\Rightarrow\) elegir plan óptimo.</li><li>Combinar \(\operatorname{Nul}(A)\) con costos para minimizar gastos.</li><li>Base para programación lineal en redes.</li></ul>
+          <ul><li>Si \(\operatorname{rang}(A)&lt;n\): infinitas soluciones \(\Rightarrow\) elegir plan óptimo.</li><li>Combinar \(\operatorname{Nul}(A)\) con costos para minimizar gastos.</li><li>Base para programación lineal en redes.</li></ul>
         </div>
-        <div class="formula-card mt"><span class="b-title">Ecuación fundamental</span>
+        <div class="formula-card mt reveal"><span class="b-title">Ecuación fundamental</span>
           \[ \text{Sol. general} = \underbrace{\mathbf{x}^*}_{\text{particular}} + \underbrace{\operatorname{Nul}(A)}_{\text{ajustes}} \]
         </div>
       </div>
@@ -506,7 +613,7 @@ x_pert = A <span class="mk">\</span> b_pert;
         <li><strong>Reflexión:</strong> Empresa con 5 plantas, 3 CDs, \(\operatorname{rang}(A)=3\). ¿Cuántos grados de libertad? ¿Cómo usarlos para minimizar costo?</li>
       </ol>
     </div>
-    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span> Si \(\operatorname{rang}(A)=3<n=5\): \(5-3=2\) grados de libertad. Se pueden usar para optimizar costos, balancear carga, o priorizar ciertas rutas.</div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span> Si \(\operatorname{rang}(A)=3\) con \(n=5\) incógnitas: hay \(5-3=2\) grados de libertad. Se pueden usar para optimizar costos, balancear carga, o priorizar ciertas rutas.</div>
   </div>
 
   <!-- SLIDE 18: REFERENCIAS -->
@@ -528,7 +635,7 @@ x_pert = A <span class="mk">\</span> b_pert;
       <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
         <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
         <ul class="mt">
-          <li>Khan Academy: ``Determinant and inverse''</li>
+          <li>Khan Academy: "Determinant and inverse"</li>
           <li>MathWorks: MATLAB <code>det</code>, <code>inv</code>, <code>cond</code> docs</li>
           <li><em>3Blue1Brown</em> — Ep. 10: Determinants as area/volume</li>
         </ul>
@@ -551,13 +658,13 @@ x_pert = A <span class="mk">\</span> b_pert;
 <!-- NAVIGATION -->
 <nav id="nav-controls">
   <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
-  <span id="slide-counter">1 / 20</span>
+  <span id="slide-counter">1 / 23</span>
   <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
 </nav>
 
 <script>
 (function() {
-  const slides = document.querySelectorAll('.slide');
+  const slides = Array.from(document.querySelectorAll('.slide'));
   const totalSlides = slides.length;
   let currentSlide = 0;
   let currentStep = 0;
@@ -567,19 +674,17 @@ x_pert = A <span class="mk">\</span> b_pert;
   const nextBtn = document.getElementById('nextBtn');
   const progressBar = document.getElementById('progress-bar');
 
-  const slideReveals = [];
-  slides.forEach(slide => {
-    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
-  });
+  // Guard: recalcular reveals por si MathJax u otro script modifica el DOM
+  let slideReveals = slides.map(slide => Array.from(slide.querySelectorAll('.reveal')));
 
-  function getMaxSteps(idx) { return slideReveals[idx].length; }
+  function getMaxSteps(idx) { return slideReveals[idx] ? slideReveals[idx].length : 0; }
 
   function updateDisplay() {
     slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
-    const reveals = slideReveals[currentSlide];
+    const reveals = slideReveals[currentSlide] || [];
     reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
-    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
-    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    counterEl.textContent = (currentSlide + 1) + ' / ' + totalSlides;
+    progressBar.style.width = (((currentSlide + 1) / totalSlides) * 100) + '%';
     prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
     nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
   }
@@ -593,15 +698,19 @@ x_pert = A <span class="mk">\</span> b_pert;
 
   function goPrev() {
     if (currentStep > 0) currentStep--;
-    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    else if (currentSlide > 0) {
+      currentSlide--;
+      currentStep = getMaxSteps(currentSlide);
+      (slideReveals[currentSlide] || []).forEach(el => el.classList.add('visible'));
+    }
     updateDisplay();
   }
 
   nextBtn.addEventListener('click', goNext);
   prevBtn.addEventListener('click', goPrev);
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
-    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === 'PageDown') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'PageUp') { e.preventDefault(); goPrev(); }
   });
   let touchStartX = 0;
   document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
