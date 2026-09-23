@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 11 - Takagi-Sugeno vs Mamdani</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --azul-princ: #005293;
+            --azul-claro: #0078be;
+            --verde-inst: #008250;
+            --naranja: #dc6b1f;
+            --morado: #7800a0;
+            --rojo: #a00000;
+            --gris-claro: #f5f5f5;
+            --sombra: 0 4px 20px rgba(0, 82, 147, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #e8f5e9 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+        }
+        
+        .slide {
+            position: absolute;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 750px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: var(--sombra);
+            padding: 40px 50px;
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            display: block;
+            z-index: 10;
+        }
+        
+        .slide.prev {
+            opacity: 0;
+            transform: scale(0.95) translateY(-20px);
+        }
+        
+        h2 {
+            color: var(--azul-princ);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            border-bottom: 3px solid var(--naranja);
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            color: var(--azul-princ);
+            font-size: 1.4rem;
+            margin: 1.5rem 0 1rem 0;
+            font-weight: 600;
+        }
+        
+        .block {
+            background: var(--gris-claro);
+            border-left: 5px solid var(--azul-princ);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .block-title {
+            background: var(--azul-princ);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 6px 6px 0 0;
+            margin: -20px -20px 15px -20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .alert-block {
+            background: #fff3e0;
+            border-left-color: var(--naranja);
+        }
+        
+        .alert-block .block-title {
+            background: var(--naranja);
+        }
+        
+        .example-block {
+            background: #e8f5e9;
+            border-left-color: var(--verde-inst);
+        }
+        
+        .example-block .block-title {
+            background: var(--verde-inst);
+        }
+        
+        .columns {
+            display: flex;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .column {
+            flex: 1;
+        }
+        
+        .column.half {
+            flex: 0 0 48%;
+        }
+        
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        
+        strong {
+            color: var(--azul-princ);
+        }
+        
+        .center {
+            text-align: center;
+        }
+        
+        .math-display {
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        pre {
+            padding: 15px;
+            overflow-x: auto;
+            border-left: 4px solid var(--azul-princ);
+            margin: 15px 0;
+            background: #f5f5f5;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+        
+        code {
+            padding: 2px 6px;
+            font-size: 0.9em;
+        }
+        
+        pre code {
+            padding: 0;
+            background: none;
+        }
+        
+        .code-cpp {
+            border-left-color: #00599C;
+        }
+        
+        .keyword { color: #0000FF; font-weight: bold; }
+        .comment { color: #008000; font-style: italic; }
+        .string { color: #A31515; }
+        .number { color: #098658; }
+        .function { color: #795E26; }
+        .type { color: #267F99; }
+        .preprocessor { color: #800000; }
+        
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(255,255,255,0.95);
+            padding: 12px 30px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .nav-btn {
+            background: var(--azul-princ);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-btn:hover {
+            background: var(--naranja);
+            transform: scale(1.1);
+        }
+        
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .slide-counter {
+            font-weight: 600;
+            color: var(--azul-princ);
+            font-size: 1rem;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .title-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        
+        .title-slide h1 {
+            font-size: 2.5rem;
+            color: var(--azul-princ);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        
+        .title-slide .subtitle {
+            font-size: 1.3rem;
+            color: var(--naranja);
+            margin-bottom: 2rem;
+        }
+        
+        .title-slide .author {
+            font-size: 1.2rem;
+            color: #666;
+            margin: 0.5rem 0;
+        }
+        
+        .title-slide .institute {
+            font-size: 1.1rem;
+            color: var(--azul-princ);
+            margin-top: 2rem;
+            font-weight: 600;
+        }
+        
+        .overlay-content {
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .overlay-content.visible {
+            opacity: 1;
+        }
+        
+        .toc-item {
+            padding: 12px 20px;
+            margin: 8px 0;
+            background: var(--gris-claro);
+            border-radius: 8px;
+            border-left: 4px solid var(--azul-princ);
+            transition: all 0.3s;
+        }
+        
+        .toc-item:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 15px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        th {
+            background: var(--azul-princ);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+        
+        .icon {
+            margin-right: 8px;
+            color: var(--naranja);
+        }
+        
+        @media (max-width: 968px) {
+            .columns {
+                flex-direction: column;
+            }
+            
+            .column.half {
+                flex: 1;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .slide {
+                padding: 25px 30px;
+            }
+            
+            .title-slide h1 {
+                font-size: 2rem;
+            }
+            
+            pre {
+                font-size: 0.7rem;
+            }
+        }
+        
+        .checkmark {
+            color: var(--verde-inst);
+            font-weight: bold;
+        }
+        
+        .flow-box {
+            background: rgba(0,82,147,0.08);
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .flow-box.highlight {
+            background: rgba(220,107,31,0.15);
+            border-color: var(--naranja);
+        }
+        
+        .flow-box.green {
+            background: rgba(0,130,80,0.12);
+            border-color: var(--verde-inst);
+        }
+        
+        .flow-box.purple {
+            background: rgba(120,0,160,0.1);
+            border-color: var(--morado);
+        }
+        
+        .arrow-down, .arrow-right {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--azul-princ);
+            margin: 5px 0;
+        }
+        
+        .placeholder-img {
+            background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+            border: 2px dashed var(--azul-princ);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .placeholder-img i {
+            font-size: 3rem;
+            color: var(--azul-princ);
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .architecture-diagram {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        
+        .quote-box {
+            background: rgba(0,82,147,0.05);
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: var(--azul-princ);
+            text-align: center;
+        }
+        
+        .comparison-table {
+            font-size: 0.85rem;
+        }
+        
+        .comparison-table th {
+            background: var(--azul-princ);
+            color: white;
+            padding: 12px;
+        }
+        
+        .comparison-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        .ts-table {
+            font-size: 0.9rem;
+        }
+        
+        .ts-table th {
+            background: var(--azul-princ);
+            color: white;
+        }
+        
+        .ts-table td {
+            text-align: center;
+            font-weight: bold;
+            padding: 8px;
+        }
+        
+        .cell-neg-high { background: #ffcccc; }
+        .cell-neg-med { background: #ffe6cc; }
+        .cell-neg-low { background: #fff2cc; }
+        .cell-zero { background: #ffffcc; }
+        .cell-pos-low { background: #f2ffcc; }
+        .cell-pos-med { background: #e6ffcc; }
+        .cell-pos-high { background: #ccffcc; }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- SLIDE 1: Title -->
+        <div class="slide active" data-slide="1">
+            <div class="title-slide">
+                <h1>Takagi-Sugeno (T-S) vs Mamdani:<br>Arquitecturas Avanzadas de Control Difuso</h1>
+                <div class="subtitle">Clase 11 | Unidad 2: Inferencia y Diseño Fuzzy | Teórica</div>
+                <div class="author">Curso de Control Difuso</div>
+                <div class="author">Ingeniería en Control y Automatización</div>
+                <div class="institute">Semana 6</div>
+                <div style="margin-top: 3rem; padding: 15px; background: rgba(0,82,147,0.08); border-radius: 8px; font-size: 0.9rem; color: #666;">
+                    <i class="fas fa-book" style="color: var(--azul-princ);"></i>
+                    Referencia: Lilly, J.H. – <em>Fuzzy Control and Identification</em>, Cap. 5
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Table of Contents -->
+        <div class="slide" data-slide="2">
+            <h2><i class="fas fa-list icon"></i>Contenido de la Sesión</h2>
+            <div class="toc-item">1. Motivación: Limitaciones de Mamdani</div>
+            <div class="toc-item">2. El Modelo Takagi-Sugeno</div>
+            <div class="toc-item">3. Inferencia T-S Paso a Paso</div>
+            <div class="toc-item">4. Interpretación Geométrica</div>
+            <div class="toc-item">5. Comparativa T-S vs Mamdani</div>
+            <div class="toc-item">6. T-S Orden 0: Equivalencia con Mamdani-Altura</div>
+            <div class="toc-item">7. T-S Orden 1: Control Adaptativo Local</div>
+            <div class="toc-item">8. Identificación de Parámetros</div>
+            <div class="toc-item">9. Análisis de Estabilidad (Lyapunov)</div>
+            <div class="toc-item">10. Aplicación: Motor DC con T-S Orden 0</div>
+            <div class="toc-item">11. Ejercicio y Resumen</div>
+        </div>
+
+        <!-- SLIDE 3: Recap Mamdani -->
+        <div class="slide" data-slide="3">
+            <h2><i class="fas fa-history icon"></i>¿Qué Logramos con Mamdani? – Recapitulación</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Logros de las Clases 5-10</div>
+                        <ul>
+                            <li>Controlador difuso <strong>completo</strong> funcionando en Arduino UNO</li>
+                            <li>Comparativa vs PID: menos sobreimpulso</li>
+                            <li>Ciclo de control en ~372 μs a 10 Hz</li>
+                            <li>Tablas de reglas interpretables por operadores</li>
+                        </ul>
+                    </div>
+                    <div class="alert-block overlay-content" data-overlay="5">
+                        <div class="block-title">Limitaciones identificadas</div>
+                        <ul>
+                            <li><strong>Error en estado estacionario:</strong> sin integral</li>
+                            <li><strong>Defuzzificación costosa:</strong> centroide requiere N=20–50</li>
+                            <li><strong>Difícil de analizar:</strong> no hay teoría de estabilidad directa</li>
+                            <li><strong>Superficies irregulares:</strong> si la tabla es inconsistente</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div style="padding: 20px;">
+                        <div class="flow-box green overlay-content" data-overlay="9">
+                            <i class="fas fa-check-circle" style="color: var(--verde-inst);"></i><br>
+                            <strong>[OK] Cl. 5-10:</strong> Mamdani
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box highlight overlay-content" data-overlay="9">
+                            <i class="fas fa-star" style="color: var(--naranja);"></i><br>
+                            <strong>[Hoy] Cl. 11:</strong> T-S vs Mamdani
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="9">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl. 12:</strong> Lab T-S en Motor DC
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="9">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl. 13:</strong> Difuso PD y PI
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="9">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl. 16:</strong> Benchmarking
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Takagi-Sugeno Question -->
+        <div class="slide" data-slide="4">
+            <h2><i class="fas fa-question-circle icon"></i>La Pregunta que Nos Hace Takagi y Sugeno</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Reflexión histórica</div>
+                <p>En 1985, Takagi y Sugeno se preguntaron:</p>
+                <p style="margin-top: 10px; font-style: italic; font-size: 1.1rem; text-align: center; color: var(--azul-princ);">
+                    "El consecuente difuso de Mamdani requiere defuzzificación costosa. ¿Y si el consecuente fuera directamente una <strong>función lineal</strong> de las entradas?"
+                </p>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="alert-block overlay-content" data-overlay="2">
+                        <div class="block-title">Mamdani – Consecuente Difuso</div>
+                        <p>IF $x_1$ is $A_1^k$ AND $x_2$ is $A_2^k$</p>
+                        <p>THEN $y$ is $\tilde{B}^k$</p>
+                        <p style="margin-top: 10px;">El consecuente $\tilde{B}^k$ es un <strong>conjunto difuso</strong>.</p>
+                        <p>Se necesita: implicación + agregación + <strong>defuzz</strong>.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="3">
+                        <div class="block-title">Takagi-Sugeno – Consecuente Lineal</div>
+                        <p>IF $x_1$ is $A_1^k$ AND $x_2$ is $A_2^k$</p>
+                        <p>THEN $y^k = p_k x_1 + q_k x_2 + r_k$</p>
+                        <p style="margin-top: 10px;">El consecuente $y^k$ es un <strong>número</strong>.</p>
+                        <p>Solo se necesita: implicación + <strong>suma ponderada</strong>.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="quote-box overlay-content" data-overlay="4">
+                Takagi, T. & Sugeno, M. (1985). Fuzzy identification of systems and its applications to modeling and control. <em>IEEE Trans. Syst., Man, Cybern.</em>, 15(1), 116–132.
+            </div>
+        </div>
+
+        <!-- SLIDE 5: T-S Structure -->
+        <div class="slide" data-slide="5">
+            <h2><i class="fas fa-sitemap icon"></i>Estructura del Modelo T-S</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Regla T-S de Orden 1 (la más usada)</div>
+                <div class="math-display">
+                    \[
+                    R_k:\; \textbf{IF } x_1 \text{ is } A_1^k \textbf{ AND } x_2 \text{ is } A_2^k
+                    \;\textbf{THEN }\; y^k = p_k x_1 + q_k x_2 + r_k
+                    \]
+                </div>
+                <p>Los parámetros $p_k,\, q_k,\, r_k$ se llaman <strong>consecuentes lineales</strong>.</p>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="2">
+                        <div class="block-title">Tipos de reglas T-S</div>
+                        <p><strong>Orden 0 (Singleton):</strong></p>
+                        <div class="math-display">
+                            \[ y^k = r_k \quad \text{(constante)} \]
+                        </div>
+                        <p>Equivalente al método de altura de Mamdani.</p>
+                        <p style="margin-top: 10px;"><strong>Orden 1 (Lineal):</strong></p>
+                        <div class="math-display">
+                            \[ y^k = \sum_i p_i^k x_i + r_k \]
+                        </div>
+                        <p>Captura la <strong>dinámica local</strong> del sistema.</p>
+                        <p style="margin-top: 10px;"><strong>Orden 2 (Cuadrático):</strong></p>
+                        <div class="math-display">
+                            \[ y^k = \sum_{i,j} p_{ij}^k x_i x_j + \ldots + r_k \]
+                        </div>
+                        <p>Raramente usado en control.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block overlay-content" data-overlay="3">
+                        <div class="block-title">Inferencia T-S</div>
+                        <p><strong>No hay defuzzificación</strong>: la salida se calcula directamente como suma ponderada:</p>
+                        <div class="math-display">
+                            \[
+                            y^* = \frac{\displaystyle\sum_{k=1}^N \alpha_k \cdot y^k}
+                                       {\displaystyle\sum_{k=1}^N \alpha_k}
+                            \]
+                        </div>
+                        <p>donde $\alpha_k = \mu_{A_1^k}(x_1) \cdot \mu_{A_2^k}(x_2)$ (o con AND-min).</p>
+                    </div>
+                    <div class="example-block overlay-content" data-overlay="3">
+                        <div class="block-title">Ventaja computacional</div>
+                        <ul>
+                            <li>Solo sumas y multiplicaciones</li>
+                            <li>Sin integración numérica</li>
+                            <li>~5 μs en Arduino UNO</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: T-S Inference Step by Step -->
+        <div class="slide" data-slide="6">
+            <h2><i class="fas fa-list-ol icon"></i>Inferencia T-S: Paso a Paso</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Algoritmo de inferencia T-S (Orden 1)</div>
+                <ol>
+                    <li>Para cada regla $k$: calcular $\alpha_k = \prod_i \mu_{A_i^k}(x_i)$</li>
+                    <li>Para cada regla $k$: calcular la salida local $y^k = p_k x_1 + q_k x_2 + r_k$</li>
+                    <li>Combinar: $\displaystyle y^* = \frac{\sum_k \alpha_k y^k}{\sum_k \alpha_k}$</li>
+                </ol>
+            </div>
+            <div class="example-block overlay-content" data-overlay="4">
+                <div class="block-title">Ejemplo con 2 reglas para TCLAB</div>
+                <p><strong>Datos:</strong> $e = +7$°C, $\dot{e} = +2$°C/s, $\mu_{ZO}(7)=0.30$, $\mu_{PS}(7)=0.47$, $\mu_{ZO}(2)=0.20$, $\mu_{PS}(2)=0.80$</p>
+                <p style="margin-top: 10px;"><strong>Reglas T-S definidas:</strong></p>
+                <ul>
+                    <li>$R_1$: IF $e$ is ZO AND $\dot{e}$ is ZO THEN $y^1 = 0.5 \cdot e + 0.2 \cdot \dot{e} + 50$ &nbsp;&nbsp; $\alpha_1 = \min(0.30; 0.20) = 0.20$ &nbsp;&nbsp; $y^1 = 0.5(7)+0.2(2)+50 = 54.9$</li>
+                    <li>$R_2$: IF $e$ is PS AND $\dot{e}$ is PS THEN $y^2 = 0.8 \cdot e + 0.5 \cdot \dot{e} + 20$ &nbsp;&nbsp; $\alpha_2 = \min(0.47; 0.80) = 0.47$ &nbsp;&nbsp; $y^2 = 0.8(7)+0.5(2)+20 = 27.6$</li>
+                </ul>
+                <div class="math-display">
+                    \[
+                    y^* = \frac{0.20 \cdot 54.9 + 0.47 \cdot 27.6}{0.20 + 0.47}
+                         = \frac{10.98 + 12.97}{0.67}
+                         = \frac{23.95}{0.67} \approx 35.7\%
+                    \]
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: Geometric Interpretation -->
+        <div class="slide" data-slide="7">
+            <h2><i class="fas fa-chart-line icon"></i>Interpretación Geométrica de T-S</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">T-S como Interpolación de Modelos Lineales</div>
+                        <p>Cada regla T-S define un <strong>modelo lineal local</strong> $y^k = f^k(\mathbf{x})$ válido en la región donde $\mu_{A^k}$ es alta.</p>
+                        <p style="margin-top: 10px;">La inferencia T-S <strong>interpola</strong> suavemente entre estos modelos locales según la posición de $\mathbf{x}$.</p>
+                    </div>
+                    <div class="example-block overlay-content" data-overlay="2">
+                        <div class="block-title">Analogía con gain scheduling</div>
+                        <p>El gain scheduling clásico cambia bruscamente entre controladores lineales al cruzar un umbral.</p>
+                        <p style="margin-top: 10px;">T-S hace lo mismo pero de forma <strong>suave y continua</strong>, usando las MFs como funciones de interpolación.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="architecture-diagram overlay-content" data-overlay="3">
+                        <svg viewBox="0 0 400 340">
+                            <!-- Axes -->
+                            <line x1="50" y1="290" x2="380" y2="290" stroke="#333" stroke-width="1.5"/>
+                            <line x1="50" y1="30" x2="50" y2="290" stroke="#333" stroke-width="1.5"/>
+                            <!-- Grid -->
+                            <line x1="50" y1="238" x2="380" y2="238" stroke="#eee" stroke-width="1"/>
+                            <line x1="50" y1="186" x2="380" y2="186" stroke="#eee" stroke-width="1"/>
+                            <line x1="50" y1="134" x2="380" y2="134" stroke="#eee" stroke-width="1"/>
+                            <line x1="50" y1="82" x2="380" y2="82" stroke="#eee" stroke-width="1"/>
+                            <!-- Model 1: y = 0.5x + 2 (dashed) -->
+                            <line x1="50" y1="108" x2="380" y2="273" stroke="#005293" stroke-width="2.5" stroke-dasharray="6,4"/>
+                            <!-- Model 2: y = 1.5x + 0.5 (dashed) -->
+                            <line x1="50" y1="277" x2="380" y2="32" stroke="#dc6b1f" stroke-width="2.5" stroke-dasharray="6,4"/>
+                            <!-- T-S smooth interpolation -->
+                            <path d="M 50,250 Q 120,240 180,200 T 260,150 T 340,90 L 380,60" 
+                                  fill="none" stroke="#008250" stroke-width="3.5" stroke-linecap="round"/>
+                            <!-- Labels -->
+                            <text x="215" y="320" fill="#333" font-size="13" text-anchor="middle">x</text>
+                            <text x="15" y="160" fill="#333" font-size="13" transform="rotate(-90 15 160)">y</text>
+                            <!-- Title -->
+                            <text x="215" y="20" fill="#333" font-size="12" text-anchor="middle" font-weight="bold">Interpolación T-S entre 2 modelos</text>
+                            <!-- Legend -->
+                            <line x1="230" y1="40" x2="260" y2="40" stroke="#005293" stroke-width="2.5" stroke-dasharray="6,4"/>
+                            <text x="265" y="45" fill="#333" font-size="10">y¹ = 0.5x+2 (R1)</text>
+                            <line x1="230" y1="55" x2="260" y2="55" stroke="#dc6b1f" stroke-width="2.5" stroke-dasharray="6,4"/>
+                            <text x="265" y="60" fill="#333" font-size="10">y² = 1.5x+0.5 (R2)</text>
+                            <line x1="230" y1="70" x2="260" y2="70" stroke="#008250" stroke-width="3.5"/>
+                            <text x="265" y="75" fill="#333" font-size="10">T-S: interpolación suave</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Architectural Comparison -->
+        <div class="slide" data-slide="8">
+            <h2><i class="fas fa-balance-scale icon"></i>Comparativa Arquitectónica: T-S vs Mamdani</h2>
+            <div class="architecture-diagram">
+                <svg viewBox="0 0 900 500">
+                    <!-- Headers -->
+                    <text x="180" y="30" fill="#005293" font-size="18" font-weight="bold" text-anchor="middle">MAMDANI</text>
+                    <text x="680" y="30" fill="#dc6b1f" font-size="18" font-weight="bold" text-anchor="middle">TAKAGI-SUGENO</text>
+                    
+                    <!-- Mamdani boxes -->
+                    <rect x="60" y="50" width="240" height="45" rx="8" fill="#e3f2fd" stroke="#005293" stroke-width="2"/>
+                    <text x="180" y="78" fill="#005293" font-size="13" text-anchor="middle">Fuzzificar entradas</text>
+                    
+                    <rect x="60" y="115" width="240" height="45" rx="8" fill="#e3f2fd" stroke="#005293" stroke-width="2"/>
+                    <text x="180" y="143" fill="#005293" font-size="13" text-anchor="middle">Evaluar antecedentes (α_k)</text>
+                    
+                    <rect x="60" y="180" width="240" height="45" rx="8" fill="#e3f2fd" stroke="#005293" stroke-width="2"/>
+                    <text x="180" y="208" fill="#005293" font-size="13" text-anchor="middle">Implicación: cortar B^k a α_k</text>
+                    
+                    <rect x="60" y="245" width="240" height="45" rx="8" fill="#e3f2fd" stroke="#005293" stroke-width="2"/>
+                    <text x="180" y="273" fill="#005293" font-size="13" text-anchor="middle">Agregación: unión de salidas</text>
+                    
+                    <rect x="60" y="310" width="240" height="50" rx="8" fill="#ffebee" stroke="#a00000" stroke-width="2.5"/>
+                    <text x="180" y="340" fill="#a00000" font-size="13" text-anchor="middle" font-weight="bold">Defuzzificación: centroide/altura</text>
+                    
+                    <!-- TS boxes -->
+                    <rect x="560" y="50" width="240" height="45" rx="8" fill="#fff3e0" stroke="#dc6b1f" stroke-width="2"/>
+                    <text x="680" y="78" fill="#dc6b1f" font-size="13" text-anchor="middle">Fuzzificar entradas</text>
+                    
+                    <rect x="560" y="115" width="240" height="45" rx="8" fill="#fff3e0" stroke="#dc6b1f" stroke-width="2"/>
+                    <text x="680" y="143" fill="#dc6b1f" font-size="13" text-anchor="middle">Evaluar antecedentes (α_k)</text>
+                    
+                    <rect x="560" y="180" width="240" height="45" rx="8" fill="#fff3e0" stroke="#dc6b1f" stroke-width="2"/>
+                    <text x="680" y="208" fill="#dc6b1f" font-size="13" text-anchor="middle">Calcular y^k = p_k x_1 + q_k x_2 + r_k</text>
+                    
+                    <rect x="560" y="245" width="240" height="55" rx="8" fill="#e8f5e9" stroke="#008250" stroke-width="2.5"/>
+                    <text x="680" y="270" fill="#008250" font-size="12" text-anchor="middle" font-weight="bold">Suma ponderada:</text>
+                    <text x="680" y="288" fill="#008250" font-size="11" text-anchor="middle">y* = Σα_k·y^k / Σα_k</text>
+                    
+                    <!-- Arrows Mamdani -->
+                    <line x1="180" y1="95" x2="180" y2="115" stroke="#005293" stroke-width="2" marker-end="url(#arrowBlue)"/>
+                    <line x1="180" y1="160" x2="180" y2="180" stroke="#005293" stroke-width="2" marker-end="url(#arrowBlue)"/>
+                    <line x1="180" y1="225" x2="180" y2="245" stroke="#005293" stroke-width="2" marker-end="url(#arrowBlue)"/>
+                    <line x1="180" y1="290" x2="180" y2="310" stroke="#005293" stroke-width="2" marker-end="url(#arrowBlue)"/>
+                    
+                    <!-- Arrows TS -->
+                    <line x1="680" y1="95" x2="680" y2="115" stroke="#dc6b1f" stroke-width="2" marker-end="url(#arrowOrange)"/>
+                    <line x1="680" y1="160" x2="680" y2="180" stroke="#dc6b1f" stroke-width="2" marker-end="url(#arrowOrange)"/>
+                    <line x1="680" y1="225" x2="680" y2="245" stroke="#dc6b1f" stroke-width="2" marker-end="url(#arrowOrange)"/>
+                    
+                    <!-- Labels -->
+                    <text x="310" y="340" fill="#a00000" font-size="11" font-weight="bold">COSTOSO</text>
+                    <text x="810" y="275" fill="#008250" font-size="11" font-weight="bold">RÁPIDO</text>
+                    
+                    <!-- Brace "Igual en ambos" -->
+                    <text x="20" y="140" fill="#005293" font-size="11" font-style="italic">Igual</text>
+                    <text x="20" y="155" fill="#005293" font-size="11" font-style="italic">en</text>
+                    <text x="20" y="170" fill="#005293" font-size="11" font-style="italic">ambos</text>
+                    
+                    <!-- Arrow markers -->
+                    <defs>
+                        <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#005293"/>
+                        </marker>
+                        <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <polygon points="0 0, 10 3, 0 6" fill="#dc6b1f"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: Detailed Comparison Table -->
+        <div class="slide" data-slide="9">
+            <h2><i class="fas fa-table icon"></i>Tabla Comparativa Detallada</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">Aspecto</th>
+                        <th style="width: 37%;">Mamdani</th>
+                        <th style="width: 38%;">Takagi-Sugeno</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>Consecuente</strong></td><td>Conjunto difuso $\tilde{B}^k$</td><td>Función $y^k = f^k(\mathbf{x})$</td></tr>
+                    <tr><td><strong>Defuzzificación</strong></td><td>Requerida (centroide, altura)</td><td style="color: var(--verde-inst); font-weight: bold;">No requerida</td></tr>
+                    <tr><td><strong>Velocidad</strong></td><td>Media (~300 μs Arduino)</td><td style="color: var(--verde-inst); font-weight: bold;">Alta (~30 μs Arduino)</td></tr>
+                    <tr><td><strong>Interpretabilidad</strong></td><td style="color: var(--verde-inst); font-weight: bold;">Alta: reglas en lenguaje natural</td><td>Media: parámetros $p_k, q_k, r_k$</td></tr>
+                    <tr><td><strong>Identificación</strong></td><td>Manual (experto)</td><td style="color: var(--verde-inst); font-weight: bold;">Automatizable (mínimos cuadrados)</td></tr>
+                    <tr><td><strong>Estabilidad</strong></td><td>Difícil de analizar</td><td style="color: var(--verde-inst); font-weight: bold;">Analizable (Lyapunov)</td></tr>
+                    <tr><td><strong>Precisión</strong></td><td>Alta (con buen diseño)</td><td>Alta (con buenos parámetros)</td></tr>
+                    <tr><td><strong>Aplicación típica</strong></td><td>Control por reglas de experto</td><td>Control óptimo / identificación</td></tr>
+                    <tr><td><strong>Uso en embebidos</strong></td><td>Posible (Cl. 8-10)</td><td style="color: var(--verde-inst); font-weight: bold;">Preferido (Cl. 12)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SLIDE 10: Speed Comparison -->
+        <div class="slide" data-slide="10">
+            <h2><i class="fas fa-tachometer-alt icon"></i>Velocidad: La Ventaja Clave de T-S en Embebidos</h2>
+            <div class="architecture-diagram">
+                <svg viewBox="0 0 800 400">
+                    <!-- Axes -->
+                    <line x1="80" y1="350" x2="750" y2="350" stroke="#333" stroke-width="1.5"/>
+                    <line x1="80" y1="40" x2="80" y2="350" stroke="#333" stroke-width="1.5"/>
+                    <!-- Grid -->
+                    <line x1="80" y1="296" x2="750" y2="296" stroke="#eee" stroke-width="1"/>
+                    <line x1="80" y1="242" x2="750" y2="242" stroke="#eee" stroke-width="1"/>
+                    <line x1="80" y1="188" x2="750" y2="188" stroke="#eee" stroke-width="1"/>
+                    <line x1="80" y1="134" x2="750" y2="134" stroke="#eee" stroke-width="1"/>
+                    <line x1="80" y1="80" x2="750" y2="80" stroke="#eee" stroke-width="1"/>
+                    
+                    <!-- Mamdani centroide N=50 (blue) -->
+                    <rect x="130" y="134" width="40" height="216" fill="#0078be" stroke="#005293" stroke-width="1.5"/>
+                    <rect x="280" y="270" width="40" height="80" fill="#0078be" stroke="#005293" stroke-width="1.5"/>
+                    <rect x="430" y="150" width="40" height="200" fill="#0078be" stroke="#005293" stroke-width="1.5"/>
+                    <rect x="580" y="46" width="40" height="304" fill="#0078be" stroke="#005293" stroke-width="1.5"/>
+                    <text x="150" y="128" fill="#333" font-size="10" text-anchor="middle">220</text>
+                    <text x="300" y="264" fill="#333" font-size="10" text-anchor="middle">80</text>
+                    <text x="450" y="144" fill="#333" font-size="10" text-anchor="middle">200</text>
+                    <text x="600" y="40" fill="#333" font-size="10" text-anchor="middle">500</text>
+                    
+                    <!-- Mamdani altura (orange) -->
+                    <rect x="180" y="134" width="40" height="216" fill="#dc6b1f" stroke="#b8561a" stroke-width="1.5" opacity="0.85"/>
+                    <rect x="330" y="270" width="40" height="80" fill="#dc6b1f" stroke="#b8561a" stroke-width="1.5" opacity="0.85"/>
+                    <rect x="480" y="345" width="40" height="5" fill="#dc6b1f" stroke="#b8561a" stroke-width="1.5" opacity="0.85"/>
+                    <rect x="630" y="62" width="40" height="288" fill="#dc6b1f" stroke="#b8561a" stroke-width="1.5" opacity="0.85"/>
+                    
+                    <!-- T-S Orden 0 (green) -->
+                    <rect x="230" y="134" width="40" height="216" fill="#008250" stroke="#005a38" stroke-width="1.5" opacity="0.85"/>
+                    <rect x="380" y="270" width="40" height="80" fill="#008250" stroke="#005a38" stroke-width="1.5" opacity="0.85"/>
+                    <rect x="530" y="347" width="40" height="3" fill="#008250" stroke="#005a38" stroke-width="1.5" opacity="0.85"/>
+                    <rect x="680" y="64" width="40" height="286" fill="#008250" stroke="#005a38" stroke-width="1.5" opacity="0.85"/>
+                    
+                    <!-- Labels -->
+                    <text x="415" y="380" fill="#333" font-size="13" text-anchor="middle">Bloque del controlador</text>
+                    <text x="25" y="195" fill="#333" font-size="13" transform="rotate(-90 25 195)">Tiempo (μs) en Arduino UNO (16 MHz)</text>
+                    
+                    <!-- X-axis labels -->
+                    <text x="195" y="370" fill="#333" font-size="11" text-anchor="middle">Fuzzif.</text>
+                    <text x="345" y="370" fill="#333" font-size="11" text-anchor="middle">Reglas</text>
+                    <text x="495" y="370" fill="#333" font-size="11" text-anchor="middle">Defuzz</text>
+                    <text x="645" y="370" fill="#333" font-size="11" text-anchor="middle">Total</text>
+                    
+                    <!-- Y-axis labels -->
+                    <text x="70" y="355" fill="#333" font-size="10" text-anchor="end">0</text>
+                    <text x="70" y="300" fill="#333" font-size="10" text-anchor="end">50</text>
+                    <text x="70" y="245" fill="#333" font-size="10" text-anchor="end">100</text>
+                    <text x="70" y="190" fill="#333" font-size="10" text-anchor="end">150</text>
+                    <text x="70" y="135" fill="#333" font-size="10" text-anchor="end">200</text>
+                    <text x="70" y="80" fill="#333" font-size="10" text-anchor="end">250</text>
+                    
+                    <!-- Legend -->
+                    <rect x="540" y="45" width="15" height="10" fill="#0078be" stroke="#005293"/>
+                    <text x="560" y="54" fill="#333" font-size="10">Mamdani (centroide N=50)</text>
+                    <rect x="540" y="62" width="15" height="10" fill="#dc6b1f" stroke="#b8561a"/>
+                    <text x="560" y="71" fill="#333" font-size="10">Mamdani (altura)</text>
+                    <rect x="540" y="79" width="15" height="10" fill="#008250" stroke="#005a38"/>
+                    <text x="560" y="88" fill="#333" font-size="10">T-S Orden 0</text>
+                </svg>
+            </div>
+            <div class="alert-block">
+                <div class="block-title">Conclusión</div>
+                <p>La fuzzificación domina el tiempo en todos los casos (~220 μs). T-S y Mamdani-Altura son casi idénticos en velocidad. La diferencia real de T-S está en la <strong>identificación automática</strong> de parámetros, no en la velocidad de inferencia.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: T-S Order 0 Bridge -->
+        <div class="slide" data-slide="11">
+            <h2><i class="fas fa-bridge icon"></i>T-S Orden 0: El Puente entre Arquitecturas</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">T-S Orden 0 = Mamdani con Método de Altura</div>
+                <p>Cuando los consecuentes de T-S son constantes $y^k = r_k$, la fórmula de inferencia es idéntica al método de altura de Mamdani:</p>
+                <div class="math-display">
+                    \[
+                    y^* = \frac{\sum_k \alpha_k \cdot r_k}{\sum_k \alpha_k}
+                    \equiv
+                    \frac{\sum_k \alpha_k \cdot c_k}{\sum_k \alpha_k}
+                    \]
+                </div>
+                <p>donde $c_k$ es el centro de la MF de salida en Mamdani.</p>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="2">
+                        <div class="block-title">Equivalencia práctica</div>
+                        <p>El controlador difuso de Clase 8-10 implementado con <code>defuzz_height()</code> <strong>es</strong> un T-S Orden 0 con $r_k \in \{0, 25, 50, 75, 100\}$%</p>
+                        <p style="margin-top: 10px;">CE=0, CB=25, M=50, AB=75, AE=100</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block overlay-content" data-overlay="2">
+                        <div class="block-title">Implicación</div>
+                        <p>No necesitábamos toda la maquinaria de Mamdani (implicación + agregación + defuzz). Con T-S Orden 0 desde el principio habríamos llegado al mismo resultado en menos código.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="quote-box overlay-content" data-overlay="3">
+                <strong>Regla práctica:</strong> Usar T-S Orden 0 cuando el diseño es por experto y la velocidad importa. Usar T-S Orden 1 cuando los parámetros se identifican automáticamente desde datos.
+            </div>
+        </div>
+
+        <!-- SLIDE 12: T-S Order 1 Adaptive -->
+        <div class="slide" data-slide="12">
+            <h2><i class="fas fa-sliders-h icon"></i>T-S Orden 1: Control Adaptativo Local</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Idea Central</div>
+                <p>Cada región difusa del espacio de entrada tiene su propio <strong>modelo lineal</strong> del proceso:</p>
+                <div class="math-display">
+                    \[ y^k = p_k \cdot e + q_k \cdot \dot{e} + r_k \]
+                </div>
+                <p>Los parámetros $p_k$ son las ganancias <strong>locales</strong>: $p_k \sim K_p^k$, $q_k \sim K_d^k$.</p>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="2">
+                        <div class="block-title">Control de Motor DC con T-S Orden 1</div>
+                        <p>Para control de velocidad de motor DC con 3 zonas:</p>
+                        <table style="font-size: 0.9rem; margin-top: 10px;">
+                            <thead>
+                                <tr><th>Zona</th><th>$p_k$</th><th>$q_k$</th><th>$r_k$</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Arranque (error grande)</td><td>3.5</td><td>0.8</td><td>60</td></tr>
+                                <tr><td>Normal (error medio)</td><td>2.0</td><td>0.5</td><td>50</td></tr>
+                                <tr><td>Ajuste fino (error pequeño)</td><td>0.5</td><td>0.1</td><td>45</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="3">
+                        <div class="block-title">Ventaja sobre PID clásico</div>
+                        <p>El PID clásico tiene ganancias <strong>fijas</strong> $K_p, K_d$. El T-S Orden 1 tiene ganancias <strong>variables</strong> que se adaptan suavemente según la región de operación.</p>
+                        <p style="margin-top: 10px;">Esto es <strong>gain scheduling difuso</strong>: la transición entre ganancias es continua y no requiere conmutadores.</p>
+                    </div>
+                    <div class="alert-block overlay-content" data-overlay="3">
+                        <div class="block-title">Aplicación en Clase 12</div>
+                        <p>Se implementará T-S Orden 0 para control de velocidad de Motor DC (respuesta rápida).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: Parameter Identification -->
+        <div class="slide" data-slide="13">
+            <h2><i class="fas fa-chart-scatter icon"></i>Identificación de Parámetros T-S</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Método de Mínimos Cuadrados (Lilly, Cap. 5)</div>
+                <p>Dado un conjunto de datos $\{(\mathbf{x}_j, y_j)\}$, los parámetros del consecuente de la regla $k$ se obtienen minimizando:</p>
+                <div class="math-display">
+                    \[
+                    J_k = \sum_{j=1}^{M} \alpha_k(\mathbf{x}_j) \cdot
+                          \left(y_j - y^k(\mathbf{x}_j)\right)^2
+                    \]
+                </div>
+                <p>La solución en forma matricial es:</p>
+                <div class="math-display">
+                    \[
+                    \boldsymbol{\theta}_k = (\mathbf{X}^T \mathbf{W}_k \mathbf{X})^{-1}
+                                     \mathbf{X}^T \mathbf{W}_k \mathbf{y}
+                    \]
+                </div>
+                <p>donde $\mathbf{W}_k = \text{diag}(\alpha_k(\mathbf{x}_j))$.</p>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="2">
+                        <div class="block-title">Procedimiento práctico</div>
+                        <ol>
+                            <li>Definir las MFs (partición)</li>
+                            <li>Recopilar datos de entrada-salida del proceso</li>
+                            <li>Para cada regla $k$: resolver el sistema pesado</li>
+                            <li>Verificar que la superficie $y^*(x_1, x_2)$ sea suave y representativa</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block overlay-content" data-overlay="2">
+                        <div class="block-title">Se verá en Clase 17-18</div>
+                        <p>La identificación automática de T-S a partir de datos es el tema de la Unidad 3 (Identificación de Sistemas, Clases 17-18).</p>
+                        <p style="margin-top: 10px;">En Clase 12 usaremos parámetros diseñados manualmente por el experto.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: Stability Analysis -->
+        <div class="slide" data-slide="14">
+            <h2><i class="fas fa-shield-alt icon"></i>Análisis de Estabilidad mediante Funciones de Lyapunov</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Teorema de Estabilidad T-S (Tanaka y Sugeno, 1992)</div>
+                <p>Un sistema T-S de la forma:</p>
+                <div class="math-display">
+                    \[
+                    \dot{\mathbf{x}} = \sum_{k=1}^{N} \alpha_k(\mathbf{x}) \cdot \mathbf{A}_k \mathbf{x}
+                    \]
+                </div>
+                <p>es <strong>globalmente asintóticamente estable</strong> si existe una matriz simétrica definida positiva $\mathbf{P} = \mathbf{P}^T \succ 0$ tal que:</p>
+                <div class="math-display">
+                    \[
+                    \mathbf{A}_k^T \mathbf{P} + \mathbf{P} \mathbf{A}_k \prec 0 \quad \forall k
+                    \]
+                </div>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="2">
+                        <div class="block-title">Significado práctico</div>
+                        <p>Si cada modelo lineal local $\mathbf{A}_k$ es estable y comparte una <strong>función de Lyapunov común</strong> $V(\mathbf{x}) = \mathbf{x}^T \mathbf{P} \mathbf{x}$, entonces el sistema difuso completo es estable.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block overlay-content" data-overlay="3">
+                        <div class="block-title">Contraste con Mamdani</div>
+                        <p>Para Mamdani no existe un resultado equivalente de estabilidad tan directo. En la práctica, Mamdani se valida por simulación y ensayo.</p>
+                        <p style="margin-top: 10px;">Esta es una ventaja fundamental de T-S para aplicaciones críticas de seguridad.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: T-S Order 0 Design Motor DC -->
+        <div class="slide" data-slide="15">
+            <h2><i class="fas fa-cog icon"></i>Diseño T-S Orden 0 para Control de Motor DC</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Sistema</div>
+                <p>Motor DC con encoder. Variable a controlar: velocidad $\omega$ [RPM].</p>
+                <ul>
+                    <li><strong>Entradas:</strong> Error $e_\omega \in [-300, +300]$ RPM, Cambio $\dot{e}_\omega \in [-100, +100]$ RPM/s</li>
+                    <li><strong>Salida:</strong> Ciclo de trabajo PWM $u \in [-100, +100]$% (bidireccional)</li>
+                </ul>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="2">
+                        <div class="block-title">Tabla T-S Orden 0 (5×5)</div>
+                        <p style="font-size: 0.85rem;">Los valores de la tabla son los $r_k$ en %:</p>
+                        <table class="ts-table" style="font-size: 0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th>$e \backslash \dot{e}$</th>
+                                    <th>NN</th><th>NS</th><th>ZO</th><th>PS</th><th>PP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="background: var(--azul-princ); color: white;"><strong>NB</strong></td>
+                                    <td class="cell-neg-high">-100</td>
+                                    <td class="cell-neg-high">-90</td>
+                                    <td class="cell-neg-med">-60</td>
+                                    <td class="cell-neg-low">-40</td>
+                                    <td class="cell-neg-low">-10</td>
+                                </tr>
+                                <tr>
+                                    <td style="background: var(--azul-princ); color: white;"><strong>NS</strong></td>
+                                    <td class="cell-neg-high">-90</td>
+                                    <td class="cell-neg-med">-60</td>
+                                    <td class="cell-neg-low">-40</td>
+                                    <td class="cell-neg-low">-10</td>
+                                    <td class="cell-pos-low">+20</td>
+                                </tr>
+                                <tr>
+                                    <td style="background: var(--azul-princ); color: white;"><strong>ZO</strong></td>
+                                    <td class="cell-neg-low">-20</td>
+                                    <td class="cell-neg-low">-10</td>
+                                    <td class="cell-zero">0</td>
+                                    <td class="cell-pos-low">+10</td>
+                                    <td class="cell-pos-low">+20</td>
+                                </tr>
+                                <tr>
+                                    <td style="background: var(--azul-princ); color: white;"><strong>PS</strong></td>
+                                    <td class="cell-pos-low">-20</td>
+                                    <td class="cell-pos-low">+10</td>
+                                    <td class="cell-pos-med">+40</td>
+                                    <td class="cell-pos-med">+60</td>
+                                    <td class="cell-pos-high">+90</td>
+                                </tr>
+                                <tr>
+                                    <td style="background: var(--azul-princ); color: white;"><strong>PB</strong></td>
+                                    <td class="cell-neg-low">+10</td>
+                                    <td class="cell-pos-med">+40</td>
+                                    <td class="cell-pos-med">+60</td>
+                                    <td class="cell-pos-high">+90</td>
+                                    <td class="cell-pos-high">+100</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="3">
+                        <div class="block-title">Características del diseño</div>
+                        <ul>
+                            <li>Salida <strong>bidireccional</strong>: motor puede ir en ambos sentidos</li>
+                            <li>Celda ZO-ZO = 0: sin acción cuando velocidad y tendencia son correctas</li>
+                            <li>Tabla <strong>antisimétrica</strong>: refleja la simetría del motor DC</li>
+                        </ul>
+                    </div>
+                    <div class="alert-block overlay-content" data-overlay="3">
+                        <div class="block-title">Diferencia con TCLAB</div>
+                        <p>TCLAB: salida unipolar $[0,100]$%.</p>
+                        <p>Motor DC: salida bipolar $[-100,100]$%.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: T-S C++ Implementation -->
+        <div class="slide" data-slide="16">
+            <h2><i class="fas fa-code icon"></i>Implementación T-S en C++ para Motor DC</h2>
+            <pre class="code-cpp"><code><span class="comment">/**
+ * ts_motor.h - Controlador T-S Orden 0 para Motor DC
+ * Clase 11 | Velocidad omega in [-300, +300] RPM
+ * Salida PWM bidireccional in [-100, +100]%
+ */</span>
+<span class="preprocessor">#include "fuzzy_types.h"</span>
+<span class="preprocessor">#include "fuzzy_mf.h"</span>
+
+<span class="comment">// Tabla T-S Orden 0: valores en % (con signo)</span>
+<span class="comment">// Fila=error omega (NB..PB), Col=d_error (NN..PP)</span>
+<span class="comment">// Rango: -100 a +100 (int8_t: -128 a +127, suficiente)</span>
+<span class="keyword">const int8_t</span> TS_TABLE[<span class="number">5</span>][<span class="number">5</span>] = {
+    {-<span class="number">100</span>, -<span class="number">90</span>, -<span class="number">60</span>, -<span class="number">40</span>, -<span class="number">10</span>}, <span class="comment">// NB</span>
+    { -<span class="number">90</span>, -<span class="number">60</span>, -<span class="number">40</span>, -<span class="number">10</span>,  <span class="number">20</span>}, <span class="comment">// NS</span>
+    { -<span class="number">20</span>, -<span class="number">10</span>,   <span class="number">0</span>,  <span class="number">10</span>,  <span class="number">20</span>}, <span class="comment">// ZO</span>
+    { -<span class="number">20</span>,  <span class="number">10</span>,  <span class="number">40</span>,  <span class="number">60</span>,  <span class="number">90</span>}, <span class="comment">// PS</span>
+    {  <span class="number">10</span>,  <span class="number">40</span>,  <span class="number">60</span>,  <span class="number">90</span>, <span class="number">100</span>}, <span class="comment">// PB</span>
+};
+
+<span class="comment">// Inferencia T-S Orden 0 (suma ponderada)</span>
+<span class="type">float</span> <span class="function">ts_infer</span>(<span class="keyword">const</span> FuzzyDegrees& mu_e,
+               <span class="keyword">const</span> FuzzyDegrees& mu_de) {
+    <span class="type">float</span> num = <span class="number">0.0f</span>, den = <span class="number">0.0f</span>;
+    <span class="keyword">for</span> (<span class="type">uint8_t</span> i = <span class="number">0</span>; i &lt; N_TERMS; i++) {
+        <span class="keyword">if</span> (mu_e.mu[i] &lt; <span class="number">0.001f</span>) <span class="keyword">continue</span>;
+        <span class="keyword">for</span> (<span class="type">uint8_t</span> j = <span class="number">0</span>; j &lt; N_TERMS; j++) {
+            <span class="keyword">if</span> (mu_de.mu[j] &lt; <span class="number">0.001f</span>) <span class="keyword">continue</span>;
+            <span class="type">float</span> alpha = fmin2(mu_e.mu[i], mu_de.mu[j]);
+            <span class="type">float</span> r_k   = (<span class="type">float</span>)TS_TABLE[i][j];
+            num += alpha * r_k;
+            den += alpha;
+        }
+    }
+    <span class="keyword">return</span> (den &gt; <span class="number">1e-6f</span>) ? (num / den) : <span class="number">0.0f</span>;
+}</code></pre>
+        </div>
+
+        <!-- SLIDE 17: Exercise -->
+        <div class="slide" data-slide="17">
+            <h2><i class="fas fa-pencil-alt icon"></i>Ejercicio en Clase: Inferencia T-S</h2>
+            <div class="alert-block">
+                <div class="block-title">Datos</div>
+                <p>Motor DC. $\omega_{ref}=200$ RPM, $\omega_{actual}=170$ RPM, $\dot{\omega}=+15$ RPM/s.</p>
+                <p>Usar la tabla T-S Orden 0 de la diapositiva anterior.</p>
+                <p>Partición de error: NB=$[-300,-150]$, NS=$[-300,-100,0]$, ZO=$[-100,0,100]$, PS=$[0,100,300]$, PB=$[100,300]$.</p>
+            </div>
+            <div class="example-block overlay-content" data-overlay="2">
+                <div class="block-title">Paso 1: Variables</div>
+                <p>$e_\omega = 200-170 = +30$ RPM &nbsp;&nbsp;&nbsp;&nbsp; $\dot{e}_\omega = +15$ RPM/s</p>
+            </div>
+            <div class="example-block overlay-content" data-overlay="3">
+                <div class="block-title">Paso 2: Fuzzificar</div>
+                <p>$\mu_{ZO}(30) = \frac{100-30}{100} = 0.70$, &nbsp; $\mu_{PS}(30) = \frac{30-0}{100} = 0.30$</p>
+                <p>$\mu_{ZO}(15) = \frac{100-15}{100} \approx 0.85$, &nbsp; $\mu_{PS}(15) = \frac{15-0}{100} = 0.15$</p>
+            </div>
+            <div class="example-block overlay-content" data-overlay="4">
+                <div class="block-title">Paso 3: Reglas activas y suma ponderada</div>
+                <ul>
+                    <li>$\alpha_{ZO,ZO}=\min(0.70;0.85)=0.70$, $r=0$</li>
+                    <li>$\alpha_{ZO,PS}=\min(0.70;0.15)=0.15$, $r=+10$</li>
+                    <li>$\alpha_{PS,ZO}=\min(0.30;0.85)=0.30$, $r=+40$</li>
+                    <li>$\alpha_{PS,PS}=\min(0.30;0.15)=0.15$, $r=+60$</li>
+                </ul>
+                <div class="math-display">
+                    \[
+                    u^* = \frac{0.70(0)+0.15(10)+0.30(40)+0.15(60)}{0.70+0.15+0.30+0.15}
+                         = \frac{0+1.5+12+9}{1.30}
+                         = \frac{22.5}{1.30} \approx \mathbf{17.3\%}
+                    \]
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 18: Summary When to Use -->
+        <div class="slide" data-slide="18">
+            <h2><i class="fas fa-clipboard-check icon"></i>Resumen: Cuándo Usar Cada Arquitectura</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Usar MAMDANI cuando...</div>
+                        <ul>
+                            <li>Las reglas las proporciona un <strong>experto humano</strong> en lenguaje natural</li>
+                            <li>La <strong>interpretabilidad</strong> es prioritaria (certificación, auditoría)</li>
+                            <li>No se dispone de datos históricos del proceso</li>
+                            <li>Se necesita un prototipo rápido sin modelado</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="5">
+                        <div class="block-title">Usar TAKAGI-SUGENO cuando...</div>
+                        <ul>
+                            <li>Se dispone de <strong>datos</strong> del proceso para identificar parámetros</li>
+                            <li>Se necesita <strong>análisis de estabilidad</strong> formal (Lyapunov)</li>
+                            <li>El sistema es de alta frecuencia y la velocidad de inferencia es crítica</li>
+                            <li>Se va a implementar <strong>gain scheduling</strong> suave entre modos de operación</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="quote-box overlay-content" data-overlay="9">
+                En la práctica industrial: <strong>Mamdani</strong> para control de procesos con experto disponible, <strong>T-S</strong> para control de vehículos, robots y sistemas rápidos donde la identificación automática es viable.
+            </div>
+        </div>
+
+        <!-- SLIDE 19: Homework -->
+        <div class="slide" data-slide="19">
+            <h2><i class="fas fa-book icon"></i>Tarea y Preparación para Clase 12</h2>
+            <div class="alert-block">
+                <div class="block-title">[Lectura] Obligatoria</div>
+                <p>Lilly, Cap. 5, Secciones 5.1–5.3: Modelo T-S, inferencia, y el método de mínimos cuadrados para identificación de consecuentes.</p>
+            </div>
+            <div class="block">
+                <div class="block-title">[Tarea] T-S para TCLAB</div>
+                <p>Rediseñar el controlador de Clase 10 usando T-S Orden 0:</p>
+                <ol>
+                    <li>Reemplazar la tabla de reglas de Mamdani por la tabla T-S con valores $r_k \in \{0, 25, 50, 75, 100\}$</li>
+                    <li>Reemplazar <code>find_active_rules()</code> + <code>defuzz_height()</code> por la función <code>ts_infer()</code> de esta clase</li>
+                    <li>Verificar que los resultados son idénticos (T-S Orden 0 ≡ Mamdani con método de altura)</li>
+                    <li>Medir si hay diferencia en $t_{ciclo}$</li>
+                </ol>
+            </div>
+            <div class="example-block">
+                <div class="block-title">[Preparación] Lab Clase 12</div>
+                <p>Traer el Motor DC con encoder y el puente H (driver L298N o similar). La Clase 12 implementa T-S Orden 0 y Orden 1 para control de velocidad con respuesta rápida.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 20: References -->
+        <div class="slide" data-slide="20">
+            <h2><i class="fas fa-book-reader icon"></i>Referencias</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Bibliografía Principal</div>
+                        <ul style="font-size: 0.9rem;">
+                            <li><strong>Lilly, J.H.</strong> (2010). <em>Fuzzy Control and Identification</em>, <strong>Cap. 5</strong>. Wiley.</li>
+                            <li><strong>Takagi, T. & Sugeno, M.</strong> (1985). Fuzzy identification of systems and its applications to modeling and control. <em>IEEE Trans. SMC</em>, 15(1), 116–132.</li>
+                            <li><strong>Tanaka, K. & Sugeno, M.</strong> (1992). Stability analysis and design of fuzzy control systems. <em>Fuzzy Sets and Systems</em>, 45(2), 135–156.</li>
+                            <li><strong>Wang, H.O., Tanaka, K. & Griffin, M.F.</strong> (1996). An approach to fuzzy control of nonlinear systems. <em>IEEE Trans. Fuzzy Syst.</em>, 4(1).</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Recursos</div>
+                        <ul style="font-size: 0.9rem;">
+                            <li>MATLAB: <code>sugfis()</code> para crear sistemas T-S en Fuzzy Toolbox</li>
+                            <li>scikit-fuzzy: no soporta T-S directamente (implementar manual)</li>
+                            <li>Lilly Cap. 5, Figs. 5.1–5.8</li>
+                            <li>IEEE Xplore: Takagi & Sugeno 1985</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 21: Image Notes -->
+        <div class="slide" data-slide="21">
+            <h2><i class="fas fa-image icon"></i>[Nota Docente] Imágenes Requeridas</h2>
+            <div class="alert-block">
+                <div class="block-title">Imágenes necesarias para Clase 11</div>
+                <table>
+                    <thead>
+                        <tr><th>Código</th><th>Fig. en Lilly</th><th>Descripción</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>[IMG_L5-1]</code></td>
+                            <td>Cap. 5, Fig. 5.1</td>
+                            <td>Diagrama de la arquitectura T-S: antecedentes difusos y consecuentes lineales. Insertar en la diapositiva de "Estructura del Modelo T-S".</td>
+                        </tr>
+                        <tr>
+                            <td><code>[IMG_L5-2]</code></td>
+                            <td>Cap. 5, Fig. 5.2</td>
+                            <td>Ilustración de la interpolación entre modelos locales T-S. Complementa la diapositiva de "Interpretación Geométrica".</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="example-block">
+                <div class="block-title">Figuras generadas internamente</div>
+                <ul>
+                    <li>Gráficas de comparación de velocidades (ybar): SVG inline</li>
+                    <li>Tablas de reglas coloreadas: HTML/CSS</li>
+                    <li>Diagramas de flujo de arquitecturas: SVG inline</li>
+                    <li>Gráficas de interpolación: SVG inline</li>
+                </ul>
+            </div>
+            <div class="center" style="margin-top: 20px;">
+                <div class="placeholder-img" style="padding: 25px; display: inline-block; width: 45%; margin: 5px;">
+                    <i class="fas fa-sitemap"></i>
+                    <p><strong>[IMG_L5-1]</strong><br>Arquitectura T-S<br><small>Lilly Cap. 5, Fig. 5.1</small></p>
+                </div>
+                <div class="placeholder-img" style="padding: 25px; display: inline-block; width: 45%; margin: 5px;">
+                    <i class="fas fa-chart-line"></i>
+                    <p><strong>[IMG_L5-2]</strong><br>Interpolación T-S<br><small>Lilly Cap. 5, Fig. 5.2</small></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 22: Solution Exercise Step 1-2 -->
+        <div class="slide" data-slide="22">
+            <h2><i class="fas fa-check-double icon" style="color: var(--verde-inst);"></i>Solución Ejercicio – Paso 1 y 2</h2>
+            <div class="example-block">
+                <div class="block-title">Paso 1: Cálculo de variables</div>
+                <div class="math-display">
+                    \[
+                    e_\omega = \omega_{ref} - \omega_{actual} = 200 - 170 = \mathbf{+30\;RPM}
+                    \]
+                    \[
+                    \dot{e}_\omega = +15\;\text{RPM/s}
+                    \]
+                </div>
+            </div>
+            <div class="example-block">
+                <div class="block-title">Paso 2: Fuzzificación</div>
+                <p>Para $e_\omega = +30$ RPM (en la región ZO-PS):</p>
+                <ul>
+                    <li>$\mu_{ZO}(30) = \frac{100-30}{100-0} = \frac{70}{100} = \mathbf{0.70}$</li>
+                    <li>$\mu_{PS}(30) = \frac{30-0}{100-0} = \frac{30}{100} = \mathbf{0.30}$</li>
+                    <li>Verificación: $0.70 + 0.30 = 1.0$ <span class="checkmark">✓</span></li>
+                </ul>
+                <p style="margin-top: 10px;">Para $\dot{e}_\omega = +15$ RPM/s (en la región ZO-PS):</p>
+                <ul>
+                    <li>$\mu_{ZO}(15) = \frac{100-15}{100} = \mathbf{0.85}$</li>
+                    <li>$\mu_{PS}(15) = \frac{15-0}{100} = \mathbf{0.15}$</li>
+                    <li>Verificación: $0.85 + 0.15 = 1.0$ <span class="checkmark">✓</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 23: Solution Exercise Step 3 -->
+        <div class="slide" data-slide="23">
+            <h2><i class="fas fa-check-double icon" style="color: var(--verde-inst);"></i>Solución Ejercicio – Paso 3</h2>
+            <div class="example-block">
+                <div class="block-title">Reglas activas (4 reglas)</div>
+                <table style="font-size: 0.9rem;">
+                    <thead>
+                        <tr><th>Regla</th><th>Antecedente</th><th>$\alpha_k$</th><th>$r_k$</th><th>$\alpha_k \cdot r_k$</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>$R_1$</td><td>ZO-ZO</td><td>$\min(0.70; 0.85) = 0.70$</td><td>0</td><td>0</td></tr>
+                        <tr><td>$R_2$</td><td>ZO-PS</td><td>$\min(0.70; 0.15) = 0.15$</td><td>+10</td><td>1.5</td></tr>
+                        <tr><td>$R_3$</td><td>PS-ZO</td><td>$\min(0.30; 0.85) = 0.30$</td><td>+40</td><td>12</td></tr>
+                        <tr><td>$R_4$</td><td>PS-PS</td><td>$\min(0.30; 0.15) = 0.15$</td><td>+60</td><td>9</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="block">
+                <div class="block-title">Suma ponderada (inferencia T-S Orden 0)</div>
+                <div class="math-display">
+                    \[
+                    u^* = \frac{\sum \alpha_k \cdot r_k}{\sum \alpha_k}
+                         = \frac{0 + 1.5 + 12 + 9}{0.70 + 0.15 + 0.30 + 0.15}
+                         = \frac{22.5}{1.30}
+                         \approx \mathbf{17.3\%}
+                    \]
+                </div>
+            </div>
+            <div class="alert-block">
+                <div class="block-title">Interpretación</div>
+                <p>El motor necesita <strong>17.3% de PWM</strong> en sentido positivo para alcanzar las 200 RPM. El valor es moderado porque:</p>
+                <ul>
+                    <li>El error (+30 RPM) es pequeño → acción proporcional baja</li>
+                    <li>La velocidad ya está subiendo (+15 RPM/s) → acción derivativa reduce la potencia para evitar sobreimpulso</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 24: Solution Verification -->
+        <div class="slide" data-slide="24">
+            <h2><i class="fas fa-check-double icon" style="color: var(--verde-inst);"></i>Verificación Final – Comparación con Mamdani</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Equivalencia T-S Orden 0 = Mamdani-Altura</div>
+                        <p>Si hubiéramos usado Mamdani con método de altura y centros de salida:</p>
+                        <ul>
+                            <li>ZO → centro $c = 0\%$</li>
+                            <li>PS → centro $c = 25\%$</li>
+                        </ul>
+                        <p style="margin-top: 10px;">Con las mismas $\alpha_k$:</p>
+                        <div class="math-display">
+                            \[
+                            u^* = \frac{0.70(0)+0.15(25)+0.30(25)+0.15(25)}{1.30}
+                                 = \frac{0+3.75+7.5+3.75}{1.30}
+                                 = \frac{15}{1.30} \approx 11.5\%
+                            \]
+                        </div>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block">
+                        <div class="block-title">Diferencia clave</div>
+                        <p>Los valores difieren porque en T-S Orden 0 usamos una tabla <strong>específica</strong> con valores diseñados para el motor DC (que puede ser bidireccional y tiene diferentes ganancias por región).</p>
+                        <p style="margin-top: 10px;">En Mamdani-Altura, los centros son <strong>fijos</strong> (0, 25, 50, 75, 100).</p>
+                        <p style="margin-top: 10px;">En T-S Orden 0, los $r_k$ pueden ser <strong>cualquier valor</strong> y se pueden identificar automáticamente.</p>
+                    </div>
+                    <div class="example-block">
+                        <div class="block-title">Conclusión</div>
+                        <p>T-S Orden 0 es una <strong>generalización</strong> de Mamdani-Altura: cuando los $r_k$ son los centros de las MFs de salida, ambos métodos son matemáticamente equivalentes.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="block" style="margin-top: 20px;">
+                <div class="block-title">Resumen de la clase</div>
+                <ul>
+                    <li><span class="checkmark">✓</span> T-S reemplaza consecuentes difusos por funciones (lineales o constantes)</li>
+                    <li><span class="checkmark">✓</span> T-S Orden 0 ≡ Mamdani con método de altura</li>
+                    <li><span class="checkmark">✓</span> T-S Orden 1 permite gain scheduling difuso</li>
+                    <li><span class="checkmark">✓</span> T-S permite análisis de estabilidad con Lyapunov</li>
+                    <li><span class="checkmark">✓</span> Identificación automática por mínimos cuadrados (Clase 17-18)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="slide-counter">
+                <span id="currentSlide">1</span> / <span id="totalSlides">24</span>
+            </div>
+            <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 24;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            const prevSlide = document.querySelector('.slide.active');
+            const newSlide = document.querySelector(`.slide[data-slide="${n}"]`);
+            
+            if (!newSlide || n < 1 || n > totalSlides) return;
+            
+            if (prevSlide) {
+                prevSlide.classList.remove('active');
+                if (n > currentSlide) {
+                    prevSlide.classList.add('prev');
+                    setTimeout(() => prevSlide.classList.remove('prev'), 600);
+                }
+            }
+            
+            newSlide.classList.remove('prev');
+            newSlide.classList.add('active');
+            
+            newSlide.querySelectorAll('.overlay-content').forEach(el => {
+                el.classList.remove('visible');
+            });
+            
+            const firstOverlay = newSlide.querySelector('[data-overlay="1"]');
+            if (firstOverlay) {
+                setTimeout(() => firstOverlay.classList.add('visible'), 300);
+            }
+            
+            currentSlide = n;
+            updateCounter();
+            updateButtons();
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([newSlide]);
+            }
+        }
+
+        function changeSlide(direction) {
+            if (direction === 1) {
+                const currentSlideEl = document.querySelector(`.slide[data-slide="${currentSlide}"]`);
+                const allOverlays = Array.from(currentSlideEl.querySelectorAll('[data-overlay]'))
+                    .sort((a, b) => parseInt(a.dataset.overlay) - parseInt(b.dataset.overlay));
+                
+                let nextOverlay = null;
+                for (let overlay of allOverlays) {
+                    if (!overlay.classList.contains('visible')) {
+                        nextOverlay = overlay;
+                        break;
+                    }
+                }
+                
+                if (nextOverlay) {
+                    nextOverlay.classList.add('visible');
+                } else {
+                    showSlide(currentSlide + 1);
+                }
+            } else {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        function updateCounter() {
+            document.getElementById('currentSlide').textContent = currentSlide;
+        }
+
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                changeSlide(-1);
+            }
+        });
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                changeSlide(1);
+            } else if (touchEndX > touchStartX + 50) {
+                changeSlide(-1);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCounter();
+            updateButtons();
+            
+            setTimeout(() => {
+                const firstOverlay = document.querySelector('.slide.active [data-overlay="1"]');
+                if (firstOverlay) {
+                    firstOverlay.classList.add('visible');
+                }
+            }, 300);
+        });
+    </script>
+</body>
+</html>

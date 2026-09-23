@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 9 - Motor de Inferencia y Defuzzificación</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- MathJax -->
+        <script>
+  window.MathJax = {
+    tex: { inlineMath: [['\\(', '\\)'], ['$', '$']] }
+  };
+</script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --azul-princ: #005293;
+            --azul-claro: #0078be;
+            --verde-inst: #008250;
+            --naranja: #dc6b1f;
+            --morado: #7800a0;
+            --rojo: #a00000;
+            --gris-claro: #f5f5f5;
+            --sombra: 0 4px 20px rgba(0, 82, 147, 0.15);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #e8f5e9 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+        }
+        
+        .slide {
+            position: absolute;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 750px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: var(--sombra);
+            padding: 40px 50px;
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            display: block;
+            z-index: 10;
+        }
+        
+        .slide.prev {
+            opacity: 0;
+            transform: scale(0.95) translateY(-20px);
+        }
+        
+        h2 {
+            color: var(--azul-princ);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            border-bottom: 3px solid var(--naranja);
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            color: var(--azul-princ);
+            font-size: 1.4rem;
+            margin: 1.5rem 0 1rem 0;
+            font-weight: 600;
+        }
+        
+        .block {
+            background: var(--gris-claro);
+            border-left: 5px solid var(--azul-princ);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .block-title {
+            background: var(--azul-princ);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 6px 6px 0 0;
+            margin: -20px -20px 15px -20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .alert-block {
+            background: #fff3e0;
+            border-left-color: var(--naranja);
+        }
+        
+        .alert-block .block-title {
+            background: var(--naranja);
+        }
+        
+        .example-block {
+            background: #e8f5e9;
+            border-left-color: var(--verde-inst);
+        }
+        
+        .example-block .block-title {
+            background: var(--verde-inst);
+        }
+        
+        .columns {
+            display: flex;
+            gap: 30px;
+            margin: 20px 0;
+        }
+        
+        .column {
+            flex: 1;
+        }
+        
+        .column.half {
+            flex: 0 0 48%;
+        }
+        
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        
+        strong {
+            color: var(--azul-princ);
+        }
+        
+        .center {
+            text-align: center;
+        }
+        
+        .math-display {
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        pre {
+            padding: 15px;
+            overflow-x: auto;
+            border-left: 4px solid var(--azul-princ);
+            margin: 15px 0;
+            background: #f5f5f5;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+        
+        code {
+            padding: 2px 6px;
+            font-size: 0.9em;
+        }
+        
+        pre code {
+            padding: 0;
+            background: none;
+        }
+        
+        .code-cpp {
+            border-left-color: #00599C;
+        }
+        
+        .keyword { color: #0000FF; font-weight: bold; }
+        .comment { color: #008000; font-style: italic; }
+        .string { color: #A31515; }
+        .number { color: #098658; }
+        .function { color: #795E26; }
+        .type { color: #267F99; }
+        .preprocessor { color: #800000; }
+        
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(255,255,255,0.95);
+            padding: 12px 30px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .nav-btn {
+            background: var(--azul-princ);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-btn:hover {
+            background: var(--naranja);
+            transform: scale(1.1);
+        }
+        
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .slide-counter {
+            font-weight: 600;
+            color: var(--azul-princ);
+            font-size: 1rem;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .title-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        
+        .title-slide h1 {
+            font-size: 2.8rem;
+            color: var(--azul-princ);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        
+        .title-slide .subtitle {
+            font-size: 1.4rem;
+            color: var(--naranja);
+            margin-bottom: 2rem;
+        }
+        
+        .title-slide .author {
+            font-size: 1.2rem;
+            color: #666;
+            margin: 0.5rem 0;
+        }
+        
+        .title-slide .institute {
+            font-size: 1.1rem;
+            color: var(--azul-princ);
+            margin-top: 2rem;
+            font-weight: 600;
+        }
+        
+        .overlay-content {
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .overlay-content.visible {
+            opacity: 1;
+        }
+        
+        .toc-item {
+            padding: 12px 20px;
+            margin: 8px 0;
+            background: var(--gris-claro);
+            border-radius: 8px;
+            border-left: 4px solid var(--azul-princ);
+            transition: all 0.3s;
+        }
+        
+        .toc-item:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 15px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+        }
+        
+        th {
+            background: var(--azul-princ);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+        
+        .icon {
+            margin-right: 8px;
+            color: var(--naranja);
+        }
+        
+        @media (max-width: 968px) {
+            .columns {
+                flex-direction: column;
+            }
+            
+            .column.half {
+                flex: 1;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .slide {
+                padding: 25px 30px;
+            }
+            
+            .title-slide h1 {
+                font-size: 2rem;
+            }
+            
+            pre {
+                font-size: 0.7rem;
+            }
+        }
+        
+        .checkmark {
+            color: var(--verde-inst);
+            font-weight: bold;
+        }
+        
+        .flow-box {
+            background: rgba(0,82,147,0.08);
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .flow-box.highlight {
+            background: rgba(220,107,31,0.15);
+            border-color: var(--naranja);
+        }
+        
+        .flow-box.green {
+            background: rgba(0,130,80,0.12);
+            border-color: var(--verde-inst);
+        }
+        
+        .flow-box.purple {
+            background: rgba(120,0,160,0.1);
+            border-color: var(--morado);
+        }
+        
+        .arrow-down, .arrow-right {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--azul-princ);
+            margin: 5px 0;
+        }
+        
+        .placeholder-img {
+            background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+            border: 2px dashed var(--azul-princ);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .placeholder-img i {
+            font-size: 3rem;
+            color: var(--azul-princ);
+            margin-bottom: 15px;
+            display: block;
+        }
+        
+        .mf-visual {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .mf-visual-title {
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--azul-princ);
+        }
+        
+        .mf-visual svg {
+            width: 100%;
+            height: 180px;
+        }
+        
+        .step-box {
+            background: white;
+            border: 2px solid var(--azul-princ);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -15px;
+            left: 15px;
+            background: var(--azul-princ);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- SLIDE 1: Title -->
+        <div class="slide active" data-slide="1">
+            <div class="title-slide">
+                <h1>Motor de Inferencia y Defuzzificación:<br>Centroide, Bisectriz y Método de Altura</h1>
+                <div class="subtitle">Clase 9 | Unidad 2: Inferencia y Diseño Fuzzy | Teórica</div>
+                <div class="author">Curso de Control Difuso</div>
+                <div class="author">Ingeniería en Control y Automatización</div>
+                <div class="institute">Semana 5</div>
+                <div style="margin-top: 3rem; padding: 15px; background: rgba(0,82,147,0.08); border-radius: 8px; font-size: 0.9rem; color: #666;">
+                    <i class="fas fa-book" style="color: var(--azul-princ);"></i>
+                    Referencia: Lilly, J.H. – <em>Fuzzy Control and Identification</em>, Cap. 3
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Table of Contents -->
+        <div class="slide" data-slide="2">
+            <h2><i class="fas fa-list icon"></i>Contenido de la Sesión</h2>
+            <div class="toc-item">1. Repaso: El Controlador Difuso Completo</div>
+            <div class="toc-item">2. Motor de Inferencia de Mamdani</div>
+            <div class="toc-item">3. Métodos de Defuzzificación</div>
+            <div class="toc-item">4. Cálculo Manual Completo</div>
+            <div class="toc-item">5. Algoritmo de Centroide Discreto</div>
+            <div class="toc-item">6. Implementación en C++</div>
+            <div class="toc-item">7. El Controlador Difuso Completo</div>
+            <div class="toc-item">8. Ejercicio Propuesto</div>
+            <div class="toc-item">9. Resumen y Próxima Clase</div>
+        </div>
+
+        <!-- SLIDE 3: Complete Cycle -->
+        <div class="slide" data-slide="3">
+            <h2><i class="fas fa-sync-alt icon"></i>El Ciclo Completo del Controlador Difuso</h2>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; margin: 30px 0;">
+                <div class="flow-box green" style="min-width: 160px;">
+                    <i class="fas fa-wave-square" style="color: var(--verde-inst);"></i><br>
+                    <strong>Fuzzificador</strong><br>
+                    <small>Cl. 5-8</small>
+                </div>
+                <i class="fas fa-arrow-right" style="color: var(--azul-princ);"></i>
+                <div class="flow-box highlight" style="min-width: 160px;">
+                    <i class="fas fa-cogs" style="color: var(--naranja);"></i><br>
+                    <strong>Motor de Inferencia</strong><br>
+                    <small style="color: var(--naranja);">HOY</small>
+                </div>
+                <i class="fas fa-arrow-right" style="color: var(--azul-princ);"></i>
+                <div class="flow-box highlight" style="min-width: 160px;">
+                    <i class="fas fa-bullseye" style="color: var(--naranja);"></i><br>
+                    <strong>Defuzzificador</strong><br>
+                    <small style="color: var(--naranja);">HOY</small>
+                </div>
+                <i class="fas fa-arrow-right" style="color: var(--azul-princ);"></i>
+                <div class="flow-box" style="min-width: 160px;">
+                    <i class="fas fa-thermometer-half" style="color: var(--azul-princ);"></i><br>
+                    <strong>Planta</strong><br>
+                    <small>(TCLAB)</small>
+                </div>
+            </div>
+            <div style="text-align: center; margin: 10px 0;">
+                <div class="flow-box purple" style="display: inline-block; min-width: 200px;">
+                    <i class="fas fa-database" style="color: var(--morado);"></i>
+                    <strong>Base de Reglas</strong> <small>(Cl. 7)</small>
+                </div>
+            </div>
+            <div class="columns overlay-content" data-overlay="2">
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Lo que ya tenemos</div>
+                        <ul>
+                            <li>Fuzzificación: $\mu_{NS}(e)=0.47$, $\mu_{ZO}(e)=0.30$</li>
+                            <li>Reglas activas con $\alpha_k$</li>
+                            <li>Consecuentes: AB, CB, M...</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block">
+                        <div class="block-title">Lo que nos falta hoy</div>
+                        <p>Convertir esos consecuentes difusos en un <strong>número real</strong> $u^* \in [0, 100]\%$ que podamos enviar al calentador.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Review Fuzzification -->
+        <div class="slide" data-slide="4">
+            <h2><i class="fas fa-redo icon"></i>Repaso: Resultado de la Fuzzificación (Clase 8)</h2>
+            <div class="block">
+                <div class="block-title">Caso de estudio: $e = +7$°C, $\dot{e} = +2$°C/s</div>
+            </div>
+            <div class="center">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Regla</th>
+                            <th>$e$</th>
+                            <th>$\dot{e}$</th>
+                            <th>Consecuente</th>
+                            <th>$\alpha_k$</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>$R_{13}$</td>
+                            <td>ZO ($\mu=0.30$)</td>
+                            <td>ZO ($\mu=0.20$)</td>
+                            <td>$u$ is <strong>M</strong></td>
+                            <td>$\min(0.30; 0.20) = 0.20$</td>
+                        </tr>
+                        <tr>
+                            <td>$R_{14}$</td>
+                            <td>ZO ($\mu=0.30$)</td>
+                            <td>PS ($\mu=0.80$)</td>
+                            <td>$u$ is <strong>CB</strong></td>
+                            <td>$\min(0.30; 0.80) = 0.30$</td>
+                        </tr>
+                        <tr>
+                            <td>$R_{18}$</td>
+                            <td>PS ($\mu=0.47$)</td>
+                            <td>ZO ($\mu=0.20$)</td>
+                            <td>$u$ is <strong>CB</strong></td>
+                            <td>$\min(0.47; 0.20) = 0.20$</td>
+                        </tr>
+                        <tr>
+                            <td>$R_{19}$</td>
+                            <td>PS ($\mu=0.47$)</td>
+                            <td>PS ($\mu=0.80$)</td>
+                            <td>$u$ is <strong>CB</strong></td>
+                            <td>$\min(0.47; 0.80) = 0.47$</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="alert-block overlay-content" data-overlay="2">
+                <div class="block-title">La pregunta central de hoy</div>
+                <p>Tenemos $R_{13} \to$ M con $\alpha=0.20$ y $R_{14},R_{18},R_{19} \to$ CB con $\alpha=0.30$, $0.20$, $0.47$.</p>
+                <p style="margin-top: 10px;"><strong>¿Cómo combinamos estos 4 consecuentes en un único valor crisp $u^*$?</strong></p>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Step 1 - Implication -->
+        <div class="slide" data-slide="5">
+            <h2><i class="fas fa-cut icon"></i>Paso 1: Implicación – Cortar el Consecuente</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Método de Implicación por Mínimo (Mamdani)</div>
+                <p>Para cada regla $R_k$ activa, el conjunto de salida $B^k$ se <strong>corta a la altura</strong> $\alpha_k$:</p>
+                <div class="math-display">
+                    \[
+                    \mu_{B'^k}(u) = \min\!\left(\alpha_k,\; \mu_{B^k}(u)\right)
+                    \]
+                </div>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="mf-visual overlay-content" data-overlay="2">
+                        <div class="mf-visual-title">$R_{13}$: M cortado a $\alpha=0.20$</div>
+                        <svg viewBox="0 0 300 180">
+                            <!-- Original MF (dashed) -->
+                            <polyline points="50,160 150,20 250,160" fill="none" stroke="#008250" stroke-width="2" stroke-dasharray="5,5" opacity="0.4"/>
+                            <!-- Cut MF -->
+                            <polygon points="50,160 100,128 200,128 250,160" fill="#008250" fill-opacity="0.4" stroke="#008250" stroke-width="2"/>
+                            <!-- Alpha line -->
+                            <line x1="10" y1="128" x2="290" y2="128" stroke="#dc6b1f" stroke-width="2" stroke-dasharray="4,4"/>
+                            <text x="15" y="122" fill="#dc6b1f" font-size="12" font-weight="bold">α=0.20</text>
+                            <!-- Axes -->
+                            <line x1="50" y1="160" x2="250" y2="160" stroke="#333" stroke-width="1"/>
+                            <line x1="50" y1="20" x2="50" y2="160" stroke="#333" stroke-width="1"/>
+                            <text x="140" y="175" fill="#333" font-size="11">u (%)</text>
+                            <text x="5" y="90" fill="#333" font-size="11">μ</text>
+                        </svg>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="mf-visual overlay-content" data-overlay="2">
+                        <div class="mf-visual-title">$R_{19}$: CB cortado a $\alpha=0.47$ (dominante)</div>
+                        <svg viewBox="0 0 300 180">
+                            <!-- Original MF (dashed) -->
+                            <polyline points="30,160 150,20 270,160" fill="none" stroke="#0078be" stroke-width="2" stroke-dasharray="5,5" opacity="0.4"/>
+                            <!-- Cut MF -->
+                            <polygon points="30,160 88,93 212,93 270,160" fill="#0078be" fill-opacity="0.4" stroke="#0078be" stroke-width="2"/>
+                            <!-- Alpha line -->
+                            <line x1="10" y1="93" x2="290" y2="93" stroke="#dc6b1f" stroke-width="2" stroke-dasharray="4,4"/>
+                            <text x="225" y="87" fill="#dc6b1f" font-size="12" font-weight="bold">α=0.47</text>
+                            <!-- Axes -->
+                            <line x1="30" y1="160" x2="270" y2="160" stroke="#333" stroke-width="1"/>
+                            <line x1="30" y1="20" x2="30" y2="160" stroke="#333" stroke-width="1"/>
+                            <text x="140" y="175" fill="#333" font-size="11">u (%)</text>
+                            <text x="5" y="90" fill="#333" font-size="11">μ</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: Step 2 - Aggregation -->
+        <div class="slide" data-slide="6">
+            <h2><i class="fas fa-layer-group icon"></i>Paso 2: Agregación – Unión de Consecuentes</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Método de Agregación por Máximo</div>
+                <p>Las salidas recortadas de <strong>todas</strong> las reglas se combinan tomando el <strong>máximo punto a punto</strong>:</p>
+                <div class="math-display">
+                    \[
+                    \mu_{agregado}(u) = \max_{k}\!\left(\mu_{B'^k}(u)\right)
+                    \]
+                </div>
+            </div>
+            <div class="center overlay-content" data-overlay="2">
+                <div class="mf-visual" style="padding: 20px;">
+                    <div class="mf-visual-title">Agregación de las 4 reglas activas</div>
+                    <svg viewBox="0 0 500 220">
+                        <!-- Grid -->
+                        <line x1="50" y1="180" x2="450" y2="180" stroke="#333" stroke-width="1"/>
+                        <line x1="50" y1="30" x2="50" y2="180" stroke="#333" stroke-width="1"/>
+                        <!-- Aggregated shape -->
+                        <polygon points="50,180 90,109 190,109 250,150 310,150 370,180" 
+                                 fill="#005293" fill-opacity="0.3" stroke="#005293" stroke-width="2"/>
+                        <!-- Individual rules (faded) -->
+                        <polyline points="50,180 90,109 190,109 250,150 310,150 370,180" fill="none" stroke="#005293" stroke-width="2"/>
+                        <!-- Centroid line -->
+                        <line x1="152" y1="20" x2="152" y2="190" stroke="#a00000" stroke-width="2.5" stroke-dasharray="5,5"/>
+                        <text x="160" y="50" fill="#a00000" font-size="13" font-weight="bold">u* ≈ 30.5%</text>
+                        <text x="130" y="200" fill="#a00000" font-size="11">Centroide</text>
+                        <!-- Labels -->
+                        <text x="240" y="210" fill="#333" font-size="12">Salida u (%)</text>
+                        <text x="10" y="105" fill="#333" font-size="12">μ(u)</text>
+                        <!-- Tick marks -->
+                        <text x="45" y="195" fill="#333" font-size="10">0</text>
+                        <text x="135" y="195" fill="#333" font-size="10">25</text>
+                        <text x="225" y="195" fill="#333" font-size="10">50</text>
+                        <text x="315" y="195" fill="#333" font-size="10">75</text>
+                        <text x="405" y="195" fill="#333" font-size="10">100</text>
+                        <!-- Legend -->
+                        <rect x="340" y="30" width="10" height="10" fill="#008250"/>
+                        <text x="355" y="40" font-size="10" fill="#333">R13: M, α=0.20</text>
+                        <rect x="340" y="48" width="10" height="10" fill="#0078be"/>
+                        <text x="355" y="58" font-size="10" fill="#333">R14/R18: CB, α=0.30</text>
+                        <rect x="340" y="66" width="10" height="10" fill="#005293"/>
+                        <text x="355" y="76" font-size="10" fill="#333">R19: CB, α=0.47</text>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: What is Defuzzification -->
+        <div class="slide" data-slide="7">
+            <h2><i class="fas fa-question-circle icon"></i>¿Qué es la Defuzzificación?</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Definición</div>
+                <p>La <strong>defuzzificación</strong> convierte el conjunto difuso agregado $\mu_{agregado}(u)$ en un <strong>valor crisp único</strong> $u^*$ que se envía a la planta:</p>
+                <div class="math-display">
+                    \[
+                    u^* = \mathcal{D}\!\left[\mu_{agregado}(u)\right]
+                    \]
+                </div>
+                <p>donde $\mathcal{D}$ es el <strong>operador de defuzzificación</strong>.</p>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="2">
+                        <div class="block-title">Métodos principales</div>
+                        <ol style="font-size: 0.9rem;">
+                            <li><strong>Centroide</strong> (Center of Gravity) – más preciso</li>
+                            <li><strong>Bisectriz</strong> (Bisector) – divide el área en dos</li>
+                            <li><strong>Máximo medio</strong> (MOM) – promedio de máximos</li>
+                            <li><strong>Máximo más grande/pequeño</strong> (LOM/SOM)</li>
+                            <li><strong>Altura</strong> (Height) – suma ponderada de picos</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block overlay-content" data-overlay="3">
+                        <div class="block-title">Para sistemas embebidos</div>
+                        <p>El <strong>método de altura</strong> es el más eficiente computacionalmente: solo requiere sumas y multiplicaciones (sin integración numérica).</p>
+                        <p style="margin-top: 10px;">El <strong>centroide discreto</strong> es el más preciso y puede implementarse con un bucle sencillo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Method 1 - Centroid -->
+        <div class="slide" data-slide="8">
+            <h2><i class="fas fa-balance-scale icon"></i>Método 1: Centroide (Center of Gravity)</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Fórmula Continua</div>
+                        <div class="math-display">
+                            \[
+                            u^* = \frac{\displaystyle\int_U u \cdot \mu_{agr}(u)\; du}
+                                       {\displaystyle\int_U \mu_{agr}(u)\; du}
+                            \]
+                        </div>
+                        <p>Es el <strong>centro de masa</strong> del área bajo la curva agregada.</p>
+                    </div>
+                    <div class="block overlay-content" data-overlay="2">
+                        <div class="block-title">Fórmula Discreta (implementación)</div>
+                        <div class="math-display">
+                            \[
+                            u^* = \frac{\displaystyle\sum_{j=1}^{N} u_j \cdot \mu_{agr}(u_j)}
+                                       {\displaystyle\sum_{j=1}^{N} \mu_{agr}(u_j)}
+                            \]
+                        </div>
+                        <p>con $N$ puntos uniformes en $[u_{min}, u_{max}]$.</p>
+                    </div>
+                    <div class="example-block overlay-content" data-overlay="3">
+                        <div class="block-title">Típicamente $N=100$ puntos</div>
+                        <p>En Arduino: $N=50$ para equilibrio velocidad/precisión.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="mf-visual overlay-content" data-overlay="4">
+                        <div class="mf-visual-title">Centroide del agregado</div>
+                        <svg viewBox="0 0 300 220">
+                            <!-- Aggregated shape -->
+                            <polygon points="30,180 70,109 170,109 230,150 290,150 290,180" 
+                                     fill="#005293" fill-opacity="0.3" stroke="#005293" stroke-width="2"/>
+                            <!-- Centroid line -->
+                            <line x1="152" y1="20" x2="152" y2="190" stroke="#a00000" stroke-width="2.5" stroke-dasharray="5,5"/>
+                            <text x="160" y="50" fill="#a00000" font-size="12" font-weight="bold">u*=30.5%</text>
+                            <!-- Area labels -->
+                            <text x="80" y="130" fill="#666" font-size="10">Area_L</text>
+                            <text x="200" y="130" fill="#666" font-size="10">Area_R</text>
+                            <!-- Axes -->
+                            <line x1="30" y1="180" x2="290" y2="180" stroke="#333" stroke-width="1"/>
+                            <line x1="30" y1="30" x2="30" y2="180" stroke="#333" stroke-width="1"/>
+                            <text x="150" y="205" fill="#333" font-size="11">u (%)</text>
+                            <text x="5" y="105" fill="#333" font-size="11">μ_agr</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: Method 2 - Height -->
+        <div class="slide" data-slide="9">
+            <h2><i class="fas fa-chart-line icon"></i>Método 2: Método de Altura (Singleton)</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Idea</div>
+                <p>En lugar de integrar el área agregada, se usa directamente el <strong>pico</strong> $c_k$ de cada consecuente ponderado por $\alpha_k$:</p>
+                <div class="math-display">
+                    \[
+                    u^* = \frac{\displaystyle\sum_{k=1}^{N} \alpha_k \cdot c_k}
+                               {\displaystyle\sum_{k=1}^{N} \alpha_k}
+                    \]
+                </div>
+                <p>donde $c_k$ es el <strong>centro del consecuente</strong> $B^k$.</p>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="2">
+                        <div class="block-title">Aplicando al caso $e=+7$, $\dot{e}=+2$</div>
+                        <table style="font-size: 0.85rem;">
+                            <thead>
+                                <tr><th>Regla</th><th>Consec.</th><th>$c_k$</th><th>$\alpha_k$</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>$R_{13}$</td><td>M</td><td>50%</td><td>0.20</td></tr>
+                                <tr><td>$R_{14}$</td><td>CB</td><td>25%</td><td>0.30</td></tr>
+                                <tr><td>$R_{18}$</td><td>CB</td><td>25%</td><td>0.20</td></tr>
+                                <tr><td>$R_{19}$</td><td>CB</td><td>25%</td><td>0.47</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="math-display" style="font-size: 0.9rem;">
+                            \[
+                            u^* = \frac{0.20\cdot50 + 0.30\cdot25 + 0.20\cdot25 + 0.47\cdot25}{0.20 + 0.30 + 0.20 + 0.47}
+                            \]
+                            \[
+                            u^* = \frac{34.25}{1.17} \approx \mathbf{29.3\%}
+                            \]
+                        </div>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block overlay-content" data-overlay="3">
+                        <div class="block-title">Ventajas del método de altura</div>
+                        <ul>
+                            <li><strong>Muy rápido:</strong> solo $N_{rules}$ multiplicaciones</li>
+                            <li><strong>Exacto</strong> si los consecuentes son singletons</li>
+                            <li><strong>Estándar</strong> en Takagi-Sugeno (Clase 11)</li>
+                            <li>En Arduino: $< 50\;\mu$s para 25 reglas</li>
+                        </ul>
+                    </div>
+                    <div class="block overlay-content" data-overlay="3">
+                        <div class="block-title">Comparación con centroide</div>
+                        <ul>
+                            <li>Centroide: $u^* \approx 30.5\%$</li>
+                            <li>Altura: $u^* \approx 29.3\%$</li>
+                            <li>Diferencia: ~4%. Aceptable para control.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: Method 3 - Bisector and MOM -->
+        <div class="slide" data-slide="10">
+            <h2><i class="fas fa-divide icon"></i>Método 3: Bisectriz y Máximo Medio</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Bisectriz</div>
+                        <p>Divide el área del agregado en dos partes iguales:</p>
+                        <div class="math-display">
+                            \[
+                            \int_{U_{min}}^{u^*} \mu_{agr}(u)\,du =
+                            \int_{u^*}^{U_{max}} \mu_{agr}(u)\,du
+                            \]
+                        </div>
+                        <ul style="font-size: 0.9rem;">
+                            <li>Más robusta que el centroide ante asimetrías</li>
+                            <li>Más costosa computacionalmente</li>
+                            <li>Raramente usada en embebidos</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="2">
+                        <div class="block-title">Máximo Medio (MOM)</div>
+                        <div class="math-display">
+                            \[
+                            u^* = \frac{1}{|\Omega|}\sum_{u \in \Omega} u
+                            \]
+                        </div>
+                        <p>donde $\Omega = \{u : \mu_{agr}(u) = \max\}$</p>
+                        <ul style="font-size: 0.9rem; margin-top: 10px;">
+                            <li>Muy rápido: solo buscar el máximo</li>
+                            <li><strong>No suave:</strong> respuesta discontinua</li>
+                            <li>Útil para clasificación, no para control</li>
+                        </ul>
+                    </div>
+                    <div class="alert-block overlay-content" data-overlay="2">
+                        <div class="block-title">Recomendación para TCLAB</div>
+                        <p>Usar <strong>Centroide Discreto</strong> (precisión) o <strong>Método de Altura</strong> (velocidad). Evitar MOM en sistemas de control continuos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: Visual Comparison -->
+        <div class="slide" data-slide="11">
+            <h2><i class="fas fa-chart-bar icon"></i>Comparativa Visual de Métodos de Defuzzificación</h2>
+            <div class="center">
+                <div class="mf-visual" style="padding: 20px;">
+                    <svg viewBox="0 0 600 250">
+                        <!-- Aggregated shape -->
+                        <polygon points="50,200 120,109 280,109 340,150 400,150 460,200" 
+                                 fill="#005293" fill-opacity="0.2" stroke="#005293" stroke-width="2.5"/>
+                        <!-- Centroid (CoG) -->
+                        <line x1="252" y1="30" x2="252" y2="210" stroke="#a00000" stroke-width="3" stroke-dasharray="6,4"/>
+                        <text x="260" y="45" fill="#a00000" font-size="13" font-weight="bold">CoG: 30.5%</text>
+                        <!-- Bisector -->
+                        <line x1="233" y1="30" x2="233" y2="210" stroke="#7800a0" stroke-width="2.5" stroke-dasharray="4,4,2,4"/>
+                        <text x="170" y="45" fill="#7800a0" font-size="13" font-weight="bold">Bis: 28%</text>
+                        <!-- MOM -->
+                        <line x1="200" y1="30" x2="200" y2="210" stroke="#008250" stroke-width="2.5" stroke-dasharray="2,4"/>
+                        <text x="140" y="60" fill="#008250" font-size="13" font-weight="bold">MOM: 25%</text>
+                        <!-- Height -->
+                        <line x1="244" y1="30" x2="244" y2="210" stroke="#dc6b1f" stroke-width="3" stroke-dasharray="8,4"/>
+                        <text x="250" y="225" fill="#dc6b1f" font-size="13" font-weight="bold">Alt: 29.3%</text>
+                        <!-- Axes -->
+                        <line x1="50" y1="200" x2="550" y2="200" stroke="#333" stroke-width="1.5"/>
+                        <line x1="50" y1="30" x2="50" y2="200" stroke="#333" stroke-width="1.5"/>
+                        <text x="290" y="240" fill="#333" font-size="13">Salida u (%)</text>
+                        <text x="10" y="115" fill="#333" font-size="13">μ_agregado(u)</text>
+                    </svg>
+                </div>
+            </div>
+            <div class="center overlay-content" data-overlay="2">
+                <table style="width: 90%; margin: 0 auto; font-size: 0.9rem;">
+                    <thead>
+                        <tr>
+                            <th>Método</th>
+                            <th>$u^*$ (%)</th>
+                            <th>Precisión</th>
+                            <th>Costo CPU</th>
+                            <th>Suavidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Centroide (CoG)</td><td>30.5</td><td>Alta</td><td>Medio</td><td>Alta</td></tr>
+                        <tr><td>Bisectriz</td><td>28.0</td><td>Alta</td><td>Alto</td><td>Alta</td></tr>
+                        <tr><td>Máximo Medio</td><td>25.0</td><td>Media</td><td>Bajo</td><td>Baja</td></tr>
+                        <tr><td>Altura</td><td>29.3</td><td>Media-Alta</td><td>Muy bajo</td><td>Alta</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+<!-- SLIDE 12: Solved Exercise Part 1 -->
+<div class="slide" data-slide="12">
+    <h2><i class="fas fa-check-circle icon"></i>Ejercicio Resuelto: Ciclo Completo Paso a Paso</h2>
+    <div class="block alert-block" style="margin-bottom: 20px;">
+        <div class="block-title">Datos</div>
+        <p>TCLAB: $T_{ref}=50$°C, $T_{actual}=43$°C, $\dot{T} = +1$°C/s (muestra anterior: 42°C). Usar tabla de reglas de Clase 7 y centros de MFs de salida: CE=0%, CB=25%, M=50%, AB=75%, AE=100%.</p>
+    </div>
+    <div class="block example-block overlay-content" data-overlay="2" style="margin-bottom: 20px;">
+        <div class="block-title">Paso 1: Variables</div>
+        <p>$e = 50-43 = +7$°C &nbsp;&nbsp;&nbsp;&nbsp; $\dot{e} = 43-42 = +1$°C/s</p>
+    </div>
+    <div class="block example-block overlay-content" data-overlay="3" style="margin-bottom: 20px;">
+        <div class="block-title">Paso 2: Fuzzificación</div>
+        <p>$\mu_{ZO}(7)=0.30$; $\mu_{PS}(7)=0.47$ &nbsp;&nbsp;&nbsp;&nbsp; $\mu_{ZO}(1)=0.60$; $\mu_{PS}(1)=0.40$</p>
+    </div>
+    <div class="block example-block overlay-content" data-overlay="4">
+        <div class="block-title">Paso 3: Activación de reglas</div>
+        <ul>
+            <li>$\alpha_{13}=\min(0.30;\,0.60)=0.30 \to$ M</li>
+            <li>$\alpha_{14}=\min(0.30;\,0.40)=0.30 \to$ CB</li>
+            <li>$\alpha_{18}=\min(0.47;\,0.60)=0.47 \to$ CB</li>
+            <li>$\alpha_{19}=\min(0.47;\,0.40)=0.40 \to$ CB</li>
+        </ul>
+    </div>
+</div>
+
+        <!-- SLIDE 13: Solved Exercise Part 2 -->
+        <div class="slide" data-slide="13">
+            <h2><i class="fas fa-check-circle icon"></i>Ejercicio Resuelto: Defuzzificación</h2>
+            <div class="example-block overlay-content" data-overlay="1">
+                <div class="block-title">Paso 4: Defuzzificación por Altura</div>
+                <div class="math-display">
+                    \[
+                    u^* = \frac{\alpha_{13}\cdot c_M + (\alpha_{14}+\alpha_{18}+\alpha_{19})\cdot c_{CB}}
+                               {\alpha_{13}+\alpha_{14}+\alpha_{18}+\alpha_{19}}
+                    \]
+                </div>
+                <div class="math-display">
+                    \[
+                    u^* = \frac{0.30\cdot50 + (0.30+0.47+0.40)\cdot25}{0.30+0.30+0.47+0.40}
+                         = \frac{15 + 29.25}{1.47}
+                         = \frac{44.25}{1.47}
+                         \approx \mathbf{30.1\%}
+                    \]
+                </div>
+            </div>
+            <div class="example-block overlay-content" data-overlay="2">
+                <div class="block-title">Verificación: ¿Tiene sentido físico?</div>
+                <ul>
+                    <li>$e = +7$°C: temperatura algo baja $\to$ necesita potencia</li>
+                    <li>$\dot{e} = +1$°C/s: temperatura subiendo $\to$ no aplicar máxima potencia</li>
+                    <li>Resultado: <strong>30%</strong> de potencia. Correcto: potencia moderada para terminar de calentar sin sobreimpulso.</li>
+                </ul>
+            </div>
+            <div class="block overlay-content" data-overlay="3">
+                <div class="block-title">Comparación con PID clásico (Clase 4)</div>
+                <p>Un PID con $K_p=2$, $K_d=0.5$: $u_{PID} = 2\cdot7 + 0.5\cdot1 = 14.5\%$</p>
+                <p style="margin-top: 10px;">El difuso da $30.1\%$: más agresivo porque <em>sabe</em> que la temperatura todavía está lejos del setpoint. La sintonización difusa se hizo por conocimiento experto, no por fórmulas.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: Discrete Centroid Algorithm -->
+        <div class="slide" data-slide="14">
+            <h2><i class="fas fa-list-ol icon"></i>Centroide Discreto: Algoritmo para Implementación</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Discretización del Universo de Salida</div>
+                <p>Se divide $[u_{min}, u_{max}]$ en $N$ puntos equiespaciados:</p>
+                <div class="math-display">
+                    \[
+                    u_j = u_{min} + j \cdot \frac{u_{max} - u_{min}}{N-1},
+                    \quad j = 0, 1, \ldots, N-1
+                    \]
+                </div>
+                <p>Para cada $u_j$ se calcula:</p>
+                <div class="math-display">
+                    \[
+                    \mu_{agr}(u_j) = \max_k \min\!\left(\alpha_k,\; \mu_{B^k}(u_j)\right)
+                    \]
+                </div>
+                <p>Finalmente:</p>
+                <div class="math-display">
+                    \[
+                    u^* = \frac{\sum_j u_j \cdot \mu_{agr}(u_j)}
+                               {\sum_j \mu_{agr}(u_j)}
+                    \]
+                </div>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="alert-block overlay-content" data-overlay="2">
+                        <div class="block-title">Compromiso velocidad/precisión</div>
+                        <table style="font-size: 0.85rem;">
+                            <thead>
+                                <tr><th>$N$</th><th>Error típico</th><th>Tiempo (Arduino)</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>10</td><td>~5%</td><td>~0.5 ms</td></tr>
+                                <tr><td>50</td><td>~1%</td><td>~2 ms</td></tr>
+                                <tr><td>100</td><td>~0.5%</td><td>~4 ms</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="2">
+                        <div class="block-title">Recomendación práctica</div>
+                        <p>Para TCLAB a 10 Hz ($\Delta t = 100$ ms): $N = 50$ es un buen equilibrio.</p>
+                        <p style="margin-top: 10px;">Para sistemas a 100 Hz: usar <strong>método de altura</strong> para evitar saturar el bucle de control.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: C++ Centroid Implementation -->
+        <div class="slide" data-slide="15">
+            <h2><i class="fas fa-code icon"></i>Implementación del Centroide Discreto en C++</h2>
+            <pre class="code-cpp"><code><span class="comment">/**
+ * defuzz_centroid() -- Centroide discreto
+ * rules:     arreglo de reglas activas
+ * n_rules:   numero de reglas activas
+ * mf_out[]:  array de N_TERMS MFs de salida (centros)
+ * u_min/max: rango del universo de salida
+ * N:         numero de puntos de discretizacion
+ */</span>
+<span class="type">float</span> <span class="function">defuzz_centroid</span>(<span class="keyword">const</span> ActiveRule* rules, <span class="type">uint8_t</span> n_rules,
+                      <span class="keyword">const</span> <span class="type">float</span> centers[N_TERMS],
+                      <span class="type">float</span> u_min, <span class="type">float</span> u_max, <span class="type">uint8_t</span> N) {
+    <span class="type">float</span> num = <span class="number">0.0f</span>, den = <span class="number">0.0f</span>;
+    <span class="type">float</span> du  = (u_max - u_min) / (<span class="type">float</span>)(N - <span class="number">1</span>);
+
+    <span class="keyword">for</span> (<span class="type">uint8_t</span> j = <span class="number">0</span>; j &lt; N; j++) {
+        <span class="type">float</span> u_j    = u_min + j * du;
+        <span class="type">float</span> mu_agr = <span class="number">0.0f</span>;
+
+        <span class="comment">// Calcular mu_agregado(u_j) = max de cortes</span>
+        <span class="keyword">for</span> (<span class="type">uint8_t</span> k = <span class="number">0</span>; k &lt; n_rules; k++) {
+            <span class="comment">// mu del consecuente en u_j (triangular con centro c_k)</span>
+            <span class="type">float</span> c   = centers[rules[k].out_idx];
+            <span class="type">float</span> span = (u_max - u_min) / (<span class="type">float</span>)(N_TERMS - <span class="number">1</span>);
+            <span class="type">float</span> mu_bk = (span - fabsf(u_j - c)) / span;
+            <span class="keyword">if</span> (mu_bk &lt; <span class="number">0.0f</span>) mu_bk = <span class="number">0.0f</span>;
+            <span class="type">float</span> cut = fmin2(rules[k].alpha, mu_bk);
+            <span class="keyword">if</span> (cut &gt; mu_agr) mu_agr = cut;  <span class="comment">// max</span>
+        }
+        num += u_j * mu_agr;
+        den += mu_agr;
+    }
+    <span class="keyword">return</span> (den &gt; <span class="number">1e-6f</span>) ? (num / den) : (u_max / <span class="number">2.0f</span>);
+}</code></pre>
+        </div>
+
+        <!-- SLIDE 16: C++ Height Implementation -->
+        <div class="slide" data-slide="16">
+            <h2><i class="fas fa-code icon"></i>Implementación del Método de Altura en C++</h2>
+            <pre class="code-cpp"><code><span class="comment">/**
+ * defuzz_height() -- Metodo de altura (singleton)
+ * Mucho mas rapido que el centroide discreto.
+ * Adecuado para Mamdani con MFs simetricas o T-S.
+ *
+ * u^* = sum(alpha_k * c_k) / sum(alpha_k)
+ */</span>
+<span class="type">float</span> <span class="function">defuzz_height</span>(<span class="keyword">const</span> ActiveRule* rules, <span class="type">uint8_t</span> n_rules,
+                    <span class="keyword">const</span> <span class="type">float</span> centers[N_TERMS]) {
+    <span class="type">float</span> num = <span class="number">0.0f</span>, den = <span class="number">0.0f</span>;
+
+    <span class="keyword">for</span> (<span class="type">uint8_t</span> k = <span class="number">0</span>; k &lt; n_rules; k++) {
+        <span class="type">float</span> c = centers[rules[k].out_idx];
+        num += rules[k].alpha * c;
+        den += rules[k].alpha;
+    }
+    <span class="comment">// Si no hay reglas activas, salida por defecto = 50% (M)</span>
+    <span class="keyword">return</span> (den &gt; <span class="number">1e-6f</span>) ? (num / den) : <span class="number">50.0f</span>;
+}
+
+<span class="comment">// Centros de las MFs de salida [CE, CB, M, AB, AE]</span>
+<span class="keyword">const</span> <span class="type">float</span> OUT_CENTERS[N_TERMS] = {<span class="number">0.0f</span>, <span class="number">25.0f</span>, <span class="number">50.0f</span>, <span class="number">75.0f</span>, <span class="number">100.0f</span>};</code></pre>
+            <div class="example-block">
+                <div class="block-title">Para el caso $e=+7$, $\dot{e}=+2$</div>
+                <p style="font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
+                    num = 0.20*50 + 0.30*25 + 0.20*25 + 0.47*25 = 34.25<br>
+                    den = 0.20 + 0.30 + 0.20 + 0.47 = 1.17<br>
+                    u*  = 34.25 / 1.17 = <strong>29.3%</strong>
+                </p>
+            </div>
+        </div>
+
+        <!-- SLIDE 17: Complete Integration -->
+        <div class="slide" data-slide="17">
+            <h2><i class="fas fa-project-diagram icon"></i>Integración: Flujo Completo en Arduino</h2>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; margin: 20px 0;">
+                <div class="flow-box" style="min-width: 130px; padding: 10px;">
+                    <i class="fas fa-thermometer-half" style="color: var(--azul-princ);"></i><br>
+                    <strong>Leer sensor</strong><br>
+                    <small>$T_{actual}$</small>
+                    <div style="color: #999; font-size: 0.7rem; margin-top: 5px;">~100 μs</div>
+                </div>
+                <i class="fas fa-arrow-right" style="color: var(--azul-princ);"></i>
+                <div class="flow-box" style="min-width: 130px; padding: 10px;">
+                    <i class="fas fa-calculator" style="color: var(--azul-princ);"></i><br>
+                    <strong>Calcular</strong><br>
+                    <small>$e, \dot{e}$</small>
+                    <div style="color: #999; font-size: 0.7rem; margin-top: 5px;">~5 μs</div>
+                </div>
+                <i class="fas fa-arrow-right" style="color: var(--azul-princ);"></i>
+                <div class="flow-box green" style="min-width: 130px; padding: 10px;">
+                    <i class="fas fa-wave-square" style="color: var(--verde-inst);"></i><br>
+                    <strong>Fuzzificar</strong><br>
+                    <small>$\mu_e, \mu_{\dot{e}}$</small>
+                    <div style="color: #999; font-size: 0.7rem; margin-top: 5px;">~220 μs</div>
+                </div>
+                <i class="fas fa-arrow-right" style="color: var(--azul-princ);"></i>
+                <div class="flow-box highlight" style="min-width: 130px; padding: 10px;">
+                    <i class="fas fa-cogs" style="color: var(--naranja);"></i><br>
+                    <strong>Evaluar reglas</strong><br>
+                    <small>$\alpha_k$</small>
+                    <div style="color: #999; font-size: 0.7rem; margin-top: 5px;">~80 μs</div>
+                </div>
+                <i class="fas fa-arrow-right" style="color: var(--azul-princ);"></i>
+                <div class="flow-box highlight" style="min-width: 130px; padding: 10px;">
+                    <i class="fas fa-bullseye" style="color: var(--naranja);"></i><br>
+                    <strong>Defuzzificar</strong><br>
+                    <small>$u^*$</small>
+                    <div style="color: #999; font-size: 0.7rem; margin-top: 5px;">~50 μs</div>
+                </div>
+            </div>
+            <div class="columns overlay-content" data-overlay="2">
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Tiempo total estimado</div>
+                        <p>$t_{total} \approx 455\;\mu$s</p>
+                        <p>Presupuesto a 10 Hz: 100.000 μs</p>
+                        <p style="color: var(--verde-inst); font-weight: bold;">Uso: &lt; 0.5% del tiempo disponible.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="example-block">
+                        <div class="block-title">Conversión a PWM</div>
+                        <pre style="font-size: 0.75rem; margin-top: 5px;"><code>uint8_t pwm = (uint8_t)(u_star * 255.0f / 100.0f);
+analogWrite(PIN_Q1, pwm);</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 18: Control Surface -->
+        <div class="slide" data-slide="18">
+            <h2><i class="fas fa-chart-area icon"></i>Superficie de Control: Visualización del Comportamiento</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Superficie de control $u^*(e, \dot{e})$</div>
+                        <p>Al evaluar el controlador difuso para todos los pares $(e, \dot{e})$ del espacio de entrada, se obtiene una <strong>superficie continua</strong> de control.</p>
+                    </div>
+                    <div class="center overlay-content" data-overlay="2">
+                        <div class="placeholder-img" style="padding: 40px 20px;">
+                            <i class="fas fa-chart-area"></i>
+                            <p><strong>[IMG_01]</strong><br>Superficie de control<br>$u^*(e,\;\dot{e})$ – Fig. 3.x Lilly</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="3">
+                        <div class="block-title">Propiedades de la superficie</div>
+                        <ul>
+                            <li><strong>Continua y suave:</strong> no hay saltos</li>
+                            <li><strong>No lineal:</strong> a diferencia del PID</li>
+                            <li><strong>Saturada</strong> en los extremos: física del sistema</li>
+                            <li><strong>Diagonal principal:</strong> comportamiento P</li>
+                            <li><strong>Fuera de diagonal:</strong> comportamiento D</li>
+                        </ul>
+                    </div>
+                    <div class="example-block overlay-content" data-overlay="3">
+                        <div class="block-title">Código Python (Lab 10)</div>
+                        <pre style="font-size: 0.75rem;"><code>for e in e_range:
+    for de in de_range:
+        u[e,de] = fuzzy_controller(e,de)</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 19: Proposed Exercise -->
+        <div class="slide" data-slide="19">
+            <h2><i class="fas fa-pencil-alt icon"></i>Ejercicio en Clase: Cálculo Completo</h2>
+            <div class="alert-block">
+                <div class="block-title">Problema</div>
+                <p>Sistema TCLAB. $T_{ref} = 60$°C, $T_{actual} = 72$°C, $T(t-1) = 74$°C, $\Delta t = 1$s. Usar tabla de reglas de Clase 7 y centros: CE=0, CB=25, M=50, AB=75, AE=100%.</p>
+            </div>
+            <div class="block">
+                <div class="block-title">Se pide – resolver en parejas (15 min)</div>
+                <ol>
+                    <li>Calcular $e$ y $\dot{e}$</li>
+                    <li>Fuzzificar ambas variables (verificar $\sum\mu=1$)</li>
+                    <li>Identificar todas las reglas activas y sus $\alpha_k$</li>
+                    <li>Calcular $u^*$ por el <strong>método de altura</strong></li>
+                    <li>Calcular $u^*$ por el <strong>centroide discreto</strong> con $N=5$ ($u \in \{0, 25, 50, 75, 100\}$%)</li>
+                    <li>Comparar ambos resultados e interpretar el comportamiento del controlador</li>
+                </ol>
+            </div>
+            <div class="example-block overlay-content" data-overlay="2">
+                <div class="block-title">Pistas</div>
+                <p>$e = 60-72 = -12$°C $\to$ PS y ZO se activan.</p>
+                <p>$\dot{e} = 72-74 = -2$°C/s $\to$ NS y ZO se activan.</p>
+                <p style="margin-top: 10px;">¿Qué hace el controlador cuando la temperatura está alta y bajando?</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 20: Summary -->
+        <div class="slide" data-slide="20">
+            <h2><i class="fas fa-clipboard-check icon"></i>Resumen de Conceptos Clave</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Lo aprendido hoy</div>
+                        <ol>
+                            <li><strong>Motor de Mamdani:</strong> implicación por mínimo, agregación por máximo</li>
+                            <li><strong>Centroide:</strong> $u^* = \frac{\int u\,\mu\,du}{\int \mu\,du}$ – más preciso</li>
+                            <li><strong>Altura:</strong> $u^* = \frac{\sum \alpha_k c_k}{\sum \alpha_k}$ – más rápido</li>
+                            <li><strong>Compromiso:</strong> centroide discreto $N=50$ para TCLAB</li>
+                            <li><strong>Superficie de control:</strong> continua, no lineal</li>
+                            <li><strong>Ciclo completo</strong> en Arduino: $<500\;\mu$s</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div style="padding: 20px;">
+                        <div class="flow-box green overlay-content" data-overlay="7">
+                            <i class="fas fa-check-circle" style="color: var(--verde-inst);"></i><br>
+                            <strong>[OK] Cl.5-8:</strong> Fuzzy en C++
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box highlight overlay-content" data-overlay="7">
+                            <i class="fas fa-check-circle" style="color: var(--naranja);"></i><br>
+                            <strong>[Hoy] Cl.9:</strong> Inferencia+Defuzz
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="7">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl.10:</strong> Lab Control TCLAB
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="7">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl.11:</strong> T-S vs Mamdani
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="7">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl.13:</strong> Difuso tipo PD
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 21: Homework -->
+        <div class="slide" data-slide="21">
+            <h2><i class="fas fa-book icon"></i>Tarea y Preparación Clase 10</h2>
+            <div class="alert-block">
+                <div class="block-title">[Tarea] Entrega inicio Clase 10</div>
+                <ol>
+                    <li>Resolver el ejercicio en clase completamente (cálculos y justificación).</li>
+                    <li>Implementar <code>defuzz_height()</code> en el sketch de Arduino (Clase 8) e integrarlo con <code>find_active_rules()</code>.</li>
+                    <li>Probar con los 5 casos de test y reportar $u^*$ para cada uno.</li>
+                    <li>Responder: para el caso $e=-12$, $\dot{e}=-2$, ¿el controlador sube o baja la potencia respecto al caso $e=+7$, $\dot{e}=+2$? ¿Por qué?</li>
+                </ol>
+            </div>
+            <div class="block">
+                <div class="block-title">[Lectura] Clase 10</div>
+                <p>Lilly, Cap. 3 completo. Revisar la sección de sintonización y ajuste fino de la base de reglas.</p>
+            </div>
+            <div class="example-block">
+                <div class="block-title">[Preparación] Lab 10</div>
+                <p>Traer el sketch completo de Clase 8 con las funciones de fuzzificación. En Clase 10 agregaremos el controlador completo (inferencia + defuzz) y lo probaremos en tiempo real sobre el TCLAB.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 22: References -->
+        <div class="slide" data-slide="22">
+            <h2><i class="fas fa-book-reader icon"></i>Referencias</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Bibliografía Principal</div>
+                        <ul style="font-size: 0.9rem;">
+                            <li><strong>Lilly, J.H.</strong> (2010). <em>Fuzzy Control and Identification</em>, <strong>Cap. 3</strong>. Wiley.</li>
+                            <li><strong>Mamdani, E.H.</strong> (1974). Application of fuzzy algorithms for control of simple dynamic plant. <em>Proc. IEE</em>, 121(12), 1585–1588.</li>
+                            <li><strong>Lee, C.C.</strong> (1990). Fuzzy logic in control systems – Part II. <em>IEEE Trans. Syst., Man, Cybern.</em>, 20(2).</li>
+                            <li><strong>Driankov et al.</strong> (1993). <em>An Introduction to Fuzzy Control</em>, Cap. 5. Springer.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Recursos</div>
+                        <ul style="font-size: 0.9rem;">
+                            <li>MATLAB: <code>defuzz()</code> con modos <code>'centroid'</code>, <code>'bisector'</code>, <code>'mom'</code>, <code>'lom'</code>, <code>'som'</code></li>
+                            <li>scikit-fuzzy: <code>defuzz()</code></li>
+                            <li>Lilly Cap. 3, Figs. 3.4–3.8</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <div style="background: rgba(0,82,147,0.08); border: 2px solid var(--azul-princ); border-radius: 12px; padding: 20px; font-style: italic; color: var(--azul-princ);">
+                    "La defuzzificación es el puente entre el razonamiento impreciso y la acción precisa." — adaptado de Dubois & Prade
+                </div>
+            </div>
+        </div>
+
+
+        <!-- SLIDE 24: Solution Exercise Part 1 -->
+        <div class="slide" data-slide="23">
+            <h2><i class="fas fa-check-double icon" style="color: var(--verde-inst);"></i>Solución Ejercicio Propuesto – Paso 1 y 2</h2>
+            <div class="example-block">
+                <div class="block-title">Paso 1: Cálculo de variables</div>
+                <div class="math-display">
+                    \[
+                    e = T_{ref} - T_{actual} = 60 - 72 = \mathbf{-12°C}
+                    \]
+                    \[
+                    \dot{e} = T_{actual} - T_{actual}(t-1) = 72 - 74 = \mathbf{-2°C/s}
+                    \]
+                </div>
+            </div>
+            <div class="example-block">
+                <div class="block-title">Paso 2: Fuzzificación</div>
+                <p>Para $e = -12$°C:</p>
+                <ul>
+                    <li>$\mu_{NS}(-12) = \frac{-12 - (-15)}{-7.5 - (-15)} = \frac{3}{7.5} \approx 0.40$</li>
+                    <li>$\mu_{ZO}(-12) = \frac{-10 - (-12)}{-10 - (-5)} = \frac{2}{5} = 0.40$</li>
+                    <li>Verificación: $0.40 + 0.40 + 0.20 = 1.0$ ✓ (con NS, ZO y NB parcialmente)</li>
+                </ul>
+                <p style="margin-top: 10px;">Para $\dot{e} = -2$°C/s:</p>
+                <ul>
+                    <li>$\mu_{NS}(-2) = \frac{-2 - (-5)}{-2.5 - (-5)} = \frac{3}{2.5} \approx 0.20$</li>
+                    <li>$\mu_{ZO}(-2) = \frac{2.5 - (-2)}{2.5 - 0} = \frac{4.5}{2.5}$ (ajustado) $\approx 0.60$</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 25: Solution Exercise Part 2 -->
+        <div class="slide" data-slide="24">
+            <h2><i class="fas fa-check-double icon" style="color: var(--verde-inst);"></i>Solución Ejercicio Propuesto – Paso 3 y 4</h2>
+            <div class="example-block">
+                <div class="block-title">Paso 3: Reglas activas</div>
+                <table style="font-size: 0.85rem;">
+                    <thead>
+                        <tr><th>Regla</th><th>Antecedente</th><th>Consecuente</th><th>$\alpha_k$</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>$R_7$</td><td>NS-NS</td><td>AB</td><td>$\min(0.40; 0.20) = 0.20$</td></tr>
+                        <tr><td>$R_8$</td><td>NS-ZO</td><td>AB</td><td>$\min(0.40; 0.60) = 0.40$</td></tr>
+                        <tr><td>$R_{12}$</td><td>ZO-NS</td><td>AB</td><td>$\min(0.40; 0.20) = 0.20$</td></tr>
+                        <tr><td>$R_{13}$</td><td>ZO-ZO</td><td>M</td><td>$\min(0.40; 0.60) = 0.40$</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="example-block">
+                <div class="block-title">Paso 4: Defuzzificación por Altura</div>
+                <div class="math-display">
+                    \[
+                    u^* = \frac{0.20\cdot75 + 0.40\cdot75 + 0.20\cdot75 + 0.40\cdot50}{0.20 + 0.40 + 0.20 + 0.40}
+                    \]
+                    \[
+                    u^* = \frac{15 + 30 + 15 + 20}{1.20} = \frac{80}{1.20} \approx \mathbf{66.7\%}
+                    \]
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 26: Solution Exercise Part 3 -->
+        <div class="slide" data-slide="25">
+            <h2><i class="fas fa-check-double icon" style="color: var(--verde-inst);"></i>Solución Ejercicio Propuesto – Paso 5 e Interpretación</h2>
+            <div class="example-block">
+                <div class="block-title">Paso 5: Centroide discreto con $N=5$</div>
+                <p>Puntos: $u \in \{0, 25, 50, 75, 100\}$%</p>
+                <table style="font-size: 0.85rem;">
+                    <thead>
+                        <tr><th>$u_j$</th><th>μ(AB)</th><th>μ(M)</th><th>μ_agr</th><th>$u_j \cdot \mu_{agr}$</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                        <tr><td>25</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                        <tr><td>50</td><td>0</td><td>0.40</td><td>0.40</td><td>20</td></tr>
+                        <tr><td>75</td><td>0.40</td><td>0</td><td>0.40</td><td>30</td></tr>
+                        <tr><td>100</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                    </tbody>
+                </table>
+                <div class="math-display">
+                    \[
+                    u^* = \frac{0 + 0 + 20 + 30 + 0}{0 + 0 + 0.40 + 0.40 + 0} = \frac{50}{0.80} = \mathbf{62.5\%}
+                    \]
+                </div>
+            </div>
+            <div class="block">
+                <div class="block-title">Interpretación física</div>
+                <ul>
+                    <li>La temperatura está <strong>alta</strong> ($T_{actual} = 72 > T_{ref} = 60$) y <strong>bajando</strong> ($\dot{e} = -2$°C/s).</li>
+                    <li>El controlador responde con <strong>potencia moderada-alta</strong> (~63-67%) para evitar enfriamiento excesivo.</li>
+                    <li>Comparación: con $e=+7$, $\dot{e}=+2$ → $u^*=29.3\%$. Ahora con $e=-12$, $\dot{e}=-2$ → $u^*\approx 66\%$. El controlador <strong>invierte</strong> la acción según el signo del error.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="slide-counter">
+                <span id="currentSlide">1</span> / <span id="totalSlides">25</span>
+            </div>
+            <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 25;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            const prevSlide = document.querySelector('.slide.active');
+            const newSlide = document.querySelector(`.slide[data-slide="${n}"]`);
+            
+            if (!newSlide || n < 1 || n > totalSlides) return;
+            
+            if (prevSlide) {
+                prevSlide.classList.remove('active');
+                if (n > currentSlide) {
+                    prevSlide.classList.add('prev');
+                    setTimeout(() => prevSlide.classList.remove('prev'), 600);
+                }
+            }
+            
+            newSlide.classList.remove('prev');
+            newSlide.classList.add('active');
+            
+            newSlide.querySelectorAll('.overlay-content').forEach(el => {
+                el.classList.remove('visible');
+            });
+            
+            const firstOverlay = newSlide.querySelector('[data-overlay="1"]');
+            if (firstOverlay) {
+                setTimeout(() => firstOverlay.classList.add('visible'), 300);
+            }
+            
+            currentSlide = n;
+            updateCounter();
+            updateButtons();
+            
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([newSlide]);
+            }
+        }
+
+        function changeSlide(direction) {
+            if (direction === 1) {
+                const currentSlideEl = document.querySelector(`.slide[data-slide="${currentSlide}"]`);
+                const allOverlays = Array.from(currentSlideEl.querySelectorAll('[data-overlay]'))
+                    .sort((a, b) => parseInt(a.dataset.overlay) - parseInt(b.dataset.overlay));
+                
+                let nextOverlay = null;
+                for (let overlay of allOverlays) {
+                    if (!overlay.classList.contains('visible')) {
+                        nextOverlay = overlay;
+                        break;
+                    }
+                }
+                
+                if (nextOverlay) {
+                    nextOverlay.classList.add('visible');
+                } else {
+                    showSlide(currentSlide + 1);
+                }
+            } else {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        function updateCounter() {
+            document.getElementById('currentSlide').textContent = currentSlide;
+        }
+
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                changeSlide(-1);
+            }
+        });
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                changeSlide(1);
+            } else if (touchEndX > touchStartX + 50) {
+                changeSlide(-1);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCounter();
+            updateButtons();
+            
+            setTimeout(() => {
+                const firstOverlay = document.querySelector('.slide.active [data-overlay="1"]');
+                if (firstOverlay) {
+                    firstOverlay.classList.add('visible');
+                }
+            }, 300);
+        });
+    </script>
+</body>
+</html>
