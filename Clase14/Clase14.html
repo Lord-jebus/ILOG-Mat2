@@ -371,7 +371,7 @@
           <li>\(d_2\approx30.0\)</li>
           <li>\(d_\infty=20\)</li>
         </ul>
-        <span class="mt italic block" style="display:block; background:#f1f5f9; padding:0.5rem; border-radius:4px;">En promedio, cada CD varió 15 ton entre semanas.</span>
+        <span class="mt italic block" style="display:block; background:#f1f5f9; padding:0.5rem; border-radius:4px;">La variación total fue 60 ton; dividida entre los 4 CD, en promedio cada CD varió 60/4 = 15 ton entre semanas.</span>
       </div>
     </div>
   </div>
@@ -482,16 +482,30 @@ d_hat = d_sem1 / <span class="mf">norm</span>(d_sem1, <span class="mn">2</span>)
   </div>
 
   <!-- SLIDE 13: EJERCICIO 2 -->
-  <div class="slide" data-slide="13">
-    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Comparación de semanas</h2>
-    <p class="reveal"><strong>Enunciado:</strong> Se tienen demandas de cuatro semanas. ¿Cuáles son las dos semanas más parecidas? Usar distancia \(L_2\).
-      \(\mathbf{d}_1=(300,250,200,180)^T,\; \mathbf{d}_2=(320,230,210,170)^T,\dots\)
-    </p>
-    <div class="example-block mt reveal"><span class="b-title">Matriz de distancias \(d_2(\mathbf{d}_i,\mathbf{d}_j)\)</span>
-      <table class="compact"><tr><th></th><th>S1</th><th>S2</th><th>S3</th><th>S4</th></tr><tr><td>S1</td><td>0</td><td>30.0</td><td>38.1</td><td><strong>14.1</strong></td></tr><tr><td>S2</td><td>30.0</td><td>0</td><td>57.4</td><td>22.5</td></tr><tr><td>S3</td><td>38.1</td><td>57.4</td><td>0</td><td>43.2</td></tr><tr><td>S4</td><td><strong>14.1</strong></td><td>22.5</td><td>43.2</td><td>0</td></tr></table>
-      <span class="reveal mt italic">La menor distancia es entre <strong>S1 y S4</strong> (14.1 ton). Estas semanas son las más similares en patrón de demanda.</span>
-    </div>
+<div class="slide" data-slide="13">
+  <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Comparación de semanas</h2>
+  <p class="reveal"><strong>Enunciado:</strong> Se tienen las demandas semanales
+    (en toneladas) de cuatro centros de distribución durante cuatro semanas.
+    ¿Cuáles son las dos semanas más parecidas? Usar distancia \(L_2\).</p>
+  <div class="block mt reveal">
+    \[
+      \mathbf{d}_1=\begin{pmatrix}300\\250\\200\\180\end{pmatrix},\;
+      \mathbf{d}_2=\begin{pmatrix}320\\230\\210\\170\end{pmatrix},\;
+      \mathbf{d}_3=\begin{pmatrix}310\\280\\220\\190\end{pmatrix},\;
+      \mathbf{d}_4=\begin{pmatrix}310\\250\\205\\175\end{pmatrix}
+    \]
   </div>
+  <div class="example-block mt reveal"><span class="b-title">Matriz de distancias \(d_2(\mathbf{d}_i,\mathbf{d}_j)\)</span>
+    <table class="compact">
+      <tr><th></th><th>S1</th><th>S2</th><th>S3</th><th>S4</th></tr>
+      <tr><td>S1</td><td>0</td><td>31.6</td><td>38.7</td><td><strong>12.2</strong></td></tr>
+      <tr><td>S2</td><td>31.6</td><td>0</td><td>55.7</td><td>23.5</td></tr>
+      <tr><td>S3</td><td>38.7</td><td>55.7</td><td>0</td><td>36.7</td></tr>
+      <tr><td>S4</td><td><strong>12.2</strong></td><td>23.5</td><td>36.7</td><td>0</td></tr>
+    </table>
+    <span class="reveal mt italic">La menor distancia es entre <strong>S1 y S4</strong> (≈12.2 ton). Estas semanas son las más similares en patrón de demanda.</span>
+  </div>
+</div>
 
   <!-- SLIDE 14: EJERCICIO 3 -->
   <div class="slide" data-slide="14">
