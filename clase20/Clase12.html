@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 12 - Laboratorio: Controlador T-S para Motor DC</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']], processEscapes: true },
+                    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] } };
+</script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --azul-princ: #005293;
+            --azul-claro: #0078be;
+            --verde-inst: #008250;
+            --naranja: #dc6b1f;
+            --morado: #7800a0;
+            --rojo: #a00000;
+            --gris-claro: #f5f5f5;
+            --sombra: 0 4px 20px rgba(0, 82, 147, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #e8f5e9 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+        }
+        .slide {
+            position: absolute;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 750px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: var(--sombra);
+            padding: 40px 50px;
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            display: none;
+        }
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            display: block;
+            z-index: 10;
+        }
+        .slide.prev {
+            opacity: 0;
+            transform: scale(0.95) translateY(-20px);
+        }
+        h2 {
+            color: var(--azul-princ);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            border-bottom: 3px solid var(--naranja);
+            padding-bottom: 0.5rem;
+        }
+        h3 {
+            color: var(--azul-princ);
+            font-size: 1.4rem;
+            margin: 1.5rem 0 1rem 0;
+            font-weight: 600;
+        }
+        .block {
+            background: var(--gris-claro);
+            border-left: 5px solid var(--azul-princ);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .block-title {
+            background: var(--azul-princ);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 6px 6px 0 0;
+            margin: -20px -20px 15px -20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .alert-block, .warning-block, .example-block { border-left: 5px solid; border-radius: 8px; padding: 18px; margin: 12px 0; }
+        .alert-block { background: #fff3e0; border-left-color: var(--naranja); }
+        .alert-block .block-title { background: var(--naranja); }
+        .example-block { background: #e8f5e9; border-left-color: var(--verde-inst); }
+        .example-block .block-title { background: var(--verde-inst); }
+        .columns { display: flex; gap: 30px; margin: 20px 0; }
+        .column { flex: 1; }
+        .column.half { flex: 0 0 48%; }
+        ul, ol { margin-left: 25px; margin-bottom: 15px; }
+        li { margin: 8px 0; line-height: 1.6; }
+        strong { color: var(--azul-princ); }
+        .center { text-align: center; }
+        .math-display { margin: 20px 0; overflow-x: auto; }
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        pre {
+            padding: 15px;
+            overflow-x: auto;
+            border-left: 4px solid var(--azul-princ);
+            margin: 15px 0;
+            background: #f5f5f5;
+            font-size: 0.78rem;
+            line-height: 1.4;
+        }
+        code { padding: 2px 6px; font-size: 0.9em; }
+        pre code { padding: 0; background: none; }
+        .code-cpp { border-left-color: #00599C; }
+        .keyword { color: #0000FF; font-weight: bold; }
+        .comment { color: #008000; font-style: italic; }
+        .string { color: #A31515; }
+        .number { color: #098658; }
+        .function { color: #795E26; }
+        .type { color: #267F99; }
+        .preprocessor { color: #800000; }
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(255,255,255,0.95);
+            padding: 12px 30px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .nav-btn {
+            background: var(--azul-princ);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-btn:hover { background: var(--naranja); transform: scale(1.1); }
+        .nav-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .slide-counter {
+            font-weight: 600;
+            color: var(--azul-princ);
+            font-size: 1rem;
+            min-width: 80px;
+            text-align: center;
+        }
+        .title-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        .title-slide h1 {
+            font-size: 2.5rem;
+            color: var(--azul-princ);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        .title-slide .subtitle {
+            font-size: 1.3rem;
+            color: var(--naranja);
+            margin-bottom: 2rem;
+        }
+        .title-slide .author { font-size: 1.2rem; color: #666; margin: 0.5rem 0; }
+        .title-slide .institute {
+            font-size: 1.1rem;
+            color: var(--azul-princ);
+            margin-top: 2rem;
+            font-weight: 600;
+        }
+        .overlay-content { opacity: 0; transition: opacity 0.4s ease; }
+        .overlay-content.visible { opacity: 1; }
+        .toc-item {
+            padding: 12px 20px;
+            margin: 8px 0;
+            background: var(--gris-claro);
+            border-radius: 8px;
+            border-left: 4px solid var(--azul-princ);
+            transition: all 0.3s;
+        }
+        .toc-item:hover { background: #e3f2fd; transform: translateX(5px); }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        th, td { padding: 10px; text-align: center; border: 1px solid #ddd; }
+        th { background: var(--azul-princ); color: white; font-weight: 600; }
+        tr:nth-child(even) { background: #f5f5f5; }
+        .icon { margin-right: 8px; color: var(--naranja); }
+        @media (max-width: 968px) {
+            .columns { flex-direction: column; }
+            .column.half { flex: 1; }
+            h2 { font-size: 1.5rem; }
+            .slide { padding: 25px 30px; }
+            .title-slide h1 { font-size: 2rem; }
+            pre { font-size: 0.68rem; }
+        }
+        .checkmark { color: var(--verde-inst); font-weight: bold; }
+        .flow-box {
+            background: rgba(0,82,147,0.08);
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        .flow-box.highlight { background: rgba(220,107,31,0.15); border-color: var(--naranja); }
+        .flow-box.green { background: rgba(0,130,80,0.12); border-color: var(--verde-inst); }
+        .flow-box.purple { background: rgba(120,0,160,0.1); border-color: var(--morado); }
+        .arrow-down, .arrow-right {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--azul-princ);
+            margin: 5px 0;
+        }
+        .placeholder-img {
+            background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+            border: 2px dashed var(--azul-princ);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .placeholder-img i {
+            font-size: 3rem;
+            color: var(--azul-princ);
+            margin-bottom: 15px;
+            display: block;
+        }
+        .architecture-diagram {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .ts-table { font-size: 0.85rem; }
+        .ts-table td { text-align: center; font-weight: bold; padding: 8px; }
+        .cell-neg-high { background: #99ccff; color: #00264d; }
+        .cell-neg-med { background: #b3d9ff; color: #00264d; }
+        .cell-neg-low { background: #cce6ff; color: #00264d; }
+        .cell-zero { background: #ffff99; color: #666600; }
+        .cell-pos-low { background: #ffcccc; color: #660000; }
+        .cell-pos-med { background: #ffb3b3; color: #660000; }
+        .cell-pos-high { background: #ff9999; color: #660000; }
+        .cell-neutral { background: #f0f0f0; }
+        .quote-box {
+            background: rgba(0,82,147,0.05);
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: var(--azul-princ);
+            text-align: center;
+        }
+        .activity-box {
+            background: white;
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+        }
+        .activity-number {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--azul-princ);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .hardware-table { font-size: 0.9rem; }
+        .hardware-table td { text-align: left; }
+        .hardware-table td:first-child { 
+            font-weight: bold; 
+            color: var(--azul-princ);
+            width: 120px;
+        }
+            th strong, th b, th code { color: #fff !important; background: rgba(255,255,255,0.15); }
+</style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- SLIDE 1: Title -->
+        <div class="slide active" data-slide="1">
+            <div class="title-slide">
+                <h1>Laboratorio: Controlador T-S para Motor DC<br>Gain Scheduling Difuso y Respuesta Rápida</h1>
+                <div class="subtitle">Clase 12 | Unidad 2: Inferencia y Diseño Fuzzy | Laboratorio</div>
+                <div class="author">Curso de Control Difuso</div>
+                <div class="author">Ingeniería en Control y Automatización</div>
+                <div class="institute">Semana 6</div>
+                <div style="margin-top: 3rem; padding: 15px; background: rgba(0,82,147,0.08); border-radius: 8px; font-size: 0.9rem; color: #666;">
+                    <i class="fas fa-microchip" style="color: var(--azul-princ);"></i>
+                    Hardware: Motor DC + Encoder + L298N + Arduino UNO | Referencia: Lilly Cap. 6
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Table of Contents -->
+        <div class="slide" data-slide="2">
+            <h2><i class="fas fa-list icon"></i>Contenido del Laboratorio</h2>
+            <div class="toc-item">1. Objetivos y Posición en el Curso</div>
+            <div class="toc-item">2. Hardware: Componentes y Conexiones</div>
+            <div class="toc-item">3. Variables del Sistema y Zona Muerta</div>
+            <div class="toc-item">4. Lectura del Encoder con Interrupción</div>
+            <div class="toc-item">5. Partición Difusa para Motor DC</div>
+            <div class="toc-item">6. Tabla T-S Orden 0</div>
+            <div class="toc-item">7. T-S Orden 1: Gain Scheduling Difuso</div>
+            <div class="toc-item">8. Implementación en Arduino</div>
+            <div class="toc-item">9. Actividades del Laboratorio</div>
+            <div class="toc-item">10. Resultados Esperados</div>
+            <div class="toc-item">11. Resumen y Próxima Clase</div>
+        </div>
+
+        <!-- SLIDE 3: Objectives -->
+        <div class="slide" data-slide="3">
+            <h2><i class="fas fa-bullseye icon"></i>Objetivos y Posición en el Curso</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Competencias</div>
+                        <ol>
+                            <li><strong>Diseñar</strong> la partición difusa para velocidad de Motor DC</li>
+                            <li><strong>Implementar</strong> T-S Orden 0 (tabla fija) y verificar en lazo abierto</li>
+                            <li><strong>Implementar</strong> T-S Orden 1 (gain scheduling) y comparar la respuesta dinámica</li>
+                            <li><strong>Medir</strong> con encoder: $t_r$, $M_p$, IAE</li>
+                            <li><strong>Evaluar</strong> el rechazo de perturbación de carga en ambos esquemas</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div style="padding: 20px;">
+                        <div class="flow-box green overlay-content" data-overlay="6">
+                            <i class="fas fa-check-circle" style="color: var(--verde-inst);"></i><br>
+                            <strong>[OK] Cl. 11:</strong> Teoría T-S
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box highlight overlay-content" data-overlay="6">
+                            <i class="fas fa-flask" style="color: var(--naranja);"></i><br>
+                            <strong>[LAB] Cl. 12:</strong> T-S Motor DC
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="6">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl. 13:</strong> Difuso PD y PI
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="6">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl. 14:</strong> Sintonización
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="6">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl. 16:</strong> Benchmarking
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Hardware -->
+        <div class="slide" data-slide="4">
+            <h2><i class="fas fa-microchip icon"></i>Hardware: Componentes y Conexiones</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Componentes necesarios</div>
+                        <table class="hardware-table">
+                            <tr><td>Motor</td><td>DC 6–12V con encoder cuadratura (ej: Pololu 25D, 100+ PPR)</td></tr>
+                            <tr><td>Driver</td><td>L298N – puente H 2A bidireccional</td></tr>
+                            <tr><td>MCU</td><td>Arduino UNO (ATmega328P, 16 MHz)</td></tr>
+                            <tr><td>Fuente</td><td>7.4V LiPo o 9V regulada, ≥2A</td></tr>
+                        </table>
+                    </div>
+                    <div class="alert-block overlay-content" data-overlay="2">
+                        <div class="block-title">Conexiones clave</div>
+                        <table style="font-size: 0.9rem;">
+                            <tr><td><code>Pin 9</code></td><td>ENA del L298N (PWM)</td></tr>
+                            <tr><td><code>Pin 7</code></td><td>IN1 (dirección)</td></tr>
+                            <tr><td><code>Pin 8</code></td><td>IN2 (dirección)</td></tr>
+                            <tr><td><code>Pin 2</code></td><td>Encoder A (INT0)</td></tr>
+                            <tr><td><code>Pin 4</code></td><td>Encoder B (lectura)</td></tr>
+                        </table>
+                        <p style="margin-top: 10px;"><strong>GND común:</strong> Arduino + L298N + fuente.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="center overlay-content" data-overlay="3">
+                        <img src="imagenes/c12_conexiones.png" alt="Esquema de conexión: motor DC con encoder, L298N y Arduino UNO" style="max-height:44vh; width:100%; max-width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Variables and Dead Zone -->
+        <div class="slide" data-slide="5">
+            <h2><i class="fas fa-sliders-h icon"></i>Variables del Sistema y Zona Muerta</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Variables de control</div>
+                        <table class="hardware-table">
+                            <tr><td>$\omega_{ref}$</td><td>Velocidad de referencia [RPM]</td></tr>
+                            <tr><td>$\omega_{act}$</td><td>Velocidad medida [RPM]</td></tr>
+                            <tr><td>$e_\omega$</td><td>$\omega_{ref} - \omega_{act}$ [RPM]</td></tr>
+                            <tr><td>$\dot{e}_\omega$</td><td>$(e_k - e_{k-1})/\Delta t$ [RPM/s]</td></tr>
+                            <tr><td>$u$</td><td>PWM bidireccional $[-100,+100]$%</td></tr>
+                        </table>
+                    </div>
+                    <div class="alert-block overlay-content" data-overlay="2">
+                        <div class="block-title">Salida bidireccional</div>
+                        <ul>
+                            <li>$u > 0$: gira en sentido positivo</li>
+                            <li>$u < 0$: gira en sentido negativo</li>
+                            <li>$u = 0$: freno o libre</li>
+                        </ul>
+                        <p style="margin-top: 10px;">Tabla T-S debe incluir valores <strong>negativos</strong>.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="3">
+                        <div class="block-title">Zona muerta del Motor DC</div>
+                        <p>Los motores DC no giran para $|u|$ pequeño por fricción estática. Valor típico: <strong>15–20%</strong>.</p>
+                        <p style="margin-top: 10px;"><strong>Compensación en código:</strong></p>
+                        <ul style="font-size: 0.9rem;">
+                            <li>Si $|u^*| < 1$: apagar (freno)</li>
+                            <li>Si $0 < |u^*| < 15$: usar $u=15\%$</li>
+                        </ul>
+                    </div>
+                    <div class="block overlay-content" data-overlay="3">
+                        <div class="block-title">Control de dirección (L298N)</div>
+                        <pre style="font-size: 0.75rem;"><code>// Horario:
+digitalWrite(IN1, HIGH);
+digitalWrite(IN2, LOW);
+
+// Antihorario:
+digitalWrite(IN1, LOW);
+digitalWrite(IN2, HIGH);</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: Encoder Reading -->
+        <div class="slide" data-slide="6">
+            <h2><i class="fas fa-tachometer-alt icon"></i>Lectura del Encoder con Interrupción</h2>
+            <pre class="code-cpp"><code><span class="comment">/**
+ * encoder.h -- Lectura de velocidad via encoder cuadratura
+ * Canal A -> Pin 2 (INT0), Canal B -> Pin 4
+ * Velocidad en RPM usando diferencia de pulsos
+ */</span>
+volatile int32_t enc_count = 0;  // flancos acumulados
+const float PPR  = 100.0f;       // pulsos/rev del encoder (por canal)
+const float GEAR = 30.0f;        // relacion de transmision
+
+// ISR: se llama en cada CHANGE (subida y bajada) del canal A
+<span class="keyword">void</span> <span class="function">ISR_encoder</span>() {
+    // Sentido: A != B -&gt; adelante ; A == B -&gt; atras
+    if (digitalRead(2) != digitalRead(4)) enc_count++;
+    else                                  enc_count--;
+}
+
+<span class="keyword">void</span> <span class="function">encoder_init</span>() {
+    pinMode(<span class="number">2</span>, INPUT_PULLUP);
+    pinMode(<span class="number">4</span>, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(<span class="number">2</span>),
+                    ISR_encoder, CHANGE);
+}
+
+<span class="comment">// Devuelve velocidad en RPM (llamar cada DT segundos)</span>
+<span class="type">float</span> <span class="function">get_omega_rpm</span>(<span class="type">float</span> dt_s) {
+    <span class="keyword">static</span> <span class="type">int32_t</span> prev = <span class="number">0</span>;
+    noInterrupts();
+    <span class="type">int32_t</span> cnt = enc_count;
+    interrupts();
+    <span class="type">float</span> delta = (<span class="type">float</span>)(cnt - prev);
+    prev = cnt;
+    // CHANGE cuenta 2 flancos por pulso: 2*PPR*GEAR por vuelta
+    return delta / (2.0f * PPR * GEAR) / dt_s * 60.0f;
+}</code></pre>
+        </div>
+
+        <!-- SLIDE 7: Fuzzy Partition Motor DC -->
+        <div class="slide" data-slide="7">
+            <h2><i class="fas fa-chart-area icon"></i>Partición Difusa para Motor DC</h2>
+            <div class="architecture-diagram">
+                <img src="imagenes/c12_particion_motor.png" alt="Partición difusa del error y del cambio de error del motor DC" style="max-height:44vh; width:100%; max-width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px;">
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block">
+                        <div class="block-title">Diseño del ZO del error</div>
+                        <p>El núcleo plano de ZO cubre $[-60,+60]$ RPM para absorber la zona muerta del motor y evitar chattering.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block">
+                        <div class="block-title">Partición antisimétrica</div>
+                        <p>El motor DC es simétrico: la tabla de reglas debe ser antisimétrica respecto a ZO-ZO.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: T-S Order 0 Table -->
+        <div class="slide" data-slide="8">
+            <h2><i class="fas fa-table icon"></i>Tabla T-S Orden 0 – Motor DC</h2>
+            <div class="center">
+                <table class="ts-table">
+                    <thead>
+                        <tr>
+                            <th>$e_\omega \backslash \dot{e}_\omega$</th>
+                            <th>NN</th><th>NS</th><th>ZO</th><th>PS</th><th>PP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">NB</strong></td>
+                            <td class="cell-neg-high">-100</td>
+                            <td class="cell-neg-med">-80</td>
+                            <td class="cell-neg-low">-60</td>
+                            <td class="cell-neg-low">-30</td>
+                            <td class="cell-neutral">-10</td>
+                        </tr>
+                        <tr>
+                            <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">NS</strong></td>
+                            <td class="cell-neg-med">-80</td>
+                            <td class="cell-neg-low">-60</td>
+                            <td class="cell-neg-low">-30</td>
+                            <td class="cell-neutral">-10</td>
+                            <td class="cell-pos-low">+20</td>
+                        </tr>
+                        <tr>
+                            <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">ZO</strong></td>
+                            <td class="cell-neg-low">-20</td>
+                            <td class="cell-neutral">-10</td>
+                            <td class="cell-zero">0</td>
+                            <td class="cell-neutral">+10</td>
+                            <td class="cell-pos-low">+20</td>
+                        </tr>
+                        <tr>
+                            <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">PS</strong></td>
+                            <td class="cell-pos-low">-20</td>
+                            <td class="cell-neutral">+10</td>
+                            <td class="cell-pos-low">+30</td>
+                            <td class="cell-pos-med">+60</td>
+                            <td class="cell-pos-med">+80</td>
+                        </tr>
+                        <tr>
+                            <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">PB</strong></td>
+                            <td class="cell-neutral">+10</td>
+                            <td class="cell-pos-low">+30</td>
+                            <td class="cell-pos-med">+60</td>
+                            <td class="cell-pos-med">+80</td>
+                            <td class="cell-pos-high">+100</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block">
+                        <div class="block-title">Lectura de la tabla</div>
+                        <p>Celda ZO-ZO = 0: sin acción en equilibrio.</p>
+                        <p style="margin-top: 10px;">La tabla es <strong>antisimétrica</strong>: si $(e,\dot{e}) \to u$, entonces $(-e,-\dot{e}) \to -u$.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block">
+                        <div class="block-title">Valor mínimo efectivo</div>
+                        <p>Los valores $\pm 10$ y $\pm 20$ caen en la zona muerta: el código los eleva a 15 %. Además, con ZO-ZO = 0 la tabla es <em>posicional</em>: sin pre-alimentación el motor no sostiene la referencia.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: T-S Order 1 Gain Scheduling -->
+        <div class="slide" data-slide="9">
+            <h2><i class="fas fa-sliders-h icon"></i>T-S Orden 1: Ganancias Variables por Región</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Consecuente lineal por zona</div>
+                <p>En lugar de un valor constante, cada regla aplica un <strong>controlador PD local</strong> con ganancias adaptadas:</p>
+                <div class="math-display">
+                    \[ y^k = K_p^k \cdot e_\omega + K_d^k \cdot \dot{e}_\omega \]
+                </div>
+                <p>Resultado global: interpolación suave entre controladores PD.</p>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="2">
+                        <div class="block-title">Ganancias por zona (3 términos de $e$)</div>
+                        <table style="font-size: 0.9rem;">
+                            <thead>
+                                <tr><th>Zona</th><th>$K_p^k$</th><th>$K_d^k$</th><th>Región</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Arranque</td><td>0.40</td><td>0.08</td><td>$|e|>150$ RPM</td></tr>
+                                <tr><td>Normal</td><td>0.28</td><td>0.05</td><td>$60<|e|\leq150$</td></tr>
+                                <tr><td>Ajuste</td><td>0.15</td><td>0.02</td><td>$|e|\leq60$</td></tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 10px;">Arranque: ganancias altas → respuesta rápida.</p>
+                        <p>Ajuste: ganancias bajas → sin sobreimpulso.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="architecture-diagram overlay-content" data-overlay="3">
+                        <img src="imagenes/c12_kp_interpolado.png" alt="Kp efectivo del T-S orden 1 en función del error" style="max-height:36vh; width:100%; max-width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: Fuzzifiers Motor DC -->
+        <div class="slide" data-slide="10">
+            <h2><i class="fas fa-code icon"></i>Fuzzificadores para Motor DC</h2>
+            <pre class="code-cpp"><code><span class="comment">/**
+ * fuzzifier_motor.h -- Particion difusa para Motor DC
+ * e_omega in [-300,+300] RPM:  NB NS ZO PS PB
+ * de_omega in [-100,+100] RPM/s: NN NS ZO PS PP
+ */</span>
+<span class="preprocessor">#include "fuzzy_types.h"</span>
+<span class="preprocessor">#include "fuzzy_mf.h"</span>
+
+<span class="comment">// --- Parametros de Error ---</span>
+<span class="keyword">static const float</span> E_NB_B = -<span class="number">300.0f</span>, E_NB_D = -<span class="number">150.0f</span>;
+<span class="keyword">static const</span> TriMF E_NS   = {-<span class="number">300.0f</span>, -<span class="number">150.0f</span>, -<span class="number">60.0f</span>};
+<span class="comment">// ZO: trapezoidal con nucleo [-60, +60]</span>
+<span class="keyword">static const float</span> E_ZO_A = -<span class="number">100.0f</span>, E_ZO_B = -<span class="number">60.0f</span>;
+<span class="keyword">static const float</span> E_ZO_C =   <span class="number">60.0f</span>, E_ZO_D = <span class="number">100.0f</span>;
+<span class="keyword">static const</span> TriMF E_PS   = {<span class="number">60.0f</span>, <span class="number">150.0f</span>, <span class="number">300.0f</span>};
+<span class="keyword">static const float</span> E_PB_A = <span class="number">150.0f</span>,  E_PB_C = <span class="number">300.0f</span>;
+
+FuzzyDegrees <span class="function">fuzzify_e_motor</span>(<span class="type">float</span> e) {
+    FuzzyDegrees fd; fd.n = N_TERMS;
+    fd.mu[<span class="number">0</span>] = ltrap(e, E_NB_B, E_NB_D);
+    fd.mu[<span class="number">1</span>] = trimf(e, E_NS);
+    <span class="comment">// ZO trapezoidal calculado inline</span>
+    <span class="keyword">if</span>      (e &lt;= E_ZO_A) fd.mu[<span class="number">2</span>] = <span class="number">0.0f</span>;
+    <span class="keyword">else if</span> (e &lt;  E_ZO_B) fd.mu[<span class="number">2</span>] = (e - E_ZO_A)/(E_ZO_B - E_ZO_A);
+    <span class="keyword">else if</span> (e &lt;= E_ZO_C) fd.mu[<span class="number">2</span>] = <span class="number">1.0f</span>;
+    <span class="keyword">else if</span> (e &lt;  E_ZO_D) fd.mu[<span class="number">2</span>] = (E_ZO_D - e)/(E_ZO_D - E_ZO_C);
+    <span class="keyword">else</span>                  fd.mu[<span class="number">2</span>] = <span class="number">0.0f</span>;
+    fd.mu[<span class="number">3</span>] = trimf(e, E_PS);
+    fd.mu[<span class="number">4</span>] = rtrap(e, E_PB_A, E_PB_C);
+    <span class="keyword">return</span> fd;
+}
+
+<span class="comment">// --- Parametros de Cambio de Error ---</span>
+<span class="keyword">static const float</span> DE_NN_B=-<span class="number">100.0f</span>, DE_NN_D=-<span class="number">50.0f</span>;
+<span class="keyword">static const</span> TriMF DE_NS={-<span class="number">100.0f</span>,-<span class="number">50.0f</span>,<span class="number">0.0f</span>};
+<span class="keyword">static const</span> TriMF DE_ZO={-<span class="number">50.0f</span>,<span class="number">0.0f</span>,<span class="number">50.0f</span>};
+<span class="keyword">static const</span> TriMF DE_PS={<span class="number">0.0f</span>,<span class="number">50.0f</span>,<span class="number">100.0f</span>};
+<span class="keyword">static const float</span> DE_PP_A=<span class="number">50.0f</span>, DE_PP_C=<span class="number">100.0f</span>;
+
+FuzzyDegrees <span class="function">fuzzify_de_motor</span>(<span class="type">float</span> de) {
+    FuzzyDegrees fd; fd.n = N_TERMS;
+    fd.mu[<span class="number">0</span>] = ltrap(de, DE_NN_B, DE_NN_D);
+    fd.mu[<span class="number">1</span>] = trimf(de, DE_NS);
+    fd.mu[<span class="number">2</span>] = trimf(de, DE_ZO);
+    fd.mu[<span class="number">3</span>] = trimf(de, DE_PS);
+    fd.mu[<span class="number">4</span>] = rtrap(de, DE_PP_A, DE_PP_C);
+    <span class="keyword">return</span> fd;
+}</code></pre>
+        </div>
+
+        <!-- SLIDE 11: T-S Inference Order 0 and 1 -->
+        <div class="slide" data-slide="11">
+            <h2><i class="fas fa-code icon"></i>Inferencia T-S Orden 0 y Orden 1</h2>
+            <pre class="code-cpp"><code><span class="comment">// --- Tabla T-S Orden 0 (valores en %) ---</span>
+<span class="keyword">const int8_t</span> TS0[<span class="number">5</span>][<span class="number">5</span>] = {
+    <span class="comment">// NN   NS   ZO   PS   PP</span>
+    {-<span class="number">100</span>, -<span class="number">80</span>, -<span class="number">60</span>, -<span class="number">30</span>, -<span class="number">10</span>},  <span class="comment">// NB</span>
+    { -<span class="number">80</span>, -<span class="number">60</span>, -<span class="number">30</span>, -<span class="number">10</span>,  <span class="number">20</span>},  <span class="comment">// NS</span>
+    { -<span class="number">20</span>, -<span class="number">10</span>,   <span class="number">0</span>,  <span class="number">10</span>,  <span class="number">20</span>},  <span class="comment">// ZO</span>
+    { -<span class="number">20</span>,  <span class="number">10</span>,  <span class="number">30</span>,  <span class="number">60</span>,  <span class="number">80</span>},  <span class="comment">// PS</span>
+    {  <span class="number">10</span>,  <span class="number">30</span>,  <span class="number">60</span>,  <span class="number">80</span>, <span class="number">100</span>},  <span class="comment">// PB</span>
+};
+
+<span class="type">float</span> <span class="function">ts0_infer</span>(<span class="keyword">const</span> FuzzyDegrees& mu_e,
+                <span class="keyword">const</span> FuzzyDegrees& mu_de) {
+    <span class="type">float</span> num=<span class="number">0.0f</span>, den=<span class="number">0.0f</span>;
+    <span class="keyword">for</span>(<span class="type">uint8_t</span> i=<span class="number">0</span>;i&lt;N_TERMS;i++){
+        <span class="keyword">if</span>(mu_e.mu[i]&lt;<span class="number">0.001f</span>) <span class="keyword">continue</span>;
+        <span class="keyword">for</span>(<span class="type">uint8_t</span> j=<span class="number">0</span>;j&lt;N_TERMS;j++){
+            <span class="keyword">if</span>(mu_de.mu[j]&lt;<span class="number">0.001f</span>) <span class="keyword">continue</span>;
+            <span class="type">float</span> a = fmin2(mu_e.mu[i],mu_de.mu[j]);
+            num += a*(<span class="type">float</span>)TS0[i][j];
+            den += a;
+        }
+    }
+    <span class="keyword">return</span> (den&gt;<span class="number">1e-6f</span>)?(num/den):<span class="number">0.0f</span>;
+}
+
+// --- T-S Orden 1 (3 zonas de |e| x 5 terminos de de) ---
+// Consecuente: y^k = Kp[i]*e + Kd[i]*de   (Kp en %/RPM)
+// Zonas: 0 = Arranque (NB+PB), 1 = Normal (NS+PS), 2 = Ajuste (ZO)
+<span class="keyword">const</span> <span class="type">float</span> KP[<span class="number">3</span>] = {<span class="number">0.40f</span>, <span class="number">0.28f</span>, <span class="number">0.15f</span>}; <span class="comment">// Arranque Normal Ajuste</span>
+<span class="keyword">const</span> <span class="type">float</span> KD[<span class="number">3</span>] = {<span class="number">0.08f</span>, <span class="number">0.05f</span>, <span class="number">0.02f</span>};
+
+<span class="type">float</span> <span class="function">ts1_infer</span>(<span class="type">float</span> e, <span class="type">float</span> de,
+                <span class="keyword">const</span> <span class="type">float</span> mu3[<span class="number">3</span>], <span class="keyword">const</span> FuzzyDegrees& mu_de) {
+    <span class="type">float</span> num=<span class="number">0.0f</span>, den=<span class="number">0.0f</span>;
+    <span class="keyword">for</span>(<span class="type">uint8_t</span> i=<span class="number">0</span>;i&lt;<span class="number">3</span>;i++){
+        <span class="keyword">if</span>(mu3[i]&lt;<span class="number">0.001f</span>) <span class="keyword">continue</span>;
+        <span class="keyword">for</span>(<span class="type">uint8_t</span> j=<span class="number">0</span>;j&lt;N_TERMS;j++){
+            <span class="keyword">if</span>(mu_de.mu[j]&lt;<span class="number">0.001f</span>) <span class="keyword">continue</span>;
+            <span class="type">float</span> a  = fmin2(mu3[i], mu_de.mu[j]);
+            <span class="type">float</span> yk = KP[i]*e + KD[i]*de;
+            num += a*yk; den += a;
+        }
+    }
+    <span class="keyword">return</span> (den&gt;<span class="number">1e-6f</span>)?(num/den):<span class="number">0.0f</span>;
+}</code></pre>
+        </div>
+
+        <!-- SLIDE 12: Main Sketch -->
+        <div class="slide" data-slide="12">
+            <h2><i class="fab fa-arduino icon"></i>Sketch Principal del Motor DC</h2>
+            <pre class="code-cpp"><code><span class="comment">/**
+ * ts_motor.ino -- Control T-S Motor DC | Clase 12
+ * Comandos Serial: '0'=TS0, '1'=TS1, 'p'=metricas, 'r'=reset
+ */</span>
+<span class="preprocessor">#define PIN_PWM 9</span>
+<span class="preprocessor">#define PIN_IN1 7</span>
+<span class="preprocessor">#define PIN_IN2 8</span>
+<span class="keyword">const</span> <span class="type">float</span> OMEGA_REF = <span class="number">150.0f</span>;  <span class="comment">// RPM objetivo</span>
+<span class="keyword">const</span> <span class="type">float</span> DT = <span class="number">0.02f</span>;          <span class="comment">// 50 Hz</span>
+const float W60 = 175.0f;        // RPM medidas con u=60% (Actividad 1)
+bool use_ts1   = false;
+bool use_ff    = true;           // pre-alimentacion ('f' alterna)
+// Pre-alimentacion: inversa del mapa estatico (zona muerta 15%)
+float u_ff(float w) { return 15.0f + 45.0f * w / W60; }
+<span class="type">float</span> e_prev   = <span class="number">0.0f</span>;
+<span class="type">float</span> IAE = <span class="number">0.0f</span>;
+
+<span class="keyword">void</span> <span class="function">apply_pwm</span>(<span class="type">float</span> u) {
+    u = constrain(u, -<span class="number">100.0f</span>, <span class="number">100.0f</span>);
+    <span class="keyword">if</span> (fabsf(u) &lt; <span class="number">1.0f</span>) { analogWrite(PIN_PWM, <span class="number">0</span>); <span class="keyword">return</span>; }
+    <span class="type">float</span> u_abs = fabsf(u);
+    <span class="keyword">if</span> (u_abs &lt; <span class="number">15.0f</span>) u_abs = <span class="number">15.0f</span>;   <span class="comment">// compensar zona muerta</span>
+    digitalWrite(PIN_IN1, u &gt; <span class="number">0</span> ? HIGH : LOW);
+    digitalWrite(PIN_IN2, u &gt; <span class="number">0</span> ? LOW  : HIGH);
+    analogWrite(PIN_PWM, (<span class="type">uint8_t</span>)(u_abs*<span class="number">2.55f</span>));
+}
+
+<span class="keyword">void</span> <span class="function">loop</span>() {
+    <span class="keyword">static</span> <span class="type">unsigned long</span> t_last = <span class="number">0</span>;
+    <span class="keyword">if</span> (millis()-t_last &lt; (<span class="type">unsigned long</span>)(DT*<span class="number">1000</span>)) <span class="keyword">return</span>;
+    t_last = millis();
+    <span class="keyword">if</span> (Serial.available()) {
+        <span class="type">char</span> c = Serial.read();
+        <span class="keyword">if</span> (c==<span class="string">'0'</span>) use_ts1=<span class="keyword">false</span>;
+        <span class="keyword">if</span> (c==<span class="string">'1'</span>) use_ts1=<span class="keyword">true</span>;
+        <span class="keyword">if</span> (c==<span class="string">'p'</span>) { Serial.print(F(<span class="string">"IAE="</span>)); Serial.println(IAE,<span class="number">2</span>); }
+        <span class="keyword">if</span> (c==<span class="string">'r'</span>) IAE=<span class="number">0.0f</span>;
+    }
+    <span class="type">float</span> omega = get_omega_rpm(DT);
+    <span class="type">float</span> e  = OMEGA_REF - omega;
+    <span class="type">float</span> de = (e - e_prev) / DT;
+    e_prev = e;
+    FuzzyDegrees mu_e  = fuzzify_e_motor(e);
+    FuzzyDegrees mu_de = fuzzify_de_motor(de);
+    <span class="type">float</span> u;
+    <span class="keyword">if</span> (!use_ts1) {
+        u = ts0_infer(mu_e, mu_de);
+    } <span class="keyword">else</span> {
+        // T-S Orden 1: agrupar los 5 terminos de e en 3 zonas de |e|
+        float mu3[3] = {
+            fmin2(1.0f, mu_e.mu[0] + mu_e.mu[4]),   // NB+PB -&gt; Arranque
+            fmin2(1.0f, mu_e.mu[1] + mu_e.mu[3]),   // NS+PS -&gt; Normal
+            mu_e.mu[2]                              // ZO    -&gt; Ajuste
+        };
+        u = ts1_infer(e, de, mu3, mu_de);
+    }
+    if (use_ff) u += u_ff(OMEGA_REF);
+    apply_pwm(u);
+    IAE += fabsf(e) * DT;
+    Serial.print(omega,<span class="number">1</span>); Serial.print(<span class="string">','</span>);
+    Serial.print(e,<span class="number">1</span>);     Serial.print(<span class="string">','</span>);
+    Serial.print(u,<span class="number">1</span>);     Serial.println();
+}</code></pre>
+        </div>
+
+        <!-- SLIDE 13: Activities -->
+        <div class="slide" data-slide="13">
+            <h2><i class="fas fa-tasks icon"></i>Guía de Actividades</h2>
+            <div class="activity-box overlay-content" data-overlay="1">
+                <div class="activity-number">1</div>
+                <div style="margin-top: 15px;">
+                    <strong>Actividad 1 (0–20 min) – Individual: Verificación hardware</strong>
+                </div>
+                <ol style="margin-top: 10px;">
+                    <li>Verificar el encoder: girar el eje a mano y comprobar que el conteo es correcto por Serial</li>
+                    <li>Probar lazo abierto: enviar <code>apply_pwm(50)</code> y <code>apply_pwm(-50)</code> – verificar ambas direcciones</li>
+                    <li>Medir la velocidad sin control con $u=60\%$: anotar $\omega$ y copiarla en <code>W60</code> (pre-alimentación)</li>
+                </ol>
+            </div>
+            <div class="activity-box overlay-content" data-overlay="2">
+                <div class="activity-number">2</div>
+                <div style="margin-top: 15px;">
+                    <strong>Actividad 2 (20–50 min) – Parejas: T-S Orden 0</strong>
+                </div>
+                <ol style="margin-top: 10px;">
+                    <li>Activar lazo cerrado, modo T-S Orden 0 (comando <code>'0'</code>); probar con y sin pre-alimentación (comando <code>'f'</code>)</li>
+                    <li>Setpoint: $\omega_{ref}=150$ RPM. Registrar CSV 30 s</li>
+                    <li>Calcular $t_r$, $M_p$, IAE (comando <code>'p'</code>)</li>
+                    <li>Cambiar a $\omega_{ref}=250$ RPM: registrar escalón</li>
+                    <li>Simular perturbación: frenar el eje con los dedos</li>
+                </ol>
+            </div>
+            <div class="activity-box overlay-content" data-overlay="3" style="border-color: var(--naranja);">
+                <div class="activity-number" style="background: var(--naranja);">3</div>
+                <div style="margin-top: 15px;">
+                    <strong>Actividad 3 (50–75 min) – Grupo: T-S Orden 1 y comparativa</strong>
+                </div>
+                <ol style="margin-top: 10px;">
+                    <li>Cambiar a T-S Orden 1 (comando <code>'1'</code>)</li>
+                    <li>Repetir los ensayos de 150 y 250 RPM</li>
+                    <li>Comparar: ¿cuál tiene menor sobreimpulso? ¿menor IAE?</li>
+                    <li>Completar la tabla de resultados de la hoja de trabajo</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: Expected Results -->
+        <div class="slide" data-slide="14">
+            <h2><i class="fas fa-chart-line icon"></i>Resultados Esperados: Respuesta al Escalón</h2>
+            <div class="architecture-diagram">
+                <img src="imagenes/c12_respuesta_escalon.png" alt="Respuesta al escalón simulada: T-S orden 0, orden 1 y orden 1 con pre-alimentación" style="max-height:44vh; width:100%; max-width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px;">
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block">
+                        <div class="block-title">Qué muestra la simulación</div>
+                        <p>Sin pre-alimentación ambos T-S quedan lejos de 150 RPM (ZO-ZO = 0) y oscilan por la compensación de zona muerta.</p>
+                        <p>Con $u_{ff}$ el T-S-1 llega rápido y sin sobreimpulso.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block">
+                        <div class="block-title">Rechazo de perturbación</div>
+                        <p>Al frenar el eje $e$ sube y el T-S-1 entra en una zona de mayor $K_p$, pero sin acción integral queda un error permanente (≈38 RPM en la simulación).</p>
+                        <p style="margin-top: 10px;">Motivación del <strong>difuso tipo PI</strong> (Clase 13).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: Results Table -->
+        <div class="slide" data-slide="15">
+            <h2><i class="fas fa-table icon"></i>Tabla de Resultados: T-S Orden 0 vs Orden 1</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Métrica</th>
+                        <th>T-S Orden 0</th>
+                        <th>T-S Orden 1</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="text-align: left;">Tiempo de subida $t_r$ (ms)</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">Sobreimpulso $M_p$ (%)</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">Tiempo de establecimiento $t_s$ (ms)</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">Error en estado estacionario (RPM)</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">IAE (RPM·s)</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">Caída ante perturbación (RPM)</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">Tiempo recuperación (ms)</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">$t_{ciclo}$ (μs)</td><td>_______</td><td>_______</td></tr>
+                </tbody>
+            </table>
+            <div class="block overlay-content" data-overlay="2">
+                <div class="block-title">Preguntas de análisis</div>
+                <ol>
+                    <li>¿T-S Orden 1 mejora simultáneamente $t_r$ y $M_p$? ¿Por qué?</li>
+                    <li>¿Hay error en estado estacionario? ¿Cómo eliminarlo?</li>
+                    <li>¿La velocidad de respuesta del encoder limita el control a 50 Hz?</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: Summary -->
+        <div class="slide" data-slide="16">
+            <h2><i class="fas fa-clipboard-check icon"></i>Resumen del Laboratorio</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Lo que logramos hoy</div>
+                        <ol>
+                            <li>Implementamos lectura de encoder con interrupción en AVR</li>
+                            <li>Controlador T-S Orden 0 funcional en lazo cerrado a 50 Hz</li>
+                            <li>Gain scheduling difuso T-S Orden 1: ganancias variables por zona</li>
+                            <li>Compensación de zona muerta del motor</li>
+                            <li>Comparativa cuantitativa con métricas IAE, $t_r$, $M_p$, rechazo perturbación</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block overlay-content" data-overlay="6">
+                        <div class="block-title">Tarea – Entrega Clase 13</div>
+                        <ul>
+                            <li>Informe Lab 12 (PDF, máx 5 pág.)</li>
+                            <li>Código sketch final comentado</li>
+                            <li>Archivos CSV de los 4 ensayos</li>
+                            <li>Tabla de resultados completada</li>
+                            <li>Responder las 3 preguntas de análisis</li>
+                        </ul>
+                    </div>
+                    <div class="example-block overlay-content" data-overlay="6">
+                        <div class="block-title">Próxima: Clase 13 (Teórica)</div>
+                        <p><strong>Control Difuso Tipo PD y PI</strong>.</p>
+                        <p>Análisis de estabilidad y eliminación del error en estado estacionario.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 17: References -->
+        <div class="slide" data-slide="17">
+            <h2><i class="fas fa-book-reader icon"></i>Referencias</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Bibliografía</div>
+                        <ul style="font-size: 0.9rem;">
+                            <li><strong>Lilly, J.H.</strong> (2010). <em>Fuzzy Control and Identification</em>, <strong>Cap. 6</strong>. Wiley.</li>
+                            <li><strong>Takagi, T. & Sugeno, M.</strong> (1985). Fuzzy identification of systems. <em>IEEE Trans. SMC</em>, 15(1), 116–132.</li>
+                            <li><strong>Atmel/Microchip</strong> (2016). <em>ATmega328P Datasheet</em>, secciones <em>External Interrupts</em> (INT0/INT1) y <em>Timer/Counter</em> (PWM).</li>
+                            <li><strong>Pololu</strong> – Motor DC con encoder: <a href="https://pololu.com/category/60" target="_blank">pololu.com/category/60</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Recursos Online</div>
+                        <ul style="font-size: 0.9rem;">
+                            <li><code>encoder.h</code> library (Arduino encoder cuadratura)</li>
+                            <li>L298N datasheet (ST)</li>
+                            <li>Fritzing para esquemas</li>
+                            <li>Lilly Cap. 6, Figs. 6.1–6.3</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="quote-box">
+                "El gain scheduling difuso permite adaptar la estrategia de control según la región de operación, combinando lo mejor de cada mundo: rapidez en arranque y suavidad en estado estacionario."
+            </div>
+        </div>
+
+        <!-- SLIDE 18: Esquema de conexiones -->
+        <div class="slide" data-slide="18">
+            <h2><i class="fas fa-project-diagram icon"></i>Esquema de Conexiones (referencia)</h2>
+            <div class="center"><img src="imagenes/c12_conexiones.png" alt="Esquema de conexión del laboratorio" style="width:90%; max-height:55vh; object-fit:contain; background:#fff; border-radius:8px;"></div>
+            <div class="alert-block" style="margin-top: 15px;">
+                <div class="block-title">Antes de energizar</div>
+                <p>GND común entre Arduino, L298N y batería. Los canales A y B del encoder van a D2 (INT0) y D4. El L298N cae ≈2 V: con batería de 7,4 V el motor recibe ≈5,4 V.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 19: Example Calculation -->
+        <div class="slide" data-slide="19">
+            <h2><i class="fas fa-calculator icon"></i>Ejemplo: Cálculo de Inferencia T-S Orden 0</h2>
+            <div class="alert-block">
+                <div class="block-title">Datos</div>
+                <p>Motor DC: $\omega_{ref}=150$ RPM, $\omega_{act}=120$ RPM, $\dot{e}_\omega=+25$ RPM/s.</p>
+            </div>
+            <div class="example-block overlay-content" data-overlay="2">
+                <div class="block-title">Paso 1: Variables y fuzzificación</div>
+                <p>$e_\omega = 150 - 120 = +30$ RPM &nbsp;&nbsp;&nbsp;&nbsp; $\dot{e}_\omega = +25$ RPM/s</p>
+                <ul style="margin-top: 10px;">
+                    <li>$\mu_{ZO}(30) = 1.0$ (está dentro del núcleo plano $[-60, 60]$)</li>
+                    <li>$\mu_{PS}(30) = 0$ (PS empieza en 60 RPM)</li>
+                    <li>$\mu_{ZO}(25) = \frac{50-25}{50} = 0.50$</li>
+                    <li>$\mu_{PS}(25) = \frac{25-0}{50} = 0.50$</li>
+                </ul>
+            </div>
+            <div class="example-block overlay-content" data-overlay="3">
+                <div class="block-title">Paso 2: Reglas activas</div>
+                <table style="font-size: 0.9rem;">
+                    <thead>
+                        <tr><th>Regla</th><th>Antecedente</th><th>$\alpha_k$</th><th>$r_k$</th><th>$\alpha_k \cdot r_k$</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>ZO-ZO</td><td>$\min(1.0;0.50)=0.50$</td><td>0.50</td><td>0</td><td>0</td></tr>
+                        <tr><td>ZO-PS</td><td>$\min(1.0;0.50)=0.50$</td><td>0.50</td><td>+10</td><td>5</td></tr>
+                                                                    </tbody>
+                </table>
+                <div class="math-display">
+                    \[
+                    u^* = \frac{0 + 5}{0.50 + 0.50} = \mathbf{5.0\%}\quad\text{(apply\_pwm lo eleva a 15 \%)}
+                    \]
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 20: Verification Comparison -->
+        <div class="slide" data-slide="20">
+            <h2><i class="fas fa-check-double icon" style="color: var(--verde-inst);"></i>Verificación: Comparación T-S Orden 0 vs Orden 1</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">T-S Orden 0 (mismo caso)</div>
+                        <p>Usando la tabla T-S Orden 0 con valores fijos:</p>
+                        <div class="math-display">
+                            \[ u^*_{T-S0} = 5.0\% \]
+                        </div>
+                        <p>Interpolado entre las celdas ZO-ZO (0) y ZO-PS (+10).</p>
+                        <p style="margin-top: 10px;"><strong>Ventaja:</strong> Simple de implementar, sin cálculos adicionales.</p>
+                        <p><strong>Desventaja:</strong> No se adapta dinámicamente al error.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">T-S Orden 1 (mismo caso)</div>
+                        <p>Con $e=+30$ RPM (zona "Ajuste", $\mu=1$), se usan $K_p=0.15$, $K_d=0.02$:</p>
+                        <div class="math-display">
+                            \[ u^*_{T-S1} = 0.15 \times 30 + 0.02 \times 25 = 4.5 + 0.5 = 5.0\% \]
+                        </div>
+                        <p style="margin-top: 10px;">En este punto ambos coinciden; difieren lejos del setpoint, donde $K_p$ sube a 0.28–0.40.</p>
+                        <p><strong>Nota:</strong> Si $e$ fuera grande (zona "Arranque"), $K_p$ subiría a 0.40 y la respuesta sería mucho más agresiva.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="example-block" style="margin-top: 20px;">
+                <div class="block-title">Conclusión del laboratorio</div>
+                <ul>
+                    <li><span class="checkmark">✓</span> <strong>T-S Orden 0:</strong> implementación rápida con tabla fija – ideal para aplicaciones con recursos limitados</li>
+                    <li><span class="checkmark">✓</span> <strong>T-S Orden 1:</strong> gain scheduling difuso – mejor desempeño dinámico y adaptación al punto de operación</li>
+                    <li><span class="checkmark">✓</span> <strong>Compensación zona muerta:</strong> crítica para evitar estancamiento en errores pequeños</li>
+                    <li><span class="checkmark">✓</span> <strong>Encoder con ISR:</strong> medición precisa de velocidad a 50 Hz sin bloquear el bucle de control</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="slide-counter">
+                <span id="currentSlide">1</span> / <span id="totalSlides">20</span>
+            </div>
+            <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 20;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            const prevSlide = document.querySelector('.slide.active');
+            const newSlide = document.querySelector(`.slide[data-slide="${n}"]`);
+            if (!newSlide || n < 1 || n > totalSlides) return;
+            if (prevSlide) {
+                prevSlide.classList.remove('active');
+                if (n > currentSlide) {
+                    prevSlide.classList.add('prev');
+                    setTimeout(() => prevSlide.classList.remove('prev'), 600);
+                }
+            }
+            newSlide.classList.remove('prev');
+            newSlide.classList.add('active');
+            newSlide.querySelectorAll('.overlay-content').forEach(el => el.classList.remove('visible'));
+            const firstOverlay = newSlide.querySelector('[data-overlay="1"]');
+            if (firstOverlay) setTimeout(() => firstOverlay.classList.add('visible'), 300);
+            currentSlide = n;
+            updateCounter();
+            updateButtons();
+            if (window.MathJax && window.MathJax.typesetPromise) MathJax.typesetPromise([newSlide]);
+        }
+
+        function changeSlide(direction) {
+            if (direction === 1) {
+                const currentSlideEl = document.querySelector(`.slide[data-slide="${currentSlide}"]`);
+                const allOverlays = Array.from(currentSlideEl.querySelectorAll('[data-overlay]'))
+                    .sort((a, b) => parseInt(a.dataset.overlay) - parseInt(b.dataset.overlay));
+                let nextOverlay = null;
+                for (let overlay of allOverlays) {
+                    if (!overlay.classList.contains('visible')) { nextOverlay = overlay; break; }
+                }
+                if (nextOverlay) nextOverlay.classList.add('visible');
+                else showSlide(currentSlide + 1);
+            } else showSlide(currentSlide - 1);
+        }
+
+        function updateCounter() { document.getElementById('currentSlide').textContent = currentSlide; }
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+        });
+
+        let touchStartX = 0, touchEndX = 0;
+        document.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            if (touchEndX < touchStartX - 50) changeSlide(1);
+            else if (touchEndX > touchStartX + 50) changeSlide(-1);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCounter();
+            updateButtons();
+            setTimeout(() => {
+                const firstOverlay = document.querySelector('.slide.active [data-overlay="1"]');
+                if (firstOverlay) firstOverlay.classList.add('visible');
+            }, 300);
+        });
+    </script>
+</body>
+</html>

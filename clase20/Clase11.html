@@ -14,7 +14,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- MathJax -->
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']], processEscapes: true },
+                    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] } };
+</script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     
     <style>
@@ -117,6 +120,8 @@
             font-weight: 600;
             font-size: 1.1rem;
         }
+        
+        .alert-block, .warning-block, .example-block { border-left: 5px solid; border-radius: 8px; padding: 18px; margin: 12px 0; }
         
         .alert-block {
             background: #fff3e0;
@@ -490,7 +495,8 @@
         .cell-pos-low { background: #f2ffcc; }
         .cell-pos-med { background: #e6ffcc; }
         .cell-pos-high { background: #ccffcc; }
-    </style>
+            th strong, th b, th code { color: #fff !important; background: rgba(255,255,255,0.15); }
+</style>
 </head>
 <body>
     <div class="presentation-container">
@@ -504,7 +510,7 @@
                 <div class="institute">Semana 6</div>
                 <div style="margin-top: 3rem; padding: 15px; background: rgba(0,82,147,0.08); border-radius: 8px; font-size: 0.9rem; color: #666;">
                     <i class="fas fa-book" style="color: var(--azul-princ);"></i>
-                    Referencia: Lilly, J.H. – <em>Fuzzy Control and Identification</em>, Cap. 5
+                    Referencia: Lilly, J.H. – <em>Fuzzy Control and Identification</em>, Caps. 6–8
                 </div>
             </div>
         </div>
@@ -534,8 +540,8 @@
                         <div class="block-title">Logros de las Clases 5-10</div>
                         <ul>
                             <li>Controlador difuso <strong>completo</strong> funcionando en Arduino UNO</li>
-                            <li>Comparativa vs PID: menos sobreimpulso</li>
-                            <li>Ciclo de control en ~372 μs a 10 Hz</li>
+                            <li>Comparativa vs PID con IAE, ISE e ITAE</li>
+                            <li>Ciclo de control en ~0.5 ms a 10 Hz (altura)</li>
                             <li>Tablas de reglas interpretables por operadores</li>
                         </ul>
                     </div>
@@ -543,7 +549,7 @@
                         <div class="block-title">Limitaciones identificadas</div>
                         <ul>
                             <li><strong>Error en estado estacionario:</strong> sin integral</li>
-                            <li><strong>Defuzzificación costosa:</strong> centroide requiere N=20–50</li>
+                            <li><strong>Defuzzificación costosa:</strong> centroide con N=20–50 (~2–6 ms)</li>
                             <li><strong>Difícil de analizar:</strong> no hay teoría de estabilidad directa</li>
                             <li><strong>Superficies irregulares:</strong> si la tabla es inconsistente</li>
                         </ul>
@@ -666,7 +672,7 @@
                         <ul>
                             <li>Solo sumas y multiplicaciones</li>
                             <li>Sin integración numérica</li>
-                            <li>~5 μs en Arduino UNO</li>
+                            <li>~0.1–0.2 ms en Arduino UNO (4 reglas, float)</li>
                         </ul>
                     </div>
                 </div>
@@ -689,14 +695,15 @@
                 <p><strong>Datos:</strong> $e = +7$°C, $\dot{e} = +2$°C/s, $\mu_{ZO}(7)=0.30$, $\mu_{PS}(7)=0.47$, $\mu_{ZO}(2)=0.20$, $\mu_{PS}(2)=0.80$</p>
                 <p style="margin-top: 10px;"><strong>Reglas T-S definidas:</strong></p>
                 <ul>
-                    <li>$R_1$: IF $e$ is ZO AND $\dot{e}$ is ZO THEN $y^1 = 0.5 \cdot e + 0.2 \cdot \dot{e} + 50$ &nbsp;&nbsp; $\alpha_1 = \min(0.30; 0.20) = 0.20$ &nbsp;&nbsp; $y^1 = 0.5(7)+0.2(2)+50 = 54.9$</li>
-                    <li>$R_2$: IF $e$ is PS AND $\dot{e}$ is PS THEN $y^2 = 0.8 \cdot e + 0.5 \cdot \dot{e} + 20$ &nbsp;&nbsp; $\alpha_2 = \min(0.47; 0.80) = 0.47$ &nbsp;&nbsp; $y^2 = 0.8(7)+0.5(2)+20 = 27.6$</li>
+                    <li>$R_1$: IF $e$ is ZO AND $\dot{e}$ is ZO THEN $y^1 = 50 + 1.5\,e + 2\,\dot{e}$ &nbsp;&nbsp; $\alpha_1 = \min(0.30; 0.20) = 0.20$ &nbsp;&nbsp; $y^1 = 50+1.5(7)+2(2) = 64.5$</li>
+                    <li>$R_2$: IF $e$ is PS AND $\dot{e}$ is PS THEN $y^2 = 60 + 1.0\,e + 2\,\dot{e}$ &nbsp;&nbsp; $\alpha_2 = \min(0.47; 0.80) = 0.47$ &nbsp;&nbsp; $y^2 = 60+7+2(2) = 71.0$</li>
+                    <li style=\"font-size:0.85em\">(por brevedad se muestran 2 de las 4 reglas activas)</li>
                 </ul>
                 <div class="math-display">
                     \[
-                    y^* = \frac{0.20 \cdot 54.9 + 0.47 \cdot 27.6}{0.20 + 0.47}
-                         = \frac{10.98 + 12.97}{0.67}
-                         = \frac{23.95}{0.67} \approx 35.7\%
+                    y^* = \frac{0.20 \cdot 64.5 + 0.47 \cdot 71.0}{0.20 + 0.47}
+                         = \frac{12.90 + 33.37}{0.67}
+                         = \frac{46.27}{0.67} \approx 69.1\%
                     \]
                 </div>
             </div>
@@ -720,35 +727,7 @@
                 </div>
                 <div class="column half">
                     <div class="architecture-diagram overlay-content" data-overlay="3">
-                        <svg viewBox="0 0 400 340">
-                            <!-- Axes -->
-                            <line x1="50" y1="290" x2="380" y2="290" stroke="#333" stroke-width="1.5"/>
-                            <line x1="50" y1="30" x2="50" y2="290" stroke="#333" stroke-width="1.5"/>
-                            <!-- Grid -->
-                            <line x1="50" y1="238" x2="380" y2="238" stroke="#eee" stroke-width="1"/>
-                            <line x1="50" y1="186" x2="380" y2="186" stroke="#eee" stroke-width="1"/>
-                            <line x1="50" y1="134" x2="380" y2="134" stroke="#eee" stroke-width="1"/>
-                            <line x1="50" y1="82" x2="380" y2="82" stroke="#eee" stroke-width="1"/>
-                            <!-- Model 1: y = 0.5x + 2 (dashed) -->
-                            <line x1="50" y1="108" x2="380" y2="273" stroke="#005293" stroke-width="2.5" stroke-dasharray="6,4"/>
-                            <!-- Model 2: y = 1.5x + 0.5 (dashed) -->
-                            <line x1="50" y1="277" x2="380" y2="32" stroke="#dc6b1f" stroke-width="2.5" stroke-dasharray="6,4"/>
-                            <!-- T-S smooth interpolation -->
-                            <path d="M 50,250 Q 120,240 180,200 T 260,150 T 340,90 L 380,60" 
-                                  fill="none" stroke="#008250" stroke-width="3.5" stroke-linecap="round"/>
-                            <!-- Labels -->
-                            <text x="215" y="320" fill="#333" font-size="13" text-anchor="middle">x</text>
-                            <text x="15" y="160" fill="#333" font-size="13" transform="rotate(-90 15 160)">y</text>
-                            <!-- Title -->
-                            <text x="215" y="20" fill="#333" font-size="12" text-anchor="middle" font-weight="bold">Interpolación T-S entre 2 modelos</text>
-                            <!-- Legend -->
-                            <line x1="230" y1="40" x2="260" y2="40" stroke="#005293" stroke-width="2.5" stroke-dasharray="6,4"/>
-                            <text x="265" y="45" fill="#333" font-size="10">y¹ = 0.5x+2 (R1)</text>
-                            <line x1="230" y1="55" x2="260" y2="55" stroke="#dc6b1f" stroke-width="2.5" stroke-dasharray="6,4"/>
-                            <text x="265" y="60" fill="#333" font-size="10">y² = 1.5x+0.5 (R2)</text>
-                            <line x1="230" y1="70" x2="260" y2="70" stroke="#008250" stroke-width="3.5"/>
-                            <text x="265" y="75" fill="#333" font-size="10">T-S: interpolación suave</text>
-                        </svg>
+                        <img src="imagenes/c11_interpolacion_ts.png" alt="Interpolación T-S entre dos modelos lineales locales" style="max-height:44vh; width:100%; max-width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px;">
                     </div>
                 </div>
             </div>
@@ -758,71 +737,7 @@
         <div class="slide" data-slide="8">
             <h2><i class="fas fa-balance-scale icon"></i>Comparativa Arquitectónica: T-S vs Mamdani</h2>
             <div class="architecture-diagram">
-                <svg viewBox="0 0 900 500">
-                    <!-- Headers -->
-                    <text x="180" y="30" fill="#005293" font-size="18" font-weight="bold" text-anchor="middle">MAMDANI</text>
-                    <text x="680" y="30" fill="#dc6b1f" font-size="18" font-weight="bold" text-anchor="middle">TAKAGI-SUGENO</text>
-                    
-                    <!-- Mamdani boxes -->
-                    <rect x="60" y="50" width="240" height="45" rx="8" fill="#e3f2fd" stroke="#005293" stroke-width="2"/>
-                    <text x="180" y="78" fill="#005293" font-size="13" text-anchor="middle">Fuzzificar entradas</text>
-                    
-                    <rect x="60" y="115" width="240" height="45" rx="8" fill="#e3f2fd" stroke="#005293" stroke-width="2"/>
-                    <text x="180" y="143" fill="#005293" font-size="13" text-anchor="middle">Evaluar antecedentes (α_k)</text>
-                    
-                    <rect x="60" y="180" width="240" height="45" rx="8" fill="#e3f2fd" stroke="#005293" stroke-width="2"/>
-                    <text x="180" y="208" fill="#005293" font-size="13" text-anchor="middle">Implicación: cortar B^k a α_k</text>
-                    
-                    <rect x="60" y="245" width="240" height="45" rx="8" fill="#e3f2fd" stroke="#005293" stroke-width="2"/>
-                    <text x="180" y="273" fill="#005293" font-size="13" text-anchor="middle">Agregación: unión de salidas</text>
-                    
-                    <rect x="60" y="310" width="240" height="50" rx="8" fill="#ffebee" stroke="#a00000" stroke-width="2.5"/>
-                    <text x="180" y="340" fill="#a00000" font-size="13" text-anchor="middle" font-weight="bold">Defuzzificación: centroide/altura</text>
-                    
-                    <!-- TS boxes -->
-                    <rect x="560" y="50" width="240" height="45" rx="8" fill="#fff3e0" stroke="#dc6b1f" stroke-width="2"/>
-                    <text x="680" y="78" fill="#dc6b1f" font-size="13" text-anchor="middle">Fuzzificar entradas</text>
-                    
-                    <rect x="560" y="115" width="240" height="45" rx="8" fill="#fff3e0" stroke="#dc6b1f" stroke-width="2"/>
-                    <text x="680" y="143" fill="#dc6b1f" font-size="13" text-anchor="middle">Evaluar antecedentes (α_k)</text>
-                    
-                    <rect x="560" y="180" width="240" height="45" rx="8" fill="#fff3e0" stroke="#dc6b1f" stroke-width="2"/>
-                    <text x="680" y="208" fill="#dc6b1f" font-size="13" text-anchor="middle">Calcular y^k = p_k x_1 + q_k x_2 + r_k</text>
-                    
-                    <rect x="560" y="245" width="240" height="55" rx="8" fill="#e8f5e9" stroke="#008250" stroke-width="2.5"/>
-                    <text x="680" y="270" fill="#008250" font-size="12" text-anchor="middle" font-weight="bold">Suma ponderada:</text>
-                    <text x="680" y="288" fill="#008250" font-size="11" text-anchor="middle">y* = Σα_k·y^k / Σα_k</text>
-                    
-                    <!-- Arrows Mamdani -->
-                    <line x1="180" y1="95" x2="180" y2="115" stroke="#005293" stroke-width="2" marker-end="url(#arrowBlue)"/>
-                    <line x1="180" y1="160" x2="180" y2="180" stroke="#005293" stroke-width="2" marker-end="url(#arrowBlue)"/>
-                    <line x1="180" y1="225" x2="180" y2="245" stroke="#005293" stroke-width="2" marker-end="url(#arrowBlue)"/>
-                    <line x1="180" y1="290" x2="180" y2="310" stroke="#005293" stroke-width="2" marker-end="url(#arrowBlue)"/>
-                    
-                    <!-- Arrows TS -->
-                    <line x1="680" y1="95" x2="680" y2="115" stroke="#dc6b1f" stroke-width="2" marker-end="url(#arrowOrange)"/>
-                    <line x1="680" y1="160" x2="680" y2="180" stroke="#dc6b1f" stroke-width="2" marker-end="url(#arrowOrange)"/>
-                    <line x1="680" y1="225" x2="680" y2="245" stroke="#dc6b1f" stroke-width="2" marker-end="url(#arrowOrange)"/>
-                    
-                    <!-- Labels -->
-                    <text x="310" y="340" fill="#a00000" font-size="11" font-weight="bold">COSTOSO</text>
-                    <text x="810" y="275" fill="#008250" font-size="11" font-weight="bold">RÁPIDO</text>
-                    
-                    <!-- Brace "Igual en ambos" -->
-                    <text x="20" y="140" fill="#005293" font-size="11" font-style="italic">Igual</text>
-                    <text x="20" y="155" fill="#005293" font-size="11" font-style="italic">en</text>
-                    <text x="20" y="170" fill="#005293" font-size="11" font-style="italic">ambos</text>
-                    
-                    <!-- Arrow markers -->
-                    <defs>
-                        <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                            <polygon points="0 0, 10 3, 0 6" fill="#005293"/>
-                        </marker>
-                        <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                            <polygon points="0 0, 10 3, 0 6" fill="#dc6b1f"/>
-                        </marker>
-                    </defs>
-                </svg>
+                <img src="imagenes/c11_arquitecturas.png" alt="Comparación de arquitecturas Mamdani y Takagi-Sugeno" style="max-height:44vh; width:100%; max-width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px;">
             </div>
         </div>
 
@@ -840,7 +755,7 @@
                 <tbody>
                     <tr><td><strong>Consecuente</strong></td><td>Conjunto difuso $\tilde{B}^k$</td><td>Función $y^k = f^k(\mathbf{x})$</td></tr>
                     <tr><td><strong>Defuzzificación</strong></td><td>Requerida (centroide, altura)</td><td style="color: var(--verde-inst); font-weight: bold;">No requerida</td></tr>
-                    <tr><td><strong>Velocidad</strong></td><td>Media (~300 μs Arduino)</td><td style="color: var(--verde-inst); font-weight: bold;">Alta (~30 μs Arduino)</td></tr>
+                    <tr><td><strong>Velocidad</strong></td><td>Centroide: lenta (~2–6 ms); altura: ~0.4 ms</td><td style="color: var(--verde-inst); font-weight: bold;">Alta (~0.4–0.5 ms, como altura)</td></tr>
                     <tr><td><strong>Interpretabilidad</strong></td><td style="color: var(--verde-inst); font-weight: bold;">Alta: reglas en lenguaje natural</td><td>Media: parámetros $p_k, q_k, r_k$</td></tr>
                     <tr><td><strong>Identificación</strong></td><td>Manual (experto)</td><td style="color: var(--verde-inst); font-weight: bold;">Automatizable (mínimos cuadrados)</td></tr>
                     <tr><td><strong>Estabilidad</strong></td><td>Difícil de analizar</td><td style="color: var(--verde-inst); font-weight: bold;">Analizable (Lyapunov)</td></tr>
@@ -855,69 +770,11 @@
         <div class="slide" data-slide="10">
             <h2><i class="fas fa-tachometer-alt icon"></i>Velocidad: La Ventaja Clave de T-S en Embebidos</h2>
             <div class="architecture-diagram">
-                <svg viewBox="0 0 800 400">
-                    <!-- Axes -->
-                    <line x1="80" y1="350" x2="750" y2="350" stroke="#333" stroke-width="1.5"/>
-                    <line x1="80" y1="40" x2="80" y2="350" stroke="#333" stroke-width="1.5"/>
-                    <!-- Grid -->
-                    <line x1="80" y1="296" x2="750" y2="296" stroke="#eee" stroke-width="1"/>
-                    <line x1="80" y1="242" x2="750" y2="242" stroke="#eee" stroke-width="1"/>
-                    <line x1="80" y1="188" x2="750" y2="188" stroke="#eee" stroke-width="1"/>
-                    <line x1="80" y1="134" x2="750" y2="134" stroke="#eee" stroke-width="1"/>
-                    <line x1="80" y1="80" x2="750" y2="80" stroke="#eee" stroke-width="1"/>
-                    
-                    <!-- Mamdani centroide N=50 (blue) -->
-                    <rect x="130" y="134" width="40" height="216" fill="#0078be" stroke="#005293" stroke-width="1.5"/>
-                    <rect x="280" y="270" width="40" height="80" fill="#0078be" stroke="#005293" stroke-width="1.5"/>
-                    <rect x="430" y="150" width="40" height="200" fill="#0078be" stroke="#005293" stroke-width="1.5"/>
-                    <rect x="580" y="46" width="40" height="304" fill="#0078be" stroke="#005293" stroke-width="1.5"/>
-                    <text x="150" y="128" fill="#333" font-size="10" text-anchor="middle">220</text>
-                    <text x="300" y="264" fill="#333" font-size="10" text-anchor="middle">80</text>
-                    <text x="450" y="144" fill="#333" font-size="10" text-anchor="middle">200</text>
-                    <text x="600" y="40" fill="#333" font-size="10" text-anchor="middle">500</text>
-                    
-                    <!-- Mamdani altura (orange) -->
-                    <rect x="180" y="134" width="40" height="216" fill="#dc6b1f" stroke="#b8561a" stroke-width="1.5" opacity="0.85"/>
-                    <rect x="330" y="270" width="40" height="80" fill="#dc6b1f" stroke="#b8561a" stroke-width="1.5" opacity="0.85"/>
-                    <rect x="480" y="345" width="40" height="5" fill="#dc6b1f" stroke="#b8561a" stroke-width="1.5" opacity="0.85"/>
-                    <rect x="630" y="62" width="40" height="288" fill="#dc6b1f" stroke="#b8561a" stroke-width="1.5" opacity="0.85"/>
-                    
-                    <!-- T-S Orden 0 (green) -->
-                    <rect x="230" y="134" width="40" height="216" fill="#008250" stroke="#005a38" stroke-width="1.5" opacity="0.85"/>
-                    <rect x="380" y="270" width="40" height="80" fill="#008250" stroke="#005a38" stroke-width="1.5" opacity="0.85"/>
-                    <rect x="530" y="347" width="40" height="3" fill="#008250" stroke="#005a38" stroke-width="1.5" opacity="0.85"/>
-                    <rect x="680" y="64" width="40" height="286" fill="#008250" stroke="#005a38" stroke-width="1.5" opacity="0.85"/>
-                    
-                    <!-- Labels -->
-                    <text x="415" y="380" fill="#333" font-size="13" text-anchor="middle">Bloque del controlador</text>
-                    <text x="25" y="195" fill="#333" font-size="13" transform="rotate(-90 25 195)">Tiempo (μs) en Arduino UNO (16 MHz)</text>
-                    
-                    <!-- X-axis labels -->
-                    <text x="195" y="370" fill="#333" font-size="11" text-anchor="middle">Fuzzif.</text>
-                    <text x="345" y="370" fill="#333" font-size="11" text-anchor="middle">Reglas</text>
-                    <text x="495" y="370" fill="#333" font-size="11" text-anchor="middle">Defuzz</text>
-                    <text x="645" y="370" fill="#333" font-size="11" text-anchor="middle">Total</text>
-                    
-                    <!-- Y-axis labels -->
-                    <text x="70" y="355" fill="#333" font-size="10" text-anchor="end">0</text>
-                    <text x="70" y="300" fill="#333" font-size="10" text-anchor="end">50</text>
-                    <text x="70" y="245" fill="#333" font-size="10" text-anchor="end">100</text>
-                    <text x="70" y="190" fill="#333" font-size="10" text-anchor="end">150</text>
-                    <text x="70" y="135" fill="#333" font-size="10" text-anchor="end">200</text>
-                    <text x="70" y="80" fill="#333" font-size="10" text-anchor="end">250</text>
-                    
-                    <!-- Legend -->
-                    <rect x="540" y="45" width="15" height="10" fill="#0078be" stroke="#005293"/>
-                    <text x="560" y="54" fill="#333" font-size="10">Mamdani (centroide N=50)</text>
-                    <rect x="540" y="62" width="15" height="10" fill="#dc6b1f" stroke="#b8561a"/>
-                    <text x="560" y="71" fill="#333" font-size="10">Mamdani (altura)</text>
-                    <rect x="540" y="79" width="15" height="10" fill="#008250" stroke="#005a38"/>
-                    <text x="560" y="88" fill="#333" font-size="10">T-S Orden 0</text>
-                </svg>
+                <img src="imagenes/c11_velocidad.png" alt="Tiempos estimados de cada bloque en Arduino UNO" style="max-height:40vh; width:100%; max-width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px;">
             </div>
             <div class="alert-block">
                 <div class="block-title">Conclusión</div>
-                <p>La fuzzificación domina el tiempo en todos los casos (~220 μs). T-S y Mamdani-Altura son casi idénticos en velocidad. La diferencia real de T-S está en la <strong>identificación automática</strong> de parámetros, no en la velocidad de inferencia.</p>
+                <p>Salvo el centroide (que integra numéricamente), la fuzzificación domina el tiempo (~220 μs). T-S y Mamdani-Altura son casi idénticos en velocidad. La diferencia real de T-S está en la <strong>identificación automática</strong> de parámetros, no en la velocidad de inferencia.</p>
             </div>
         </div>
 
@@ -977,9 +834,10 @@
                                 <tr><th>Zona</th><th>$p_k$</th><th>$q_k$</th><th>$r_k$</th></tr>
                             </thead>
                             <tbody>
-                                <tr><td>Arranque (error grande)</td><td>3.5</td><td>0.8</td><td>60</td></tr>
-                                <tr><td>Normal (error medio)</td><td>2.0</td><td>0.5</td><td>50</td></tr>
-                                <tr><td>Ajuste fino (error pequeño)</td><td>0.5</td><td>0.1</td><td>45</td></tr>
+                                <tr><td>Arranque (|e| &gt; 150 RPM)</td><td>0.35</td><td>0.08</td><td>0</td></tr>
+                                <tr><td>Normal (error medio)</td><td>0.25</td><td>0.05</td><td>0</td></tr>
+                                <tr><td>Ajuste fino (|e| &lt; 60 RPM)</td><td>0.15</td><td>0.02</td><td>0</td></tr>
+                                <tr><td colspan="4" style="font-size:0.75rem">$p_k$ en %/RPM, $q_k$ en %/(RPM/s); con $e=\pm300$ RPM y $p=0.35$ la salida ya satura. Un $r_k\neq0$ actúa como pre-alimentación.</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -1002,11 +860,11 @@
         <div class="slide" data-slide="13">
             <h2><i class="fas fa-chart-scatter icon"></i>Identificación de Parámetros T-S</h2>
             <div class="block overlay-content" data-overlay="1">
-                <div class="block-title">Método de Mínimos Cuadrados (Lilly, Cap. 5)</div>
+                <div class="block-title">Método de Mínimos Cuadrados (Lilly, Cap. 8, Sec. 8.4)</div>
                 <p>Dado un conjunto de datos $\{(\mathbf{x}_j, y_j)\}$, los parámetros del consecuente de la regla $k$ se obtienen minimizando:</p>
                 <div class="math-display">
                     \[
-                    J_k = \sum_{j=1}^{M} \alpha_k(\mathbf{x}_j) \cdot
+                    J_k = \sum_{j=1}^{M} \bar\alpha_k(\mathbf{x}_j) \cdot
                           \left(y_j - y^k(\mathbf{x}_j)\right)^2
                     \]
                 </div>
@@ -1017,7 +875,7 @@
                                      \mathbf{X}^T \mathbf{W}_k \mathbf{y}
                     \]
                 </div>
-                <p>donde $\mathbf{W}_k = \text{diag}(\alpha_k(\mathbf{x}_j))$.</p>
+                <p>donde $\mathbf{W}_k = \text{diag}(\bar\alpha_k(\mathbf{x}_j))$, $\bar\alpha_k = \alpha_k/\sum_l\alpha_l$, y cada fila de $\mathbf{X}$ es $[\mathbf{x}_j^T\;\;1]$.</p>
             </div>
             <div class="columns">
                 <div class="column half">
@@ -1101,7 +959,7 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td style="background: var(--azul-princ); color: white;"><strong>NB</strong></td>
+                                    <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">NB</strong></td>
                                     <td class="cell-neg-high">-100</td>
                                     <td class="cell-neg-high">-90</td>
                                     <td class="cell-neg-med">-60</td>
@@ -1109,7 +967,7 @@
                                     <td class="cell-neg-low">-10</td>
                                 </tr>
                                 <tr>
-                                    <td style="background: var(--azul-princ); color: white;"><strong>NS</strong></td>
+                                    <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">NS</strong></td>
                                     <td class="cell-neg-high">-90</td>
                                     <td class="cell-neg-med">-60</td>
                                     <td class="cell-neg-low">-40</td>
@@ -1117,7 +975,7 @@
                                     <td class="cell-pos-low">+20</td>
                                 </tr>
                                 <tr>
-                                    <td style="background: var(--azul-princ); color: white;"><strong>ZO</strong></td>
+                                    <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">ZO</strong></td>
                                     <td class="cell-neg-low">-20</td>
                                     <td class="cell-neg-low">-10</td>
                                     <td class="cell-zero">0</td>
@@ -1125,7 +983,7 @@
                                     <td class="cell-pos-low">+20</td>
                                 </tr>
                                 <tr>
-                                    <td style="background: var(--azul-princ); color: white;"><strong>PS</strong></td>
+                                    <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">PS</strong></td>
                                     <td class="cell-pos-low">-20</td>
                                     <td class="cell-pos-low">+10</td>
                                     <td class="cell-pos-med">+40</td>
@@ -1133,7 +991,7 @@
                                     <td class="cell-pos-high">+90</td>
                                 </tr>
                                 <tr>
-                                    <td style="background: var(--azul-princ); color: white;"><strong>PB</strong></td>
+                                    <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">PB</strong></td>
                                     <td class="cell-neg-low">+10</td>
                                     <td class="cell-pos-med">+40</td>
                                     <td class="cell-pos-med">+60</td>
@@ -1149,7 +1007,7 @@
                         <div class="block-title">Características del diseño</div>
                         <ul>
                             <li>Salida <strong>bidireccional</strong>: motor puede ir en ambos sentidos</li>
-                            <li>Celda ZO-ZO = 0: sin acción cuando velocidad y tendencia son correctas</li>
+                            <li>Celda ZO-ZO = 0: sin acción cuando velocidad y tendencia son correctas. Ojo: el motor necesita PWM ≠ 0 para girar, así que se estabiliza con un <strong>offset</strong> (Clases 12-13)</li>
                             <li>Tabla <strong>antisimétrica</strong>: refleja la simetría del motor DC</li>
                         </ul>
                     </div>
@@ -1207,32 +1065,32 @@
             <h2><i class="fas fa-pencil-alt icon"></i>Ejercicio en Clase: Inferencia T-S</h2>
             <div class="alert-block">
                 <div class="block-title">Datos</div>
-                <p>Motor DC. $\omega_{ref}=200$ RPM, $\omega_{actual}=170$ RPM, $\dot{\omega}=+15$ RPM/s.</p>
+                <p>Motor DC. $\omega_{ref}=200$ RPM, $\omega_{actual}=170$ RPM, $\dot{\omega}=+15$ RPM/s (acelerando). Partición para $e$ y $\dot e$: NB=[−300,−150], NS=[−300,−100,0], ZO=[−100,0,100], PS=[0,100,300], PB=[100,300].</p>
                 <p>Usar la tabla T-S Orden 0 de la diapositiva anterior.</p>
                 <p>Partición de error: NB=$[-300,-150]$, NS=$[-300,-100,0]$, ZO=$[-100,0,100]$, PS=$[0,100,300]$, PB=$[100,300]$.</p>
             </div>
             <div class="example-block overlay-content" data-overlay="2">
                 <div class="block-title">Paso 1: Variables</div>
-                <p>$e_\omega = 200-170 = +30$ RPM &nbsp;&nbsp;&nbsp;&nbsp; $\dot{e}_\omega = +15$ RPM/s</p>
+                <p>$e_\omega = 200-170 = +30$ RPM &nbsp;&nbsp;&nbsp;&nbsp; $\dot{e}_\omega = -\dot\omega = -15$ RPM/s (el error disminuye)</p>
             </div>
             <div class="example-block overlay-content" data-overlay="3">
                 <div class="block-title">Paso 2: Fuzzificar</div>
                 <p>$\mu_{ZO}(30) = \frac{100-30}{100} = 0.70$, &nbsp; $\mu_{PS}(30) = \frac{30-0}{100} = 0.30$</p>
-                <p>$\mu_{ZO}(15) = \frac{100-15}{100} \approx 0.85$, &nbsp; $\mu_{PS}(15) = \frac{15-0}{100} = 0.15$</p>
+                <p>$\mu_{ZO}(-15) = \frac{100-15}{100} = 0.85$, &nbsp; $\mu_{NS}(-15) = \frac{15}{100} = 0.15$</p>
             </div>
             <div class="example-block overlay-content" data-overlay="4">
                 <div class="block-title">Paso 3: Reglas activas y suma ponderada</div>
                 <ul>
                     <li>$\alpha_{ZO,ZO}=\min(0.70;0.85)=0.70$, $r=0$</li>
-                    <li>$\alpha_{ZO,PS}=\min(0.70;0.15)=0.15$, $r=+10$</li>
+                    <li>$\alpha_{ZO,NS}=\min(0.70;0.15)=0.15$, $r=-10$</li>
                     <li>$\alpha_{PS,ZO}=\min(0.30;0.85)=0.30$, $r=+40$</li>
-                    <li>$\alpha_{PS,PS}=\min(0.30;0.15)=0.15$, $r=+60$</li>
+                    <li>$\alpha_{PS,NS}=\min(0.30;0.15)=0.15$, $r=+10$</li>
                 </ul>
                 <div class="math-display">
                     \[
                     u^* = \frac{0.70(0)+0.15(10)+0.30(40)+0.15(60)}{0.70+0.15+0.30+0.15}
-                         = \frac{0+1.5+12+9}{1.30}
-                         = \frac{22.5}{1.30} \approx \mathbf{17.3\%}
+                         = \frac{0-1.5+12+1.5}{1.30}
+                         = \frac{12.0}{1.30} \approx \mathbf{9.2\%}
                     \]
                 </div>
             </div>
@@ -1275,13 +1133,13 @@
             <h2><i class="fas fa-book icon"></i>Tarea y Preparación para Clase 12</h2>
             <div class="alert-block">
                 <div class="block-title">[Lectura] Obligatoria</div>
-                <p>Lilly, Cap. 5, Secciones 5.1–5.3: Modelo T-S, inferencia, y el método de mínimos cuadrados para identificación de consecuentes.</p>
+                <p>Lilly, Cap. 6, Sec. 6.1 (T-S como interpolador) y Cap. 8, Sec. 8.1 y 8.4 (mínimos cuadrados para los consecuentes T-S).</p>
             </div>
             <div class="block">
                 <div class="block-title">[Tarea] T-S para TCLAB</div>
                 <p>Rediseñar el controlador de Clase 10 usando T-S Orden 0:</p>
                 <ol>
-                    <li>Reemplazar la tabla de reglas de Mamdani por la tabla T-S con valores $r_k \in \{0, 25, 50, 75, 100\}$</li>
+                    <li>Reemplazar la tabla de reglas de Mamdani por la tabla T-S con valores $r_k \in \{0, 25, 50, 75, 100\}$ (la misma tabla espejada de Clase 7)</li>
                     <li>Reemplazar <code>find_active_rules()</code> + <code>defuzz_height()</code> por la función <code>ts_infer()</code> de esta clase</li>
                     <li>Verificar que los resultados son idénticos (T-S Orden 0 ≡ Mamdani con método de altura)</li>
                     <li>Medir si hay diferencia en $t_{ciclo}$</li>
@@ -1301,7 +1159,7 @@
                     <div class="block">
                         <div class="block-title">Bibliografía Principal</div>
                         <ul style="font-size: 0.9rem;">
-                            <li><strong>Lilly, J.H.</strong> (2010). <em>Fuzzy Control and Identification</em>, <strong>Cap. 5</strong>. Wiley.</li>
+                            <li><strong>Lilly, J.H.</strong> (2010). <em>Fuzzy Control and Identification</em>, <strong>Caps. 6–8</strong>. Wiley.</li>
                             <li><strong>Takagi, T. & Sugeno, M.</strong> (1985). Fuzzy identification of systems and its applications to modeling and control. <em>IEEE Trans. SMC</em>, 15(1), 116–132.</li>
                             <li><strong>Tanaka, K. & Sugeno, M.</strong> (1992). Stability analysis and design of fuzzy control systems. <em>Fuzzy Sets and Systems</em>, 45(2), 135–156.</li>
                             <li><strong>Wang, H.O., Tanaka, K. & Griffin, M.F.</strong> (1996). An approach to fuzzy control of nonlinear systems. <em>IEEE Trans. Fuzzy Syst.</em>, 4(1).</li>
@@ -1314,7 +1172,7 @@
                         <ul style="font-size: 0.9rem;">
                             <li>MATLAB: <code>sugfis()</code> para crear sistemas T-S en Fuzzy Toolbox</li>
                             <li>scikit-fuzzy: no soporta T-S directamente (implementar manual)</li>
-                            <li>Lilly Cap. 5, Figs. 5.1–5.8</li>
+                            <li>Lilly Cap. 6, Figs. 6.1–6.3</li>
                             <li>IEEE Xplore: Takagi & Sugeno 1985</li>
                         </ul>
                     </div>
@@ -1322,47 +1180,13 @@
             </div>
         </div>
 
-        <!-- SLIDE 21: Image Notes -->
+        <!-- SLIDE 21: Superficies -->
         <div class="slide" data-slide="21">
-            <h2><i class="fas fa-image icon"></i>[Nota Docente] Imágenes Requeridas</h2>
-            <div class="alert-block">
-                <div class="block-title">Imágenes necesarias para Clase 11</div>
-                <table>
-                    <thead>
-                        <tr><th>Código</th><th>Fig. en Lilly</th><th>Descripción</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>[IMG_L5-1]</code></td>
-                            <td>Cap. 5, Fig. 5.1</td>
-                            <td>Diagrama de la arquitectura T-S: antecedentes difusos y consecuentes lineales. Insertar en la diapositiva de "Estructura del Modelo T-S".</td>
-                        </tr>
-                        <tr>
-                            <td><code>[IMG_L5-2]</code></td>
-                            <td>Cap. 5, Fig. 5.2</td>
-                            <td>Ilustración de la interpolación entre modelos locales T-S. Complementa la diapositiva de "Interpretación Geométrica".</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="example-block">
-                <div class="block-title">Figuras generadas internamente</div>
-                <ul>
-                    <li>Gráficas de comparación de velocidades (ybar): SVG inline</li>
-                    <li>Tablas de reglas coloreadas: HTML/CSS</li>
-                    <li>Diagramas de flujo de arquitecturas: SVG inline</li>
-                    <li>Gráficas de interpolación: SVG inline</li>
-                </ul>
-            </div>
-            <div class="center" style="margin-top: 20px;">
-                <div class="placeholder-img" style="padding: 25px; display: inline-block; width: 45%; margin: 5px;">
-                    <i class="fas fa-sitemap"></i>
-                    <p><strong>[IMG_L5-1]</strong><br>Arquitectura T-S<br><small>Lilly Cap. 5, Fig. 5.1</small></p>
-                </div>
-                <div class="placeholder-img" style="padding: 25px; display: inline-block; width: 45%; margin: 5px;">
-                    <i class="fas fa-chart-line"></i>
-                    <p><strong>[IMG_L5-2]</strong><br>Interpolación T-S<br><small>Lilly Cap. 5, Fig. 5.2</small></p>
-                </div>
+            <h2><i class="fas fa-cube icon"></i>Superficies de Control: Mamdani-Altura vs T-S Orden 1</h2>
+            <div class="center"><img src="imagenes/c11_superficies_ts.png" alt="Superficies de control Mamdani-altura y T-S orden 1" style="width:100%; max-height:44vh; object-fit:contain; background:#fff; border-radius:8px;"></div>
+            <div class="block">
+                <div class="block-title">Lectura</div>
+                <p>Izquierda: tabla espejada de Clase 7 con método de altura (≡ T-S orden 0). Derecha: T-S orden 1 con 3 reglas sobre $e$ (N, ZO, P) y consecuentes $y^N=15+0.5e+2\dot e$, $y^{ZO}=50+2e+5\dot e$, $y^P=85+0.5e+2\dot e$, saturados a [0, 100] %. Comparar con Lilly, Cap. 6, Fig. 6.3.</p>
             </div>
         </div>
 
@@ -1376,7 +1200,7 @@
                     e_\omega = \omega_{ref} - \omega_{actual} = 200 - 170 = \mathbf{+30\;RPM}
                     \]
                     \[
-                    \dot{e}_\omega = +15\;\text{RPM/s}
+                    \dot{e}_\omega = -\dot\omega = \mathbf{-15\;RPM/s}\quad\text{(el motor acelera: el error disminuye)}
                     \]
                 </div>
             </div>
@@ -1388,10 +1212,10 @@
                     <li>$\mu_{PS}(30) = \frac{30-0}{100-0} = \frac{30}{100} = \mathbf{0.30}$</li>
                     <li>Verificación: $0.70 + 0.30 = 1.0$ <span class="checkmark">✓</span></li>
                 </ul>
-                <p style="margin-top: 10px;">Para $\dot{e}_\omega = +15$ RPM/s (en la región ZO-PS):</p>
+                <p style="margin-top: 10px;">Para $\dot{e}_\omega = -15$ RPM/s (en la región NS-ZO):</p>
                 <ul>
-                    <li>$\mu_{ZO}(15) = \frac{100-15}{100} = \mathbf{0.85}$</li>
-                    <li>$\mu_{PS}(15) = \frac{15-0}{100} = \mathbf{0.15}$</li>
+                    <li>$\mu_{ZO}(-15) = \frac{100-15}{100} = \mathbf{0.85}$</li>
+                    <li>$\mu_{NS}(-15) = \frac{15}{100} = \mathbf{0.15}$</li>
                     <li>Verificación: $0.85 + 0.15 = 1.0$ <span class="checkmark">✓</span></li>
                 </ul>
             </div>
@@ -1408,9 +1232,9 @@
                     </thead>
                     <tbody>
                         <tr><td>$R_1$</td><td>ZO-ZO</td><td>$\min(0.70; 0.85) = 0.70$</td><td>0</td><td>0</td></tr>
-                        <tr><td>$R_2$</td><td>ZO-PS</td><td>$\min(0.70; 0.15) = 0.15$</td><td>+10</td><td>1.5</td></tr>
+                        <tr><td>$R_2$</td><td>ZO-NS</td><td>$\min(0.70; 0.15) = 0.15$</td><td>−10</td><td>−1.5</td></tr>
                         <tr><td>$R_3$</td><td>PS-ZO</td><td>$\min(0.30; 0.85) = 0.30$</td><td>+40</td><td>12</td></tr>
-                        <tr><td>$R_4$</td><td>PS-PS</td><td>$\min(0.30; 0.15) = 0.15$</td><td>+60</td><td>9</td></tr>
+                        <tr><td>$R_4$</td><td>PS-NS</td><td>$\min(0.30; 0.15) = 0.15$</td><td>+10</td><td>1.5</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1419,18 +1243,19 @@
                 <div class="math-display">
                     \[
                     u^* = \frac{\sum \alpha_k \cdot r_k}{\sum \alpha_k}
-                         = \frac{0 + 1.5 + 12 + 9}{0.70 + 0.15 + 0.30 + 0.15}
-                         = \frac{22.5}{1.30}
-                         \approx \mathbf{17.3\%}
+                         = \frac{0 - 1.5 + 12 + 1.5}{0.70 + 0.15 + 0.30 + 0.15}
+                    = \frac{12.0}{1.30}
+                    \approx \mathbf{9.2\%}
                     \]
                 </div>
             </div>
             <div class="alert-block">
                 <div class="block-title">Interpretación</div>
-                <p>El motor necesita <strong>17.3% de PWM</strong> en sentido positivo para alcanzar las 200 RPM. El valor es moderado porque:</p>
+                <p>El controlador entrega <strong>9.2% de PWM</strong> en sentido positivo. El valor es bajo porque:</p>
                 <ul>
                     <li>El error (+30 RPM) es pequeño → acción proporcional baja</li>
-                    <li>La velocidad ya está subiendo (+15 RPM/s) → acción derivativa reduce la potencia para evitar sobreimpulso</li>
+                    <li>La velocidad ya está subiendo ($\dot e = -15$ RPM/s) → la columna NS reduce la potencia para evitar sobreimpulso</li>
+                        <li>Con una tabla posicional (ZO-ZO = 0) el motor se estabilizará con un offset: es la motivación del difuso tipo PI (Clase 13)</li>
                 </ul>
             </div>
         </div>
@@ -1442,17 +1267,12 @@
                 <div class="column half">
                     <div class="block">
                         <div class="block-title">Equivalencia T-S Orden 0 = Mamdani-Altura</div>
-                        <p>Si hubiéramos usado Mamdani con método de altura y centros de salida:</p>
-                        <ul>
-                            <li>ZO → centro $c = 0\%$</li>
-                            <li>PS → centro $c = 25\%$</li>
-                        </ul>
-                        <p style="margin-top: 10px;">Con las mismas $\alpha_k$:</p>
+                        <p>Caso TCLAB de Clase 9: $e=+7$ °C, $\dot e=-2$ °C/s. Reglas activas: R12 → CB (0.30), R13 → M (0.20), R17 → M (0.47), R18 → AB (0.20).</p>
+                        <p style="margin-top: 10px;">Mamdani-altura con centros $c_k$ y T-S orden 0 con $r_k=c_k$ dan lo mismo:</p>
                         <div class="math-display">
                             \[
-                            u^* = \frac{0.70(0)+0.15(25)+0.30(25)+0.15(25)}{1.30}
-                                 = \frac{0+3.75+7.5+3.75}{1.30}
-                                 = \frac{15}{1.30} \approx 11.5\%
+                            u^* = \frac{0.30(25)+0.20(50)+0.47(50)+0.20(75)}{1.17}
+                                 = \frac{56.0}{1.17} \approx 47.9\%
                             \]
                         </div>
                     </div>
@@ -1460,7 +1280,7 @@
                 <div class="column half">
                     <div class="alert-block">
                         <div class="block-title">Diferencia clave</div>
-                        <p>Los valores difieren porque en T-S Orden 0 usamos una tabla <strong>específica</strong> con valores diseñados para el motor DC (que puede ser bidireccional y tiene diferentes ganancias por región).</p>
+                        <p>La tabla del motor DC es un T-S orden 0 con valores <strong>específicos</strong> (bipolares, con distintas ganancias por región), no restringidos a 5 centros.</p>
                         <p style="margin-top: 10px;">En Mamdani-Altura, los centros son <strong>fijos</strong> (0, 25, 50, 75, 100).</p>
                         <p style="margin-top: 10px;">En T-S Orden 0, los $r_k$ pueden ser <strong>cualquier valor</strong> y se pueden identificar automáticamente.</p>
                     </div>

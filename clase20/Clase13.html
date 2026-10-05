@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 13 - Control Difuso Tipo PD y PI</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']], processEscapes: true },
+                    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] } };
+</script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --azul-princ: #005293;
+            --azul-claro: #0078be;
+            --verde-inst: #008250;
+            --naranja: #dc6b1f;
+            --morado: #7800a0;
+            --rojo: #a00000;
+            --gris-claro: #f5f5f5;
+            --sombra: 0 4px 20px rgba(0, 82, 147, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #e8f5e9 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+        }
+        .slide {
+            position: absolute;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 750px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: var(--sombra);
+            padding: 40px 50px;
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            display: none;
+        }
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            display: block;
+            z-index: 10;
+        }
+        .slide.prev {
+            opacity: 0;
+            transform: scale(0.95) translateY(-20px);
+        }
+        h2 {
+            color: var(--azul-princ);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            border-bottom: 3px solid var(--naranja);
+            padding-bottom: 0.5rem;
+        }
+        h3 {
+            color: var(--azul-princ);
+            font-size: 1.4rem;
+            margin: 1.5rem 0 1rem 0;
+            font-weight: 600;
+        }
+        .block {
+            background: var(--gris-claro);
+            border-left: 5px solid var(--azul-princ);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .block-title {
+            background: var(--azul-princ);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 6px 6px 0 0;
+            margin: -20px -20px 15px -20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .alert-block, .warning-block, .example-block { border-left: 5px solid; border-radius: 8px; padding: 18px; margin: 12px 0; }
+        .alert-block { background: #fff3e0; border-left-color: var(--naranja); }
+        .alert-block .block-title { background: var(--naranja); }
+        .example-block { background: #e8f5e9; border-left-color: var(--verde-inst); }
+        .example-block .block-title { background: var(--verde-inst); }
+        .columns { display: flex; gap: 30px; margin: 20px 0; }
+        .column { flex: 1; }
+        .column.half { flex: 0 0 48%; }
+        ul, ol { margin-left: 25px; margin-bottom: 15px; }
+        li { margin: 8px 0; line-height: 1.6; }
+        strong { color: var(--azul-princ); }
+        .center { text-align: center; }
+        .math-display { margin: 20px 0; overflow-x: auto; }
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        pre {
+            padding: 15px;
+            overflow-x: auto;
+            border-left: 4px solid var(--azul-princ);
+            margin: 15px 0;
+            background: #f5f5f5;
+            font-size: 0.78rem;
+            line-height: 1.4;
+        }
+        code { padding: 2px 6px; font-size: 0.9em; }
+        pre code { padding: 0; background: none; }
+        .code-cpp { border-left-color: #00599C; }
+        .code-python { border-left-color: #3776AB; }
+        .keyword { color: #0000FF; font-weight: bold; }
+        .comment { color: #008000; font-style: italic; }
+        .string { color: #A31515; }
+        .number { color: #098658; }
+        .function { color: #795E26; }
+        .type { color: #267F99; }
+        .preprocessor { color: #800000; }
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(255,255,255,0.95);
+            padding: 12px 30px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .nav-btn {
+            background: var(--azul-princ);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-btn:hover { background: var(--naranja); transform: scale(1.1); }
+        .nav-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .slide-counter {
+            font-weight: 600;
+            color: var(--azul-princ);
+            font-size: 1rem;
+            min-width: 80px;
+            text-align: center;
+        }
+        .title-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        .title-slide h1 {
+            font-size: 2.3rem;
+            color: var(--azul-princ);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        .title-slide .subtitle {
+            font-size: 1.3rem;
+            color: var(--naranja);
+            margin-bottom: 2rem;
+        }
+        .title-slide .author { font-size: 1.2rem; color: #666; margin: 0.5rem 0; }
+        .title-slide .institute {
+            font-size: 1.1rem;
+            color: var(--azul-princ);
+            margin-top: 2rem;
+            font-weight: 600;
+        }
+        .overlay-content { opacity: 0; transition: opacity 0.4s ease; }
+        .overlay-content.visible { opacity: 1; }
+        .toc-item {
+            padding: 12px 20px;
+            margin: 8px 0;
+            background: var(--gris-claro);
+            border-radius: 8px;
+            border-left: 4px solid var(--azul-princ);
+            transition: all 0.3s;
+        }
+        .toc-item:hover { background: #e3f2fd; transform: translateX(5px); }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        th, td { padding: 10px; text-align: center; border: 1px solid #ddd; }
+        th { background: var(--azul-princ); color: white; font-weight: 600; }
+        tr:nth-child(even) { background: #f5f5f5; }
+        .icon { margin-right: 8px; color: var(--naranja); }
+        @media (max-width: 968px) {
+            .columns { flex-direction: column; }
+            .column.half { flex: 1; }
+            h2 { font-size: 1.5rem; }
+            .slide { padding: 25px 30px; }
+            .title-slide h1 { font-size: 2rem; }
+            pre { font-size: 0.68rem; }
+        }
+        .checkmark { color: var(--verde-inst); font-weight: bold; }
+        .flow-box {
+            background: rgba(0,82,147,0.08);
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        .flow-box.highlight { background: rgba(220,107,31,0.15); border-color: var(--naranja); }
+        .flow-box.green { background: rgba(0,130,80,0.12); border-color: var(--verde-inst); }
+        .arrow-down, .arrow-right {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--azul-princ);
+            margin: 5px 0;
+        }
+        .placeholder-img {
+            background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+            border: 2px dashed var(--azul-princ);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .placeholder-img i {
+            font-size: 3rem;
+            color: var(--azul-princ);
+            margin-bottom: 15px;
+            display: block;
+        }
+        .architecture-diagram {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .comparison-table { font-size: 0.85rem; }
+        .comparison-table th {
+            background: var(--azul-princ);
+            color: white;
+            padding: 12px;
+        }
+        .comparison-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .quote-box {
+            background: rgba(0,82,147,0.05);
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: var(--azul-princ);
+            text-align: center;
+        }
+        .activity-box {
+            background: white;
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+        }
+        .activity-number {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--azul-princ);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .response-graph {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- SLIDE 1: Title -->
+        <div class="slide active" data-slide="1">
+            <div class="title-slide">
+                <h1>Control Difuso Tipo PD y PI:<br>Diseño Robusto y Análisis de Estabilidad</h1>
+                <div class="subtitle">Clase 13 | Unidad 3: Control Avanzado y Comparativa | Semana 7 | Teórica | 90 min</div>
+                <div class="author">Curso de Control Difuso</div>
+                <div class="author">Ingeniería en Control y Automatización</div>
+                <div class="institute">Referencia: Lilly, Cap. 4 (Secs. 4.4–4.5)</div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Table of Contents -->
+        <div class="slide" data-slide="2">
+            <h2><i class="fas fa-list icon"></i>Contenido de la Sesión</h2>
+            <div class="toc-item">1. Objetivos Específicos y Secuencia Didáctica</div>
+            <div class="toc-item">2. El Error Pendiente: Limitación del PD Difuso</div>
+            <div class="toc-item">3. Difuso PD y su Limitación</div>
+            <div class="toc-item">4. Difuso PI Incremental</div>
+            <div class="toc-item">5. Análisis de Estabilidad</div>
+            <div class="toc-item">6. Ejercicio en Clase</div>
+            <div class="toc-item">7. Cierre y Comparativa Final</div>
+            <div class="toc-item">8. Material Complementario</div>
+        </div>
+
+        <!-- SLIDE 3: Objectives -->
+        <div class="slide" data-slide="3">
+            <h2><i class="fas fa-bullseye icon"></i>Objetivos Específicos</h2>
+            <div class="block">
+                <div class="block-title">Competencias a Desarrollar</div>
+                <ol>
+                    <li><strong>Explicar</strong> por qué el controlador difuso PD tiene error en estado estacionario y cómo la estructura PI lo elimina.</li>
+                    <li><strong>Construir</strong> la tabla de reglas de un controlador difuso PI (salida incremental Δu) para el TCLAB.</li>
+                    <li><strong>Aplicar</strong> el criterio de monotonia para verificar la estabilidad de una tabla de reglas difusa.</li>
+                    <li><strong>Aplicar</strong> el criterio de estabilidad local (linealización + Jury) del difuso PI con planta de primer orden, y reconocer sus límites cuando hay retardo.</li>
+                    <li><strong>Identificar</strong> las celdas críticas de la tabla de reglas que generan sobreimpulso y proponer su reducción.</li>
+                </ol>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="flow-box green">
+                        <i class="fas fa-check-circle" style="color: var(--verde-inst);"></i><br>
+                        <strong>[OK] Cl. 5-12:</strong> Mamdani y T-S completos
+                    </div>
+                    <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                    <div class="flow-box highlight">
+                        <i class="fas fa-star" style="color: var(--naranja);"></i><br>
+                        <strong>[Hoy] Cl. 13:</strong> Difuso PD y PI
+                    </div>
+                    <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                    <div class="flow-box">
+                        <i class="far fa-circle" style="color: #999;"></i><br>
+                        <strong>[ ] Cl. 14:</strong> Lab: Sintonización
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block">
+                        <div class="block-title">Duración: 90 minutos</div>
+                        <ul style="font-size: 0.9rem;">
+                            <li>Apertura: 0-12 min</li>
+                            <li>Bloque 1 (Difuso PD): 12-28 min</li>
+                            <li>Bloque 2 (Difuso PI): 28-50 min</li>
+                            <li>Bloque 3 (Estabilidad): 50-65 min</li>
+                            <li>Ejercicio: 65-80 min</li>
+                            <li>Cierre: 80-90 min</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Opening Activity -->
+        <div class="slide" data-slide="4">
+            <h2><i class="fas fa-play-circle icon"></i>Apertura: El Error Pendiente (0-12 min)</h2>
+            <div class="alert-block">
+                <div class="block-title">Actividad de Apertura: Diagnóstico del Lab 12</div>
+                <p>Mostrar en pantalla los resultados del Lab 12 (tabla de métricas):</p>
+                <div class="quote-box" style="margin: 15px 0; font-size: 1.1rem;">
+                    "Mirando los resultados del Motor DC: el T-S Orden 1 mejoró el sobreimpulso pero todavía tienen error en estado estacionario de X RPM. <strong>¿Por qué? ¿Cómo lo eliminarían?</strong>"
+                </div>
+                <p>Recoger respuestas: algunos dirán "agregar integral", otros "ajustar la tabla", otros "aumentar la ganancia". Todas son válidas pero tienen consecuencias diferentes.</p>
+                <p style="margin-top: 10px;"><strong>Conectar:</strong> hoy se estudia la forma <strong>formal y estructurada</strong> de agregar acción integral al controlador difuso.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Fuzzy PD Limitation -->
+        <div class="slide" data-slide="5">
+            <h2><i class="fas fa-exclamation-triangle icon"></i>Bloque 1: Difuso PD y su Limitación (12-28 min)</h2>
+            <div class="block">
+                <div class="block-title">Desarrollo: Difuso PD</div>
+                <ol>
+                    <li>Mostrar el diagrama de bloques del difuso PD y su analogía con el PD clásico. Enfatizar: la salida $u$ es <strong>absoluta</strong>.</li>
+                    <li>Preguntar: "Si $e=0$ y $\dot{e}=0$, ¿qué da la tabla?" Respuesta: la celda ZO-ZO, que en TCLAB = M = 50%. Pero a 45 °C la planta solo necesita ≈ 37%: el difuso se equilibra con la planta sobrecalentada (≈ 3,6 °C en simulación) → <strong>ESE</strong> (Error en Estado Estacionario).</li>
+                    <li>Mostrar la sección $\dot e=0$ de la superficie: ganancia ≈ 2,5 %/°C cerca de $e=0$ y salida limitada a [25, 75] %.</li>
+                </ol>
+            </div>
+            <div class="alert-block">
+                <div class="block-title">Problema del PD Difuso</div>
+                <div class="math-display">
+                    \[
+                    u = f(e, \dot{e}) \quad \text{(salida absoluta)}
+                    \]
+                </div>
+                <p>Cuando $e=0$ y $\dot{e}=0$, la tabla da un valor fijo (ej: 50%). Si la planta necesita menos potencia en equilibrio, el error persiste.</p>
+            </div>
+        <div style="display:flex; gap:10px; margin:8px 0;"><img src="imagenes/c13_seccion_pd.png" alt="Sección e-u de la superficie del difuso PD frente al PD lineal" style="width:50%; max-height:26vh; object-fit:contain; background:#fff; border-radius:8px;"><img src="imagenes/c13_ese.png" alt="Simulación TCLAB: difuso PD con offset y difuso PI sin offset" style="width:50%; max-height:26vh; object-fit:contain; background:#fff; border-radius:8px;"></div>
+        </div>
+
+        <!-- SLIDE 6: Fuzzy PI Incremental -->
+        <div class="slide" data-slide="6">
+            <h2><i class="fas fa-plus-circle icon"></i>Bloque 2: Difuso PI Incremental (28-50 min)</h2>
+            <div class="block">
+                <div class="block-title">Desarrollo: Difuso PI</div>
+                <ol>
+                    <li><strong>La idea clave:</strong> cambiar la salida de absoluta a incremental. Escribir en el pizarrón:
+                        <div class="math-display">
+                            \[ u(k) = u(k-1) + \underbrace{f(e, \Delta e)}_{\Delta u} \]
+                        </div>
+                        Preguntar: "Si $e=0$ y $\Delta e=0$: ¿qué da $\Delta u$?" Respuesta: la celda ZO-ZO = 0. Entonces $u(k) = u(k-1)$: el control se queda fijo en el valor que eliminó el error.
+                    </li>
+                    <li><strong>Construir la tabla en vivo:</strong> pedir a los estudiantes que completen celda por celda, razonando "si está muy frío ($e$ grande positivo) y aún se enfría, ¿cuánto debo aumentar la potencia?"</li>
+                    <li><strong>Anti-windup:</strong> dibujar en pizarrón qué ocurre si el motor llega a 100% PWM y el integrador sigue sumando. Mostrar el código de protección.</li>
+                </ol>
+            </div>
+            <div class="example-block">
+                <div class="block-title">Ventaja del PI Incremental</div>
+                <div class="math-display">
+                    \[
+                    \Delta u(k) = f(e(k), \Delta e(k)) \qquad \Delta e(k) = e(k) - e(k-1)
+                    \]
+                    \[
+                    u(k) = u(k-1) + \Delta u(k)
+                    \]
+                </div>
+                <p>En equilibrio ($e=0$, $\Delta e=0$): $\Delta u = 0$ → $u(k) = u(k-1)$ (se mantiene el valor que eliminó el error).</p>
+            </div>
+        <div class="center" style="margin:10px 0;"><img src="imagenes/c13_diagrama_pi.png" alt="Diagrama de bloques del difuso PI incremental" style="width:100%; max-height:16vh; object-fit:contain; background:#fff; border-radius:8px;"></div>
+        </div>
+
+        <!-- SLIDE 7: PI Table Design -->
+        <div class="slide" data-slide="7">
+            <h2><i class="fas fa-table icon"></i>Tabla PI Difuso 5×3 para TCLAB</h2>
+            <div class="center">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>$e \backslash \Delta e$</th>
+                            <th>N</th>
+                            <th>ZO</th>
+                            <th>P</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">NB</strong></td>
+                            <td style="background: #ffcccc; font-weight: bold;">-5</td>
+                            <td style="background: #ffcccc; font-weight: bold;">-5</td>
+                            <td style="background: #ffe6cc;">-2.5</td>
+                        </tr>
+                        <tr>
+                            <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">NS</strong></td>
+                            <td style="background: #ffcccc; font-weight: bold;">-5</td>
+                            <td style="background: #ffe6cc;">-2.5</td>
+                            <td style="background: #f0f0f0;">0</td>
+                        </tr>
+                        <tr>
+                            <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">ZO</strong></td>
+                            <td style="background: #ffe6cc;">-2.5</td>
+                            <td style="background: #ffffcc; font-weight: bold;">0</td>
+                            <td style="background: #ffe6cc;">+2.5</td>
+                        </tr>
+                        <tr>
+                            <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">PS</strong></td>
+                            <td style="background: #f0f0f0;">0</td>
+                            <td style="background: #ffe6cc;">+2.5</td>
+                            <td style="background: #ffcccc; font-weight: bold;">+5</td>
+                        </tr>
+                        <tr>
+                            <td style="background: var(--azul-princ); color: white;"><strong style="color: white;">PB</strong></td>
+                            <td style="background: #ffe6cc;">+2.5</td>
+                            <td style="background: #ffcccc; font-weight: bold;">+5</td>
+                            <td style="background: #ffcccc; font-weight: bold;">+5</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p style="margin-top: 10px; font-size: 0.9rem;"><strong>Δu en %/paso</strong> (Δt = 1 s) | Filas: error $e=T_{ref}-T$ (NB→PB) | Columnas: $\Delta e \in [-0.2, 0.2]$ °C/paso (N→P)</p>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block">
+                        <div class="block-title">Lectura de la tabla</div>
+                        <ul>
+                            <li>Celda ZO-ZO = <strong>0</strong>: sin cambio en equilibrio</li>
+                            <li>Valores positivos = incrementar potencia (falta calor: $e&gt;0$)</li>
+                            <li>Valores negativos = decrementar potencia</li>
+                            <li>Tabla <strong>monótona</strong>: mayor error → mayor acción</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block">
+                        <div class="block-title">Anti-windup</div>
+                        <p>Protección contra saturación:</p>
+                        <pre style="font-size: 0.75rem; margin-top: 10px;"><code>if (u &lt; 0) u = 0;
+if (u &gt; 100) u = 100;
+// Solo integrar si no saturado
+// o si va en dirección correcta</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Stability Analysis -->
+        <div class="slide" data-slide="8">
+            <h2><i class="fas fa-shield-alt icon"></i>Bloque 3: Análisis de Estabilidad (50-65 min)</h2>
+            <div class="block">
+                <div class="block-title">Desarrollo: Estabilidad</div>
+                <ol>
+                    <li><strong>Criterio de monotonia:</strong> mostrar las dos tablas (monótona vs no-monótona) y pedir que identifiquen la celda problemática.</li>
+                    <li><strong>Estabilidad local:</strong> aplicar la condición de Jury para el TCLAB y discutir por qué no basta (ignora el retardo de ≈15 s; verificar por simulación).</li>
+                    <li><strong>Sintonización anti-sobreimpulso:</strong> mostrar las celdas críticas (PS-NS, PS-NN, ZO-NS, ZO-NN) y por qué su reducción ayuda.</li>
+                </ol>
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block">
+                        <div class="block-title">Criterio de Monotonía</div>
+                        <p>Una tabla $T[i][j]$ es <strong>monótona no decreciente</strong> si:</p>
+                        <div class="math-display">
+                            \[
+                            T[i_1][j] \leq T[i_2][j] \quad \text{cuando } i_1 < i_2
+                            \]
+                            \[
+                            T[i][j_1] \leq T[i][j_2] \quad \text{cuando } j_1 < j_2
+                            \]
+                        </div>
+                        <p style="margin-top: 10px;">Mayor desviación → mayor acción de control.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block">
+                        <div class="block-title">Estabilidad local (planta 1er orden, sin retardo)</div>
+                        <p>$y(k+1)=a\,y(k)+b\,u(k)$, $a=e^{-\Delta t/T}$, $b=K(1-a)$, $k_i=\partial\Delta u/\partial e$:</p>
+                        <div class="math-display">
+                            \[
+                            0 < k_i < \frac{2(1+a)}{K(1-a)} \approx \frac{4T}{K\Delta t}
+                            \]
+                        </div>
+                        <p>TCLAB: $K=0.6$ °C/%, $T=160$ s, $\Delta t=1$ s → límite ≈ 1070 %/°C por paso; la tabla da $k_i\approx0.17$.</p>
+                        <p style="margin-top: 10px;">Pero el criterio <strong>ignora el retardo</strong> (θ ≈ 15 s): con ±10 %/paso a Δt = 0.1 s la simulación oscila. Verificar siempre por simulación.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: Exercise -->
+        <div class="slide" data-slide="9">
+            <h2><i class="fas fa-pencil-alt icon"></i>Ejercicio en Clase (65-80 min)</h2>
+            <div class="alert-block">
+                <div class="block-title">Ejercicio en Parejas: Diseño Completo del PI Difuso</div>
+                <p>Resolver la hoja de trabajo: diseño completo del difuso PI para el Motor DC con las particiones definidas en Clase 12.</p>
+                <div class="quote-box" style="margin: 15px 0;">
+                    <strong>Datos:</strong> Motor DC, universo del error $[-300,+300]$ RPM, universo de $\Delta e$ $[-30,+30]$ RPM/paso, salida $\Delta u$ $[-15,+15]$%. (Recordar: $e=\omega_{ref}-\omega$; $e&gt;0$ → aumentar $u$.)
+                </div>
+                <p><strong>Los estudiantes deben:</strong></p>
+                <ol>
+                    <li>Diseñar la tabla $5\times3$</li>
+                    <li>Verificar monotonia</li>
+                    <li>Calcular el límite de estabilidad local (si conocen $K$ y $T$) y discutir el efecto del retardo</li>
+                    <li>Identificar las 4 celdas a reducir para minimizar sobreimpulso</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: Closing -->
+        <div class="slide" data-slide="10">
+            <h2><i class="fas fa-flag-checkered icon"></i>Cierre (80-90 min)</h2>
+            <div class="block">
+                <div class="block-title">Cierre</div>
+                <p>Mostrar la tabla comparativa final (PID vs Difuso PD vs PI vs PID difuso).</p>
+                <div class="quote-box" style="margin: 15px 0; font-size: 1.1rem;">
+                    <strong>Pregunta:</strong> "¿En qué aplicación real elegirían el difuso PI sobre el PID?"
+                </div>
+                <p><strong>Respuesta esperada:</strong> cuando la planta es no lineal y el operador puede definir reglas (industria de alimentos, hornos, reactores).</p>
+                <p style="margin-top: 10px;">Dar instrucciones de la tarea.</p>
+            </div>
+            <div class="alert-block">
+                <div class="block-title">Tarea – Entrega inicio Clase 14</div>
+                <ol>
+                    <li>Implementar <code>fuzzy_pi_update()</code> del material de clase en el sketch del TCLAB. Probar con simulación (planta de primer orden del sketch de Clase 10). Comparar gráfica PD vs PI difuso.</li>
+                    <li>Para el Motor DC (Clase 12): identificar las 4 celdas críticas de sobreimpulso y reducirlas. Medir la mejora en $M_p$.</li>
+                    <li>Lectura: Lilly, Cap. 4, Secciones 4.4–4.5.</li>
+                    <li>Completar la hoja de trabajo si no terminó en clase.</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: Comparison Table -->
+        <div class="slide" data-slide="11">
+            <h2><i class="fas fa-table icon"></i>Comparativa Final: PID vs Difusos</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Característica</th>
+                        <th>PID Clásico</th>
+                        <th>Difuso PD</th>
+                        <th>Difuso PI</th>
+                        <th>PID Difuso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left;"><strong>Estructura</strong></td>
+                        <td>Lineal</td>
+                        <td>No lineal</td>
+                        <td>No lineal</td>
+                        <td>No lineal</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;"><strong>Error estacionario</strong></td>
+                        <td>Cero (con I)</td>
+                        <td>Presente</td>
+                        <td>Cero</td>
+                        <td>Cero</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;"><strong>Sintonización</strong></td>
+                        <td>Fórmulas (Ziegler-Nichols)</td>
+                        <td>Reglas experto</td>
+                        <td>Reglas experto</td>
+                        <td>Compleja</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;"><strong>No linealidad</strong></td>
+                        <td>No maneja</td>
+                        <td>Maneja bien</td>
+                        <td>Maneja bien</td>
+                        <td>Maneja mejor</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;"><strong>Complejidad</strong></td>
+                        <td>Baja</td>
+                        <td>Media</td>
+                        <td>Media</td>
+                        <td>Alta (125 reglas)</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;"><strong>Aplicación típica</strong></td>
+                        <td>Plantas lineales</td>
+                        <td>PD simple</td>
+                        <td>Plantas no lineales</td>
+                        <td>Sistemas complejos</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SLIDE 12: Supplementary Material -->
+        <div class="slide" data-slide="12">
+            <h2><i class="fas fa-book icon"></i>Material Complementario</h2>
+            <div class="block">
+                <div class="block-title">Resumen Teórico</div>
+                <p><strong>Estructura del Difuso PI: Derivación Formal</strong></p>
+                <p>El controlador difuso PI incremental se define como:</p>
+                <div class="math-display">
+                    \[
+                    \Delta u(k) = f\!\left(e(k),\; \Delta e(k)\right)
+                    \qquad \Delta e(k) = e(k) - e(k-1)
+                    \]
+                    \[
+                    u(k) = u(k-1) + \Delta u(k)
+                    \]
+                </div>
+                <p>Para demostrar que esto equivale a una acción integral, desarrollamos:</p>
+                <div class="math-display">
+                    \[
+                    u(k) = u(0) + \sum_{j=1}^{k} \Delta u(j)
+                         = u(0) + \sum_{j=1}^{k} f\!\left(e(j), \Delta e(j)\right)
+                    \]
+                </div>
+                <p>Si $f$ es lineal con $f(e, \Delta e) = K_I \cdot e + K_P \cdot \Delta e$:</p>
+                <div class="math-display">
+                    \[
+                    u(k) = u(0) + K_I \sum_{j=1}^k e(j) + K_P \sum_{j=1}^k \Delta e(j)
+                    \]
+                </div>
+                <p>El primer término de la suma es la <strong>integral discreta</strong> del error. El segundo se colapsa: $\sum \Delta e = e(k) - e(0)$.</p>
+                <p style="margin-top: 10px;">Esta es exactamente la estructura del controlador PID discreto en <strong>forma de posición</strong>. El difuso PI es, por tanto, una generalización no lineal del PI discreto.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: Code Implementation -->
+        <div class="slide" data-slide="13">
+            <h2><i class="fas fa-code icon"></i>Implementación en C++</h2>
+            <pre class="code-cpp"><code>/**
+ * fuzzy_pi_tclab.h
+ * Controlador Difuso tipo PI (incremental) para TCLAB
+ * Clase 13 | Control Difuso | Arduino UNO
+ * e = Tref - T [C], delta_e = e(k) - e(k-1) [C/paso], paso = 1 s
+ */
+#ifndef FUZZY_PI_TCLAB_H
+#define FUZZY_PI_TCLAB_H
+
+#include "fuzzy_types.h"
+#include "fuzzy_mf.h"
+
+// ---- Tabla PI 5x3 (delta_u en %/paso) ----
+// Filas: e = NB..PB ; columnas: delta_e = N, ZO, P
+const float PI_TABLE[5][3] = {
+    { -5.0f,  -5.0f,  -2.5f},  // NB (muy caliente)
+    { -5.0f,  -2.5f,   0.0f},  // NS
+    { -2.5f,   0.0f,   2.5f},  // ZO
+    {  0.0f,   2.5f,   5.0f},  // PS
+    {  2.5f,   5.0f,   5.0f},  // PB (muy frio)
+};
+
+// ---- Particion de delta_e: N, ZO, P en [-0.2, 0.2] C/paso (Ruspini) ----
+void fuzz_de_pi(float d, float mu[3]) {
+    mu[0] = ltrap(d, -0.2f, 0.0f);
+    mu[1] = trimf(d, (TriMF){-0.2f, 0.0f, 0.2f});
+    mu[2] = rtrap(d,  0.0f, 0.2f);
+}
+
+// ---- Estado del integrador ----
+static float u_pi = 0.0f;   // arranque sin salto
+
+// ---- Inferencia PI difuso ----
+float fuzzy_pi_update(float e, float delta_e) {
+    FuzzyDegrees me = fuzzify_error(e);      // 5 terminos (Clase 8)
+    float mu_de[3];
+    fuzz_de_pi(delta_e, mu_de);
+
+    float num = 0.0f, den = 0.0f;
+    for (uint8_t i = 0; i &lt; N_TERMS; i++) {
+        if (me.mu[i] &lt; 0.001f) continue;
+        for (uint8_t j = 0; j &lt; 3; j++) {
+            if (mu_de[j] &lt; 0.001f) continue;
+            float alpha = fmin2(me.mu[i], mu_de[j]);
+            num += alpha * PI_TABLE[i][j];
+            den += alpha;
+        }
+    }
+    float delta_u = (den &gt; 1e-6f) ? (num / den) : 0.0f;
+
+    // Integrar y saturar: en forma incremental, recortar u
+    // es el anti-windup (no queda integral "escondida")
+    u_pi = constrain(u_pi + delta_u, 0.0f, 100.0f);
+    return u_pi;
+}
+
+#endif</code></pre>
+        </div>
+
+        <!-- SLIDE 14: Python Script -->
+        <div class="slide" data-slide="14">
+            <h2><i class="fab fa-python icon"></i>Script Python: Comparativa PD vs PI</h2>
+            <pre class="code-python"><code>"""
+compare_pd_pi.py
+Comparativa: Difuso PD (Clase 10) vs Difuso PI incremental (Clase 13) en el TCLAB
+Planta simulada FOPDT: K = 0.6 C/%, tau = 160 s, retardo theta = 15 s
+Clase 13 - Control Difuso
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+
+DT, T_MAX, T_REF, T0 = 1.0, 900.0, 45.0, 23.0     # paso de 1 s
+K, TAU, THETA = 0.6, 160.0, 15.0
+
+def trimf(x, a, b, c):
+    return max(0.0, min((x - a) / (b - a), (c - x) / (c - b)))
+def trapmf(x, a, b, c, d):
+    return max(0.0, min((x - a) / (b - a), 1.0, (d - x) / (d - c)))
+
+# ---- Particiones del curso (e = Tref - T) ----
+def mu_e(e):        # NB NS ZO PS PB
+    return [trapmf(e, -40, -30, -20, -10), trimf(e, -30, -15, 0), trimf(e, -10, 0, 10),
+            trimf(e, 0, 15, 30), trapmf(e, 10, 20, 30, 40)]
+def mu_de(de):      # NN NS ZO PS PP  (de en C/s)
+    return [trapmf(de, -7, -6, -5, -2.5), trimf(de, -5, -2.5, 0), trimf(de, -2.5, 0, 2.5),
+            trimf(de, 0, 2.5, 5), trapmf(de, 2.5, 5, 6, 7)]
+def mu_dpi(d, w=0.2):  # N ZO P  (De en C/paso, Ruspini)
+    return [trapmf(d, -9 * w, -8 * w, -w, 0), trimf(d, -w, 0, w), trapmf(d, 0, w, 8 * w, 9 * w)]
+
+# ---- Difuso PD (tabla espejada de Clase 7, metodo de altura) ----
+RULES = [[0, 0, 1, 1, 2], [0, 1, 1, 1, 2], [1, 1, 2, 3, 3], [1, 2, 3, 3, 4], [2, 3, 3, 4, 4]]
+CENT = [0, 25, 50, 75, 100]
+def pd_fuzzy(e, de):
+    me, md = mu_e(e), mu_de(de); num = den = 0.0
+    for i in range(5):
+        for j in range(5):
+            a = min(me[i], md[j])
+            num += a * CENT[RULES[i][j]]; den += a
+    return num / den if den &gt; 1e-9 else 50.0
+
+# ---- Difuso PI (tabla 5x3, Delta_u en %/paso) ----
+PI_TABLE = [[-5, -5, -2.5], [-5, -2.5, 0], [-2.5, 0, 2.5], [0, 2.5, 5], [2.5, 5, 5]]
+def pi_fuzzy(e, de_paso, u_prev):
+    me, md = mu_e(e), mu_dpi(de_paso); num = den = 0.0
+    for i in range(5):
+        for j in range(3):
+            a = min(me[i], md[j])
+            num += a * PI_TABLE[i][j]; den += a
+    du = num / den if den &gt; 1e-9 else 0.0
+    return float(np.clip(u_prev + du, 0, 100))   # integrar + saturar (anti-windup)
+
+# ---- Simulacion ----
+def simulate(kind):
+    n = int(T_MAX / DT) + 1; d = int(THETA / DT)
+    T = np.full(n, T0); u = np.zeros(n); e_prev = T_REF - T0; u_pi = 0.0
+    for k in range(1, n):
+        e = T_REF - T[k - 1]; de = e - e_prev; e_prev = e
+        if kind == 'PD': u[k - 1] = pd_fuzzy(e, de / DT)
+        else:            u_pi = pi_fuzzy(e, de, u_pi); u[k - 1] = u_pi
+        ud = u[k - 1 - d] if k - 1 - d &gt;= 0 else 0.0
+        T[k] = T[k - 1] + DT / TAU * (-(T[k - 1] - T0) + K * ud)
+    u[-1] = u[-2]
+    return T, u
+
+t = np.arange(int(T_MAX / DT) + 1) * DT
+T_pd, u_pd = simulate('PD'); T_pi, u_pi = simulate('PI')
+for name, T in [('PD', T_pd), ('PI', T_pi)]:
+    print(f"{name}: T final = {T[-1]:.2f} C, IAE = {np.sum(np.abs(T_REF - T)) * DT:.0f} C*s")
+
+fig, ax = plt.subplots(2, 1, figsize=(11, 7), sharex=True)
+ax[0].plot(t, T_pd, 'r--', lw=2, label='Difuso PD'); ax[0].plot(t, T_pi, 'b-', lw=2, label='Difuso PI')
+ax[0].axhline(T_REF, color='k', ls='--'); ax[0].set_ylabel('T (C)'); ax[0].legend(); ax[0].grid(alpha=.3)
+ax[1].plot(t, u_pd, 'r--', t, u_pi, 'b-'); ax[1].set_ylabel('u (%)'); ax[1].set_xlabel('Tiempo (s)'); ax[1].grid(alpha=.3)
+plt.tight_layout(); plt.savefig('pd_vs_pi.png', dpi=150); plt.show()</code></pre>
+        </div>
+
+        <!-- SLIDE 15: Discussion Questions -->
+        <div class="slide" data-slide="15">
+            <h2><i class="fas fa-comments icon"></i>Preguntas para Discusión</h2>
+            <div class="block">
+                <ol>
+                    <li>El difuso PI tiene la integral <em>implícita</em>. ¿Puede tener problemas de windup igual que el PID? ¿Cómo se manifiesta?</li>
+                    <li>Si la celda ZO-ZO de la tabla PI difuso es ≠ 0 (por ejemplo, +2%), ¿elimina el error en estado estacionario? ¿Por qué no?</li>
+                    <li>¿Por qué el universo de $\Delta e$ (cambio de error por paso) es mucho más estrecho que el universo de $\dot{e}$ (derivada continua)? Dar valores numéricos para el TCLAB a 10 Hz.</li>
+                    <li>En el criterio de monotonia, se exige que la tabla sea monótona en filas y columnas. ¿Es posible tener una tabla monótona en filas pero no en columnas? ¿Qué implicaría para la estabilidad?</li>
+                    <li>El difuso PID tiene $5^3 = 125$ reglas. ¿Hay formas de reducir ese número sin perder mucho desempeño? (Pista: usar T-S Orden 1 en el consecuente.)</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: References -->
+        <div class="slide" data-slide="16">
+            <h2><i class="fas fa-book-reader icon"></i>Referencias</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Bibliografía Principal</div>
+                        <ul style="font-size: 0.9rem;">
+                            <li><strong>Lilly, J.H.</strong> (2010). <em>Fuzzy Control and Identification</em>, <strong>Cap. 4</strong>, Secciones 4.4–4.5. Wiley.</li>
+                            <li><strong>Driankov, D., Hellendoorn, H. & Reinfrank, M.</strong> (1993). <em>An Introduction to Fuzzy Control</em>, Cap. 6. Springer.</li>
+                            <li><strong>He, S.Z., Tan, S. & Xu, F.L.</strong> (1993). Fuzzy self-tuning of PID controllers. <em>Fuzzy Sets and Systems</em>, 56(1), 37–46.</li>
+                            <li><strong>Haj-Ali, A. & Ying, H.</strong> (2004). Structural analysis of fuzzy controllers with nonlinear input fuzzy sets. <em>Automatica</em>, 40(7), 1205–1216.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">Recursos Online</div>
+                        <ul style="font-size: 0.9rem;">
+                            <li>Lilly Cap. 4, Figs. 4.27–4.31</li>
+                            <li>Código Python: compare_pd_pi.py</li>
+                            <li>Hoja de trabajo del estudiante</li>
+                            <li>Material complementario PDF</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="quote-box">
+                "El control difuso PI combina lo mejor de ambos mundos: la adaptabilidad no lineal del control difuso con la eliminación del error en estado estacionario de la acción integral."
+            </div>
+        </div>
+
+        <!-- SLIDE 17: Figuras -->
+        <div class="slide" data-slide="17">
+            <h2><i class="fas fa-chart-line icon"></i>Comparativa Simulada: PI clásico, Difuso PD y Difuso PI</h2>
+            <div class="center" style="margin:10px 0;"><img src="imagenes/c13_pd_vs_pi.png" alt="Simulación TCLAB: PI clásico, difuso PD y difuso PI" style="width:100%; max-height:50vh; object-fit:contain; background:#fff; border-radius:8px;"></div>
+            <div class="block">
+                <div class="block-title">Lectura</div>
+                <p>Modelo FOPDT del TCLAB ($K=0.6$ °C/%, $\tau=160$ s, $\theta=15$ s). El difuso PD queda ≈ 3,6 °C por encima; el difuso PI (tabla 5×3, Δt = 1 s) elimina el error con $M_p\approx4\%$. Todas las figuras se generan con <code>imagenes/generar_imagenes.py</code>.</p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="slide-counter">
+                <span id="currentSlide">1</span> / <span id="totalSlides">17</span>
+            </div>
+            <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 17;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            const prevSlide = document.querySelector('.slide.active');
+            const newSlide = document.querySelector(`.slide[data-slide="${n}"]`);
+            if (!newSlide || n < 1 || n > totalSlides) return;
+            if (prevSlide) {
+                prevSlide.classList.remove('active');
+                if (n > currentSlide) {
+                    prevSlide.classList.add('prev');
+                    setTimeout(() => prevSlide.classList.remove('prev'), 600);
+                }
+            }
+            newSlide.classList.remove('prev');
+            newSlide.classList.add('active');
+            newSlide.querySelectorAll('.overlay-content').forEach(el => el.classList.remove('visible'));
+            const firstOverlay = newSlide.querySelector('[data-overlay="1"]');
+            if (firstOverlay) setTimeout(() => firstOverlay.classList.add('visible'), 300);
+            currentSlide = n;
+            updateCounter();
+            updateButtons();
+            if (window.MathJax && window.MathJax.typesetPromise) MathJax.typesetPromise([newSlide]);
+        }
+
+        function changeSlide(direction) {
+            if (direction === 1) {
+                const currentSlideEl = document.querySelector(`.slide[data-slide="${currentSlide}"]`);
+                const allOverlays = Array.from(currentSlideEl.querySelectorAll('[data-overlay]'))
+                    .sort((a, b) => parseInt(a.dataset.overlay) - parseInt(b.dataset.overlay));
+                let nextOverlay = null;
+                for (let overlay of allOverlays) {
+                    if (!overlay.classList.contains('visible')) { nextOverlay = overlay; break; }
+                }
+                if (nextOverlay) nextOverlay.classList.add('visible');
+                else showSlide(currentSlide + 1);
+            } else showSlide(currentSlide - 1);
+        }
+
+        function updateCounter() { document.getElementById('currentSlide').textContent = currentSlide; }
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+        });
+
+        let touchStartX = 0, touchEndX = 0;
+        document.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            if (touchEndX < touchStartX - 50) changeSlide(1);
+            else if (touchEndX > touchStartX + 50) changeSlide(-1);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCounter();
+            updateButtons();
+            setTimeout(() => {
+                const firstOverlay = document.querySelector('.slide.active [data-overlay="1"]');
+                if (firstOverlay) firstOverlay.classList.add('visible');
+            }, 300);
+        });
+    </script>
+</body>
+</html>

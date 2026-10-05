@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clase 14 - Laboratorio: Sintonización y Ajuste Fino</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']], processEscapes: true },
+                    options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] } };
+</script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --azul-princ: #005293;
+            --azul-claro: #0078be;
+            --verde-inst: #008250;
+            --naranja: #dc6b1f;
+            --morado: #7800a0;
+            --rojo: #a00000;
+            --gris-claro: #f5f5f5;
+            --sombra: 0 4px 20px rgba(0, 82, 147, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #e8f5e9 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+        }
+        .slide {
+            position: absolute;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            max-height: 750px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: var(--sombra);
+            padding: 40px 50px;
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            display: none;
+        }
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            display: block;
+            z-index: 10;
+        }
+        .slide.prev {
+            opacity: 0;
+            transform: scale(0.95) translateY(-20px);
+        }
+        h2 {
+            color: var(--azul-princ);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            border-bottom: 3px solid var(--naranja);
+            padding-bottom: 0.5rem;
+        }
+        h3 {
+            color: var(--azul-princ);
+            font-size: 1.4rem;
+            margin: 1.5rem 0 1rem 0;
+            font-weight: 600;
+        }
+        .block {
+            background: var(--gris-claro);
+            border-left: 5px solid var(--azul-princ);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .block-title {
+            background: var(--azul-princ);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 6px 6px 0 0;
+            margin: -20px -20px 15px -20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .alert-block, .warning-block, .example-block { border-left: 5px solid; border-radius: 8px; padding: 18px; margin: 12px 0; }
+        .alert-block { background: #fff3e0; border-left-color: var(--naranja); }
+        .alert-block .block-title { background: var(--naranja); }
+        .example-block { background: #e8f5e9; border-left-color: var(--verde-inst); }
+        .example-block .block-title { background: var(--verde-inst); }
+        .columns { display: flex; gap: 30px; margin: 20px 0; }
+        .column { flex: 1; }
+        .column.half { flex: 0 0 48%; }
+        ul, ol { margin-left: 25px; margin-bottom: 15px; }
+        li { margin: 8px 0; line-height: 1.6; }
+        strong { color: var(--azul-princ); }
+        .center { text-align: center; }
+        .math-display { margin: 20px 0; overflow-x: auto; }
+        code, pre {
+            font-family: 'JetBrains Mono', monospace;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        pre {
+            padding: 15px;
+            overflow-x: auto;
+            border-left: 4px solid var(--azul-princ);
+            margin: 15px 0;
+            background: #f5f5f5;
+            font-size: 0.78rem;
+            line-height: 1.4;
+        }
+        code { padding: 2px 6px; font-size: 0.9em; }
+        pre code { padding: 0; background: none; }
+        .code-cpp { border-left-color: #00599C; }
+        .keyword { color: #0000FF; font-weight: bold; }
+        .comment { color: #008000; font-style: italic; }
+        .string { color: #A31515; }
+        .number { color: #098658; }
+        .function { color: #795E26; }
+        .type { color: #267F99; }
+        .preprocessor { color: #800000; }
+        .navigation {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(255,255,255,0.95);
+            padding: 12px 30px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .nav-btn {
+            background: var(--azul-princ);
+            color: white;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-btn:hover { background: var(--naranja); transform: scale(1.1); }
+        .nav-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .slide-counter {
+            font-weight: 600;
+            color: var(--azul-princ);
+            font-size: 1rem;
+            min-width: 80px;
+            text-align: center;
+        }
+        .title-slide {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        .title-slide h1 {
+            font-size: 2.5rem;
+            color: var(--azul-princ);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+        .title-slide .subtitle {
+            font-size: 1.3rem;
+            color: var(--naranja);
+            margin-bottom: 2rem;
+        }
+        .title-slide .author { font-size: 1.2rem; color: #666; margin: 0.5rem 0; }
+        .title-slide .institute {
+            font-size: 1.1rem;
+            color: var(--azul-princ);
+            margin-top: 2rem;
+            font-weight: 600;
+        }
+        .overlay-content { opacity: 0; transition: opacity 0.4s ease; }
+        .overlay-content.visible { opacity: 1; }
+        .toc-item {
+            padding: 12px 20px;
+            margin: 8px 0;
+            background: var(--gris-claro);
+            border-radius: 8px;
+            border-left: 4px solid var(--azul-princ);
+            transition: all 0.3s;
+        }
+        .toc-item:hover { background: #e3f2fd; transform: translateX(5px); }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        th, td { padding: 10px; text-align: center; border: 1px solid #ddd; }
+        th { background: var(--azul-princ); color: white; font-weight: 600; }
+        tr:nth-child(even) { background: #f5f5f5; }
+        .icon { margin-right: 8px; color: var(--naranja); }
+        @media (max-width: 968px) {
+            .columns { flex-direction: column; }
+            .column.half { flex: 1; }
+            h2 { font-size: 1.5rem; }
+            .slide { padding: 25px 30px; }
+            .title-slide h1 { font-size: 2rem; }
+            pre { font-size: 0.68rem; }
+        }
+        .checkmark { color: var(--verde-inst); font-weight: bold; }
+        .flow-box {
+            background: rgba(0,82,147,0.08);
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        .flow-box.highlight { background: rgba(220,107,31,0.15); border-color: var(--naranja); }
+        .flow-box.green { background: rgba(0,130,80,0.12); border-color: var(--verde-inst); }
+        .arrow-down, .arrow-right {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--azul-princ);
+            margin: 5px 0;
+        }
+        .placeholder-img {
+            background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+            border: 2px dashed var(--azul-princ);
+            border-radius: 8px;
+            padding: 40px 20px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .placeholder-img i {
+            font-size: 3rem;
+            color: var(--azul-princ);
+            margin-bottom: 15px;
+            display: block;
+        }
+        .architecture-diagram {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .comparison-table { font-size: 0.85rem; }
+        .comparison-table th {
+            background: var(--azul-princ);
+            color: white;
+            padding: 12px;
+        }
+        .comparison-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        .quote-box {
+            background: rgba(0,82,147,0.05);
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin: 20px 0;
+            font-style: italic;
+            color: var(--azul-princ);
+            text-align: center;
+        }
+        .activity-box {
+            background: white;
+            border: 2px solid var(--azul-princ);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+        }
+        .activity-number {
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--azul-princ);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .response-graph {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .tuning-guide-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+            color: var(--azul-princ);
+        }
+        .tuning-guide-table td:nth-child(2) {
+            text-align: left;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+        .tuning-guide-table td:nth-child(3) {
+            text-align: left;
+        }
+        .iteration-table td {
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+        .iteration-table input {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- SLIDE 1: Title -->
+        <div class="slide active" data-slide="1">
+            <div class="title-slide">
+                <h1>Laboratorio: Sintonización y Ajuste Fino<br>Modificación de Reglas Online – Motor DC</h1>
+                <div class="subtitle">Clase 14 | Unidad 3: Control Avanzado | Laboratorio</div>
+                <div class="author">Curso de Control Difuso</div>
+                <div class="author">Ingeniería en Control y Automatización</div>
+                <div class="institute">Semana 7</div>
+                <div style="margin-top: 3rem; padding: 15px; background: rgba(0,82,147,0.08); border-radius: 8px; font-size: 0.9rem; color: #666;">
+                    <i class="fas fa-microchip" style="color: var(--azul-princ);"></i>
+                    Hardware: Motor DC + Encoder + Arduino UNO | Métricas: IAE, ISE, ITAE, $M_p$, $t_r$, $t_s$ | Ref.: Lilly Secs. 4.2 y 4.5
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Table of Contents -->
+        <div class="slide" data-slide="2">
+            <h2><i class="fas fa-list icon"></i>Contenido del Laboratorio</h2>
+            <div class="toc-item">1. Objetivos y Estrategia de Sintonización</div>
+            <div class="toc-item">2. Metodología de Sintonización Iterativa</div>
+            <div class="toc-item">3. Modificación Online de la Tabla de Reglas</div>
+            <div class="toc-item">4. Pruebas de Escalón y Perturbación</div>
+            <div class="toc-item">5. Hoja de Registro de Iteraciones</div>
+            <div class="toc-item">6. Comparativa de los Tres Controladores</div>
+            <div class="toc-item">7. Actividades Detalladas</div>
+            <div class="toc-item">8. Guía de Sintonización</div>
+            <div class="toc-item">9. Análisis de Resultados</div>
+            <div class="toc-item">10. Resumen y Próxima Clase</div>
+        </div>
+
+        <!-- SLIDE 3: Objectives -->
+        <div class="slide" data-slide="3">
+            <h2><i class="fas fa-bullseye icon"></i>Objetivos del Laboratorio</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Competencias</div>
+                        <ol>
+                            <li><strong>Implementar</strong> el difuso PI del Motor DC (tarea de Clase 13) y validarlo en hardware</li>
+                            <li><strong>Aplicar</strong> la metodología de sintonización iterativa: modificar una celda, medir IAE, decidir</li>
+                            <li><strong>Ejecutar</strong> pruebas de escalón y perturbación de carga con registro CSV</li>
+                            <li><strong>Comparar</strong> T-S Orden 0, T-S Orden 1 y PI difuso en las mismas condiciones</li>
+                            <li><strong>Documentar</strong> el proceso de sintonización: tabla de iteraciones con IAE vs cambios</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div style="padding: 20px;">
+                        <div class="flow-box green overlay-content" data-overlay="6">
+                            <i class="fas fa-check-circle" style="color: var(--verde-inst);"></i><br>
+                            <strong>[OK] Cl. 13:</strong> Difuso PD y PI
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box highlight overlay-content" data-overlay="6">
+                            <i class="fas fa-flask" style="color: var(--naranja);"></i><br>
+                            <strong>[LAB] Cl. 14:</strong> Sintonización
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="6">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl. 15:</strong> PID Híbrido
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="6">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] Cl. 16:</strong> Benchmarking
+                        </div>
+                        <div class="arrow-down"><i class="fas fa-arrow-down"></i></div>
+                        <div class="flow-box overlay-content" data-overlay="6">
+                            <i class="far fa-circle" style="color: #999;"></i><br>
+                            <strong>[ ] U4:</strong> Robótica
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Tuning Methodology -->
+        <div class="slide" data-slide="4">
+            <h2><i class="fas fa-project-diagram icon"></i>Metodología de Sintonización Iterativa</h2>
+            <div class="architecture-diagram">
+                <img src="imagenes/c14_metodologia.png" alt="Diagrama de flujo de la sintonización iterativa" style="max-height:44vh; width:100%; max-width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px;">
+            </div>
+            <div class="alert-block">
+                <div class="block-title"><i class="fas fa-exclamation-circle"></i> Regla de oro</div>
+                <p><strong>Cambiar solo una celda por iteración.</strong> Cambiar múltiples celdas a la vez hace imposible saber cuál fue la que mejoró o empeoró.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Online Table Modification Code -->
+        <div class="slide" data-slide="5">
+            <h2><i class="fas fa-code icon"></i>Modificación de Reglas por Comandos Serial</h2>
+            <pre class="code-cpp"><code><span class="comment">/**
+ * Tabla de reglas modifiable en tiempo real via Serial
+ * Formato de comando: "Tij=V"
+ *   i = fila (0..4: NB..PB)
+ *   j = columna (0..4: NN..PP)
+ *   V = nuevo valor en % (entero con signo)
+ * Ejemplo: "T23=-30" -> fila 2 (ZO), col 3 (PS) = -30%
+ */</span>
+
+<span class="comment">// Tabla modificable en SRAM (no PROGMEM para poder cambiarla)</span>
+// Tabla del PI difuso (Delta_u %/paso): comando "Pij=V", j = 0..2
+float PI_TABLE[5][3] = {
+    {-5, -5, -2.5}, {-5, -2.5, 0}, {-2.5, 0, 2.5}, {0, 2.5, 5}, {2.5, 5, 5}
+};
+<span class="type">int8_t</span> TS_TABLE[<span class="number">5</span>][<span class="number">5</span>] = {
+    {-<span class="number">100</span>, -<span class="number">80</span>, -<span class="number">60</span>, -<span class="number">30</span>, -<span class="number">10</span>},  <span class="comment">// NB</span>
+    { -<span class="number">80</span>, -<span class="number">60</span>, -<span class="number">30</span>, -<span class="number">10</span>,  <span class="number">20</span>},  <span class="comment">// NS</span>
+    { -<span class="number">20</span>, -<span class="number">10</span>,   <span class="number">0</span>,  <span class="number">10</span>,  <span class="number">20</span>},  <span class="comment">// ZO</span>
+    { -<span class="number">20</span>,  <span class="number">10</span>,  <span class="number">30</span>,  <span class="number">60</span>,  <span class="number">80</span>},  <span class="comment">// PS</span>
+    {  <span class="number">10</span>,  <span class="number">30</span>,  <span class="number">60</span>,  <span class="number">80</span>, <span class="number">100</span>},  <span class="comment">// PB</span>
+};
+
+<span class="comment">// Procesar comando de modificacion de tabla</span>
+<span class="type">bool</span> <span class="function">parse_table_cmd</span>(<span class="keyword">const</span> String& cmd) {
+    <span class="comment">// Formato esperado: "Tij=V"</span>
+    <span class="keyword">if</span> (cmd.length() &lt; <span class="number">5</span> || cmd[<span class="number">0</span>] != <span class="string">'T'</span>) <span class="keyword">return false</span>;
+    <span class="type">int</span> i    = cmd[<span class="number">1</span>] - <span class="string">'0'</span>;
+    <span class="type">int</span> j    = cmd[<span class="number">2</span>] - <span class="string">'0'</span>;
+    <span class="type">int</span> val  = cmd.substring(<span class="number">4</span>).toInt();
+    <span class="keyword">if</span> (i &lt; <span class="number">0</span> || i &gt; <span class="number">4</span> || j &lt; <span class="number">0</span> || j &gt; <span class="number">4</span>) <span class="keyword">return false</span>;
+    <span class="keyword">if</span> (val &lt; -<span class="number">100</span> || val &gt; <span class="number">100</span>) <span class="keyword">return false</span>;
+    TS_TABLE[i][j] = (<span class="type">int8_t</span>)val;
+    Serial.print(F(<span class="string">"Tabla["</span>));
+    Serial.print(i); Serial.print(F(<span class="string">"]["</span>));
+    Serial.print(j); Serial.print(F(<span class="string">"] = "</span>));
+    Serial.println(val);
+    <span class="keyword">return true</span>;
+}</code></pre>
+        </div>
+
+        <!-- SLIDE 6: Print Table Code -->
+        <div class="slide" data-slide="6">
+            <h2><i class="fas fa-code icon"></i>Imprimir la Tabla Actual por Serial</h2>
+            <pre class="code-cpp"><code><span class="comment">// Imprimir tabla actual con formato legible</span>
+<span class="keyword">void</span> <span class="function">print_table</span>() {
+    <span class="keyword">const char</span>* E_NAMES[]  = {<span class="string">"NB"</span>,<span class="string">"NS"</span>,<span class="string">"ZO"</span>,<span class="string">"PS"</span>,<span class="string">"PB"</span>};
+    <span class="keyword">const char</span>* DE_NAMES[] = {<span class="string">"NN"</span>,<span class="string">"NS"</span>,<span class="string">"ZO"</span>,<span class="string">"PS"</span>,<span class="string">"PP"</span>};
+
+    Serial.println(F(<span class="string">"\n=== TABLA T-S ACTUAL ==="</span>));
+    Serial.print(F(<span class="string">"e\\de\t"</span>));
+    <span class="keyword">for</span> (<span class="type">uint8_t</span> j = <span class="number">0</span>; j &lt; <span class="number">5</span>; j++) {
+        Serial.print(DE_NAMES[j]); Serial.print(<span class="string">'\t'</span>);
+    }
+    Serial.println();
+
+    <span class="keyword">for</span> (<span class="type">uint8_t</span> i = <span class="number">0</span>; i &lt; <span class="number">5</span>; i++) {
+        Serial.print(E_NAMES[i]); Serial.print(<span class="string">'\t'</span>);
+        <span class="keyword">for</span> (<span class="type">uint8_t</span> j = <span class="number">0</span>; j &lt; <span class="number">5</span>; j++) {
+            Serial.print(TS_TABLE[i][j]); Serial.print(<span class="string">'\t'</span>);
+        }
+        Serial.println();
+    }
+    Serial.println(F(<span class="string">"========================"</span>));
+}
+
+<span class="comment">// En el loop(): interpretar comandos Serial</span>
+<span class="comment">// Comandos:</span>
+<span class="comment">//   'p'     -> imprimir metricas IAE/ISE/ITAE</span>
+<span class="comment">//   'r'     -> reset metricas</span>
+<span class="comment">//   't'     -> imprimir tabla actual</span>
+<span class="comment">//   'Tij=V' -> modificar celda [i][j] = V</span>
+<span class="comment">//   '+'     -> setpoint +25 RPM</span>
+<span class="comment">//   '-'     -> setpoint -25 RPM</span></code></pre>
+            <div class="example-block">
+                <div class="block-title">Flujo de sintonización</div>
+                <p>Ejecutar → <code>'t'</code> ver tabla → <code>'p'</code> ver IAE → <code>'T23=-20'</code> cambiar celda → <code>'r'</code> reset → repetir.</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: Test Protocol -->
+        <div class="slide" data-slide="7">
+            <h2><i class="fas fa-vial icon"></i>Protocolo de Ensayos</h2>
+            <div class="block overlay-content" data-overlay="1">
+                <div class="block-title">Ensayo 1: Respuesta al Escalón Simple</div>
+                <ol>
+                    <li>Arrancar con motor detenido ($\omega=0$), setpoint $\omega_{ref}=150$ RPM</li>
+                    <li>Registrar 30 s de respuesta en CSV</li>
+                    <li>Calcular $t_r$ (10%–90%), $M_p$, $t_s$ (2%), IAE</li>
+                    <li>Repetir para $\omega_{ref}=250$ RPM</li>
+                </ol>
+            </div>
+            <div class="block overlay-content" data-overlay="2">
+                <div class="block-title">Ensayo 2: Perturbación de Carga</div>
+                <ol>
+                    <li>Motor estabilizado a 150 RPM</li>
+                    <li>En $t=15$ s: aplicar carga (freno manual suave durante 5 s)</li>
+                    <li>En $t=20$ s: retirar carga</li>
+                    <li>Medir: caída de velocidad $\Delta\omega_{min}$, tiempo de recuperación $t_{rec}$</li>
+                </ol>
+            </div>
+            <div class="alert-block overlay-content" data-overlay="3">
+                <div class="block-title">Ensayo 3: Doble Escalón (robustez)</div>
+                <ol>
+                    <li>Arrancar a $\omega_{ref}=100$ RPM → estabilizar 15 s</li>
+                    <li>Cambiar a $\omega_{ref}=250$ RPM → registrar 20 s</li>
+                    <li>Cambiar a $\omega_{ref}=50$ RPM → registrar 15 s</li>
+                    <li>Medir si el controlador responde bien en ambos escalones</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: Iteration Log Sheet -->
+        <div class="slide" data-slide="8">
+            <h2><i class="fas fa-clipboard-list icon"></i>Hoja de Registro de Iteraciones de Sintonización</h2>
+            <table class="iteration-table">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">It.</th>
+                        <th style="width: 22%;">Cambio</th>
+                        <th style="width: 12%;">Celda</th>
+                        <th style="width: 10%;">Antes</th>
+                        <th style="width: 10%;">Después</th>
+                        <th style="width: 12%;">IAE</th>
+                        <th style="width: 12%;">$M_p$ (%)</th>
+                        <th style="width: 17%;">Decidir</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>0</strong></td>
+                        <td style="text-align: left;">Tabla inicial</td>
+                        <td>–</td>
+                        <td>–</td>
+                        <td>–</td>
+                        <td>_______</td>
+                        <td>_______</td>
+                        <td style="color: var(--azul-princ);">Base</td>
+                    </tr>
+                    <tr>
+                        <td><strong>1</strong></td>
+                        <td><input type="text" placeholder="Describir..."></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>2</strong></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>3</strong></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>4</strong></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>5</strong></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                        <td><input type="text"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block">
+                        <div class="block-title">Qué registrar en "Cambio"</div>
+                        <p style="font-size: 0.9rem;">Describir brevemente: <em>"Reduce ZO-PS de +10 a 0"</em> o <em>"Sube NB-ZO de -60 a -50"</em></p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block">
+                        <div class="block-title">Criterio de decisión</div>
+                        <ul style="font-size: 0.9rem;">
+                            <li><strong>Mantener:</strong> IAE mejora &gt; 3%</li>
+                            <li><strong>Revertir:</strong> IAE empeora o $M_p$ aumenta</li>
+                            <li><strong>Stop:</strong> 3 iteraciones sin mejora &gt; 3%</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 9: Controller Comparison Graph -->
+        <div class="slide" data-slide="9">
+            <h2><i class="fas fa-chart-line icon"></i>Comparativa de los Tres Controladores</h2>
+            <div class="response-graph">
+                <img src="imagenes/c14_comparativa.png" alt="Simulación: T-S orden 0, T-S orden 1 con pre-alimentación y PI difuso" style="max-height:44vh; width:100%; max-width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px;">
+            </div>
+            <div class="columns">
+                <div class="column half">
+                    <div class="example-block">
+                        <div class="block-title">PI difuso sintonizado</div>
+                        <p>Sin ESE ni sobreimpulso; ante la carga cae ≈22 RPM y vuelve a 150 RPM. El T-S-1 con pre-alimentación queda a 112 RPM con carga.</p>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block">
+                        <div class="block-title">T-S Orden 0 sin sintonizar</div>
+                        <p>Se queda en ≈60 RPM y oscila (zona muerta + ZO-ZO = 0): el punto de partida antes de sintonizar.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: Metrics Table -->
+        <div class="slide" data-slide="10">
+            <h2><i class="fas fa-table icon"></i>Tabla de Métricas: Los Tres Controladores</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">Métrica</th>
+                        <th>T-S Ord. 0</th>
+                        <th>T-S Ord. 1</th>
+                        <th>PI Difuso</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="text-align: left;">$t_r$ – Tiempo de subida (ms)</td><td>_______</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">$M_p$ – Sobreimpulso (%)</td><td>_______</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">$t_s$ – Tiempo establecimiento (ms)</td><td>_______</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">$e_{ss}$ – Error estacionario (RPM)</td><td>_______</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">IAE (RPM·s)</td><td>_______</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">ISE (RPM²·s)</td><td>_______</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">$\Delta\omega_{min}$ – Caída ante carga (RPM)</td><td>_______</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">$t_{rec}$ – Tiempo recuperación (ms)</td><td>_______</td><td>_______</td><td>_______</td></tr>
+                    <tr><td style="text-align: left;">Iteraciones de sintonización</td><td>_______</td><td>_______</td><td>_______</td></tr>
+                </tbody>
+            </table>
+            <div class="block overlay-content" data-overlay="2">
+                <div class="block-title">Preguntas de análisis del informe</div>
+                <ol>
+                    <li>¿El PI difuso mejora simultáneamente el ESE y el sobreimpulso?</li>
+                    <li>¿Cuántas iteraciones de sintonización fueron necesarias?</li>
+                    <li>¿Qué celda tuvo mayor impacto en el IAE? ¿Por qué?</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: Activities -->
+        <div class="slide" data-slide="11">
+            <h2><i class="fas fa-tasks icon"></i>Guía de Actividades</h2>
+            <div class="activity-box overlay-content" data-overlay="1">
+                <div class="activity-number">1</div>
+                <div style="margin-top: 15px;">
+                    <strong>Actividad 1 (0–20 min) – Individual: Setup y verificación</strong>
+                </div>
+                <ol style="margin-top: 10px;">
+                    <li>Cargar el sketch con PI difuso (tarea Clase 13) y verificar que compila y el motor gira correctamente</li>
+                    <li>Enviar <code>'t'</code> por Serial: verificar que imprime la tabla</li>
+                    <li>Enviar <code>'T22=5'</code>: verificar que la celda ZO-ZO cambia a 5</li>
+                    <li>Enviar <code>'T22=0'</code>: restaurar ZO-ZO = 0</li>
+                </ol>
+            </div>
+            <div class="activity-box overlay-content" data-overlay="2">
+                <div class="activity-number">2</div>
+                <div style="margin-top: 15px;">
+                    <strong>Actividad 2 (20–50 min) – Parejas: Sintonización iterativa</strong>
+                </div>
+                <ol style="margin-top: 10px;">
+                    <li>Ejecutar con tabla inicial: registrar IAE base ($It.\ 0$)</li>
+                    <li>Identificar la métrica más problemática (sobreimpulso o ESE)</li>
+                    <li>Elegir la celda a modificar según la guía de sintonización</li>
+                    <li>Completar al menos 5 iteraciones en la hoja de registro</li>
+                    <li>Guardar la tabla optimizada con comando <code>'t'</code> en el CSV</li>
+                </ol>
+            </div>
+            <div class="activity-box overlay-content" data-overlay="3" style="border-color: var(--naranja);">
+                <div class="activity-number" style="background: var(--naranja);">3</div>
+                <div style="margin-top: 15px;">
+                    <strong>Actividad 3 (50–75 min) – Grupo: Ensayos de robustez</strong>
+                </div>
+                <ol style="margin-top: 10px;">
+                    <li>Ensayo de doble escalón: 100 RPM → 250 RPM → 50 RPM</li>
+                    <li>Ensayo de perturbación: frenar el eje durante 5 s a 150 RPM</li>
+                    <li>Comparar el PI difuso sintonizado vs T-S Orden 0 inicial en los mismos ensayos</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: Tuning Guide -->
+        <div class="slide" data-slide="12">
+            <h2><i class="fas fa-map-signs icon"></i>Guía de Sintonización: Qué Celda Modificar</h2>
+            <table class="tuning-guide-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30%;">Problema observado</th>
+                        <th style="width: 30%;">Región activa</th>
+                        <th style="width: 40%;">Acción correctiva</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Sobreimpulso alto</td>
+                        <td>$e$ peq.+, $\dot{e}$ neg.</td>
+                        <td>Reducir celdas PS-NS, PS-NN, ZO-NS</td>
+                    </tr>
+                    <tr>
+                        <td>Respuesta lenta</td>
+                        <td>$e$ grande, $\dot{e}$ aprox. cero</td>
+                        <td>Aumentar celdas NB-ZO, PB-ZO (valor absoluto)</td>
+                    </tr>
+                    <tr>
+                        <td>Oscilaciones lentas</td>
+                        <td>ZO-PP, ZO-NN activas</td>
+                        <td>Reducir celdas ZO-NN y ZO-PP</td>
+                    </tr>
+                    <tr>
+                        <td>Error estacionario +</td>
+                        <td>ZO-ZO activa</td>
+                        <td>En PI: ZO-ZO = 0 y ZO <strong>sin núcleo plano</strong> (si no, la integral se detiene dentro del núcleo)</td>
+                    </tr>
+                    <tr>
+                        <td>Mal rechazo de carga</td>
+                        <td>PS-PS, PS-PP activas (la carga frena: $e\uparrow$, $\dot e&gt;0$)</td>
+                        <td>Aumentar celdas PS-PS y PS-PP</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="example-block">
+                <div class="block-title">Orden de prioridad de sintonización</div>
+                <ol style="font-size: 0.9rem;">
+                    <li><strong>Primero:</strong> eliminar ESE (PI: ZO-ZO = 0 y ZO triangular; con el núcleo [−60, 60] de Clase 12 el PI se queda con ≈60 RPM de error)</li>
+                    <li><strong>Luego:</strong> reducir sobreimpulso (celdas PS-NS, ZO-NS)</li>
+                    <li><strong>Finalmente:</strong> optimizar velocidad de respuesta (celdas NB-ZO)</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: IAE Convergence -->
+        <div class="slide" data-slide="13">
+            <h2><i class="fas fa-chart-area icon"></i>Interpretación de las Métricas de Sintonización</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block">
+                        <div class="block-title">IAE vs Iteración</div>
+                        <div class="response-graph">
+                            <img src="imagenes/c14_convergencia_iae.png" alt="Convergencia típica del IAE por iteración (ilustrativo)" style="max-height:44vh; width:100%; max-width:100%; height:auto; object-fit:contain; background:#fff; border-radius:8px;">
+                        </div>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="example-block overlay-content" data-overlay="2">
+                        <div class="block-title">Convergencia típica</div>
+                        <ul>
+                            <li><strong>Iteraciones 1–3:</strong> mejoras grandes (&gt;10% de IAE)</li>
+                            <li><strong>Iteraciones 4–6:</strong> mejoras pequeñas (&lt;5%)</li>
+                            <li><strong>Iteración 7+:</strong> rendimientos decrecientes, riesgo de inestabilidad</li>
+                        </ul>
+                    </div>
+                    <div class="alert-block overlay-content" data-overlay="2">
+                        <div class="block-title">Cuándo parar</div>
+                        <p>Si 3 iteraciones consecutivas no mejoran el IAE en más del 3%, el algoritmo ha convergido al óptimo local. <strong>Documentar la tabla final.</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: Summary -->
+        <div class="slide" data-slide="14">
+            <h2><i class="fas fa-clipboard-check icon"></i>Resumen y Próxima Clase</h2>
+            <div class="columns">
+                <div class="column half">
+                    <div class="block overlay-content" data-overlay="1">
+                        <div class="block-title">Lo que logramos hoy</div>
+                        <ol>
+                            <li>Implementamos PI difuso en Motor DC real</li>
+                            <li>Aplicamos la metodología de sintonización iterativa con criterio cuantitativo (IAE)</li>
+                            <li>Modificamos reglas <strong>online</strong> sin recompilar el sketch</li>
+                            <li>Validamos con pruebas de escalón, doble escalón y perturbación de carga</li>
+                            <li>Comparamos cuantitativamente los 3 controladores del Motor DC</li>
+                        </ol>
+                    </div>
+                </div>
+                <div class="column half">
+                    <div class="alert-block overlay-content" data-overlay="6">
+                        <div class="block-title">Informe Lab 14 – Entrega Clase 15</div>
+                        <ul>
+                            <li>Tabla de iteraciones completa</li>
+                            <li>Gráficas de los 3 ensayos con los 3 controladores superpuestos</li>
+                            <li>Tabla de métricas completa</li>
+                            <li>Tabla de reglas final optimizada</li>
+                            <li>Código sketch final comentado</li>
+                        </ul>
+                    </div>
+                    <div class="example-block overlay-content" data-overlay="6">
+                        <div class="block-title">Próxima: Clase 15 (Teórica)</div>
+                        <p><strong>PID Híbrido y Gain Scheduling</strong>.</p>
+                        <p>Combinar lo mejor de PID clásico y control difuso: parámetros ajustados por un sistema difuso.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: Referencias -->
+        <div class="slide" data-slide="15">
+            <h2><i class="fas fa-book icon"></i>Referencias</h2>
+            <div class="block">
+                <ul>
+                    <li><strong>Lilly, J.H.</strong> (2010). <em>Fuzzy Control and Identification</em>, Wiley. Sec. 4.2: sintonización con <em>ganancias de escala</em> (Figs. 4.11–4.15), alternativa a modificar celdas; Sec. 4.5: control incremental.</li>
+                    <li>Figuras generadas con <code>imagenes/generar_imagenes.py</code>; las respuestas son simulaciones con el modelo de motor de <code>_comun/motor.py</code>.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 16: Solution Example -->
+        <div class="slide" data-slide="16">
+            <h2><i class="fas fa-check-double icon" style="color: var(--verde-inst);"></i>Ejemplo: Iteración de Sintonización</h2>
+            <div class="alert-block">
+                <div class="block-title">Situación inicial</div>
+                <p>Motor DC con T-S orden 0 (+ pre-alimentación). Setpoint 150 RPM. IAE base = 100 RPM·s, $M_p$ = 25% (valores ilustrativos).</p>
+                <p style="margin-top: 10px;"><strong>Problema:</strong> sobreimpulso alto al arrancar.</p>
+            </div>
+            <div class="example-block overlay-content" data-overlay="2">
+                <div class="block-title">Iteración 1: Reducir sobreimpulso</div>
+                <p><strong>Diagnóstico:</strong> el sobreimpulso ocurre cuando $e$ es pequeño positivo y $\dot{e}$ es negativo (motor frenando cerca del setpoint).</p>
+                <p style="margin-top: 10px;"><strong>Acción:</strong> reducir celda PS-NS de +10 a 0 (menos potencia al acercarse al setpoint).</p>
+                <p style="margin-top: 10px;"><strong>Comando:</strong> <code>T31=0</code></p>
+                <p style="margin-top: 10px;"><strong>Resultado:</strong> IAE = 85 RPM·s (mejora 15%), $M_p$ = 18% (mejora).</p>
+                <p style="margin-top: 10px;"><strong>Decisión:</strong> <span style="color: var(--verde-inst); font-weight: bold;">MANTENER</span> ✓</p>
+            </div>
+            <div class="example-block overlay-content" data-overlay="3">
+                <div class="block-title">Iteración 2: Intentar reducir más sobreimpulso</div>
+                <p><strong>Acción:</strong> reducir celda ZO-NS de −10 a −20.</p>
+                <p style="margin-top: 10px;"><strong>Comando:</strong> <code>T21=-20</code></p>
+                <p style="margin-top: 10px;"><strong>Resultado:</strong> IAE = 88 RPM·s (empeora 3%), $M_p$ = 20% (empeora).</p>
+                <p style="margin-top: 10px;"><strong>Decisión:</strong> <span style="color: var(--rojo); font-weight: bold;">REVERTIR</span> (restaurar <code>T21=-10</code>)</p>
+            </div>
+            <div class="block overlay-content" data-overlay="4">
+                <div class="block-title">Iteración 3: Mejorar velocidad de respuesta</div>
+                <p><strong>Acción:</strong> aumentar celda PB-ZO de +60 a +70 (más agresivo en el arranque, donde $e=+150$ RPM es PB).</p>
+                <p style="margin-top: 10px;"><strong>Comando:</strong> <code>T42=70</code></p>
+                <p style="margin-top: 10px;"><strong>Resultado:</strong> IAE = 72 RPM·s (mejora 15%), $t_r$ reducida.</p>
+                <p style="margin-top: 10px;"><strong>Decisión:</strong> <span style="color: var(--verde-inst); font-weight: bold;">MANTENER</span> ✓</p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="slide-counter">
+                <span id="currentSlide">1</span> / <span id="totalSlides">16</span>
+            </div>
+            <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 16;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            const prevSlide = document.querySelector('.slide.active');
+            const newSlide = document.querySelector(`.slide[data-slide="${n}"]`);
+            if (!newSlide || n < 1 || n > totalSlides) return;
+            if (prevSlide) {
+                prevSlide.classList.remove('active');
+                if (n > currentSlide) {
+                    prevSlide.classList.add('prev');
+                    setTimeout(() => prevSlide.classList.remove('prev'), 600);
+                }
+            }
+            newSlide.classList.remove('prev');
+            newSlide.classList.add('active');
+            newSlide.querySelectorAll('.overlay-content').forEach(el => el.classList.remove('visible'));
+            const firstOverlay = newSlide.querySelector('[data-overlay="1"]');
+            if (firstOverlay) setTimeout(() => firstOverlay.classList.add('visible'), 300);
+            currentSlide = n;
+            updateCounter();
+            updateButtons();
+            if (window.MathJax && window.MathJax.typesetPromise) MathJax.typesetPromise([newSlide]);
+        }
+
+        function changeSlide(direction) {
+            if (direction === 1) {
+                const currentSlideEl = document.querySelector(`.slide[data-slide="${currentSlide}"]`);
+                const allOverlays = Array.from(currentSlideEl.querySelectorAll('[data-overlay]'))
+                    .sort((a, b) => parseInt(a.dataset.overlay) - parseInt(b.dataset.overlay));
+                let nextOverlay = null;
+                for (let overlay of allOverlays) {
+                    if (!overlay.classList.contains('visible')) { nextOverlay = overlay; break; }
+                }
+                if (nextOverlay) nextOverlay.classList.add('visible');
+                else showSlide(currentSlide + 1);
+            } else showSlide(currentSlide - 1);
+        }
+
+        function updateCounter() { document.getElementById('currentSlide').textContent = currentSlide; }
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentSlide === 1;
+            document.getElementById('nextBtn').disabled = currentSlide === totalSlides;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+        });
+
+        let touchStartX = 0, touchEndX = 0;
+        document.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            if (touchEndX < touchStartX - 50) changeSlide(1);
+            else if (touchEndX > touchStartX + 50) changeSlide(-1);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCounter();
+            updateButtons();
+            setTimeout(() => {
+                const firstOverlay = document.querySelector('.slide.active [data-overlay="1"]');
+                if (firstOverlay) firstOverlay.classList.add('visible');
+            }, 300);
+        });
+    </script>
+</body>
+</html>
