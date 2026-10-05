@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -139,11 +139,39 @@
     .flow-node.hl { background: var(--navy); }
     .flow-node.sec { background: #64748b; }
     .flow-arrow { color: #94a3b8; font-size: 1.2rem; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -201,10 +229,7 @@
         </div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-circle-question"></i> Pregunta clave</span> ¿Cómo organizar toda esta información de forma sistemática para poder operar y optimizar?</div>
       </div>
-      <div class="center">
-        <i class="fas fa-map-location-dot" style="font-size: 5rem; color: var(--navy); opacity: 0.7;"></i>
-        <p style="margin-top:0.5rem; color:#64748b; font-size:0.85rem;"><em>Red de distribución — ilustración</em></p>
-      </div>
+      <div class="reveal"><img class="fig" src="imagenes/red_distribucion_3x4.png" alt="Red de 3 plantas y 4 CD" style="max-width:440px"></div>
     </div>
   </div>
 
@@ -290,7 +315,7 @@
       <div>
         <div class="block center reveal">
           <span class="b-title">Matriz dispersa (<em>sparse</em>)</span>
-          <i class="fas fa-braille" style="font-size: 3.5rem; color: var(--green); margin: 0.4rem 0;"></i>
+          <img class="fig" src="imagenes/matriz_dispersa.png" alt="Patrón de una matriz dispersa" style="max-width:300px">
           <p>La <strong>mayoría</strong> de los elementos son cero.<br><em>En logística</em>: redes con conexiones limitadas.</p>
         </div>
         <div class="alert-block mt reveal"><span class="b-title">¿Por qué importa?</span> Las matrices dispersas permiten <strong>ahorrar memoria</strong> y <strong>acelerar cálculos</strong> en redes reales de gran escala.</div>
@@ -397,7 +422,7 @@ Z  = <span class="mf">zeros</span>(<span class="mn">3</span>,<span class="mn">4<
       <ul>
         <li>\(M_1\): \(m=n=2\), elementos fuera de diagonal \(=0\) → <strong>diagonal</strong>.</li>
         <li>\(M_2\): \(m=n=3\), \(m_{ij}=0\) para \(i>j\) → <strong>triangular superior</strong>.</li>
-        <li>\(M_3\): \(m=n=4\), \(60\%\) de ceros, \(M_3=M_3^T\) → <strong>adyacencia simétrica dispersa</strong>.</li>
+        <li>\(M_3\): \(m=n=4\), 10 de 16 elementos nulos (\(62.5\%\)), \(M_3=M_3^T\) → <strong>adyacencia simétrica dispersa</strong>.</li>
       </ul>
     </div>
   </div>
@@ -480,10 +505,7 @@ Cs = <span class="mf">sparse</span>(C);
           <li>MATLAB permite manipular matrices con sintaxis directa: <code>C(i,j)</code>, <code>size</code>, <code>eye</code>, <code>zeros</code>, <code>sparse</code>.</li>
         </ul>
       </div>
-      <div class="center reveal" style="background:#f8fafc; padding:1rem; border-radius:12px;">
-        <i class="fas fa-project-diagram" style="font-size:4rem; color:var(--navy); margin-bottom:0.5rem; opacity:0.8;"></i>
-        <p style="font-size:0.85rem; color:#64748b;"><em>Taxonomía de matrices</em></p>
-      </div>
+      <div class="reveal"><img class="fig" src="imagenes/taxonomia_matrices.png" alt="Taxonomía de matrices" style="max-width:440px"></div>
     </div>
   </div>
 

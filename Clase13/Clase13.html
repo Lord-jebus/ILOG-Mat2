@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -152,11 +152,39 @@
     .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--navy); margin: 0.5rem 0; }
     .formula-card.orange { border-left-color: var(--orange); }
     .formula-card.green { border-left-color: var(--green); }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -226,10 +254,10 @@
       <div>
         <div class="block reveal"><span class="b-title">Matriz de distribución \(A\) (\(4\times5\))</span>
           \(a_{ij}\) = fracción del despacho de planta \(j\) que llega al CD \(i\):
-          $$ A = \begin{pmatrix} 0.40 & 0.10 & 0.00 & 0.20 & 0.00 \\ 0.00 & 0.20 & 0.50 & 0.30 & 0.20 \\ 0.35 & 0.40 & 0.00 & 0.00 & 0.30 \\ 0.00 & 0.10 & 0.30 & 0.30 & 0.50 \end{pmatrix} $$
+          $$ A = \begin{pmatrix} 0.40 & 0.10 & 0.00 & 0.20 & 0.20 \\ 0.00 & 0.20 & 0.50 & 0.30 & 0.30 \\ 0.40 & 0.40 & 0.00 & 0.00 & 0.30 \\ 0.00 & 0.10 & 0.30 & 0.30 & 0.20 \end{pmatrix} $$
         </div>
         <div class="block mt reveal"><span class="b-title">Demanda semanal \(\mathbf{b}\) (ton)</span>
-          $$ \mathbf{b} = (320,\;280,\;240,\;160)^T $$
+          $$ \mathbf{b} = (280,\;230,\;280,\;170)^T $$
         </div>
       </div>
       <div>
@@ -241,7 +269,7 @@
         </div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-plus-circle"></i> P6 propuesta (Melo)</span>
           Costo: \$9/ton | Capacidad: 400 ton<br>
-          Columna adicional: \((0.10,\;0.20,\;0.30,\;0.40)^T\)<br>
+          Columna adicional: \((0.10,\;0.30,\;0.10,\;0.10)^T\)<br>
           Inversión: \$250.000
         </div>
       </div>
@@ -251,28 +279,7 @@
   <!-- SLIDE 4: REDE VISUAL -->
   <div class="slide" data-slide="4">
     <h2><i class="fas fa-diagram-project"></i> Red de TransUY S.A.</h2>
-    <div class="network-case reveal">
-      <div class="nc-col">
-        <div class="nc-plant">P1<br><small>Mvd</small></div>
-        <div class="nc-plant">P2<br><small>Can</small></div>
-        <div class="nc-plant">P3<br><small>Sal</small></div>
-        <div class="nc-plant">P4<br><small>Pay</small></div>
-        <div class="nc-plant">P5<br><small>Riv</small></div>
-        <div class="nc-proposal"><i class="fas fa-circle"></i> P6<br><small>Melo?</small></div>
-      </div>
-      <div class="nc-arrows">
-        <div class="nc-arrow"></div><div class="nc-arrow"></div><div class="nc-arrow"></div>
-        <div class="nc-arrow"></div><div class="nc-arrow"></div><div class="nc-arrow"></div>
-        <div class="nc-arrow"></div><div class="nc-arrow"></div><div class="nc-arrow"></div>
-        <div class="nc-arrow"></div><div class="nc-arrow"></div><div class="nc-arrow"></div>
-      </div>
-      <div class="nc-col">
-        <div class="nc-cd">D1 Mald.</div>
-        <div class="nc-cd">D2 Tac.</div>
-        <div class="nc-cd">D3 Col.</div>
-        <div class="nc-cd">D4 Art.</div>
-      </div>
-    </div>
+    <div class="reveal"><img class="fig" src="imagenes/red_transuy.png" alt="Red de TransUY con 5 plantas, 4 CD y la planta propuesta P6" style="max-width:78%"></div>
     <p class="nc-note reveal">Flechas = conexiones activas en la matriz \(A\). P6 (Melo) es propuesta futura.</p>
   </div>
 
@@ -281,7 +288,7 @@
     <h2><i class="fas fa-list-ol"></i> Pasos 1 a 4 — Dimensión, rango y lazos</h2>
     <div class="block reveal"><span class="b-title">Paso 1: Dimensiones</span>
       \(A\in\mathbb{R}^{4\times5}\): 4 CDs (ecuaciones), 5 plantas (incógnitas).<br>
-      Sistema sobredeterminado en apariencia, pero con rango \(<4\) potencialmente.
+      Sistema <strong>subdeterminado</strong> (más incógnitas que ecuaciones): si \(\operatorname{rang}(A)=4\) habrá \(5-4=1\) variable libre.
     </div>
     <div class="col-layout mt">
       <div>
@@ -297,8 +304,8 @@
       </div>
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-circle-nodes"></i> Paso 4: Lazo cerrado</span>
         <code>null(A,'r')</code> devuelve:
-        $$ \mathbf{n}_1 \approx \begin{pmatrix}0.667\\-1.333\\0.833\\-1.500\\1\end{pmatrix} $$
-        <span class="reveal mt italic">Interpretación: si \(t>0\), P5 (Rivera) absorbe más carga y P2 (Canelones) y P4 (Paysandú) reducen la suya, sin que los CDs noten diferencia.</span>
+        $$ \mathbf{n}_1 = \begin{pmatrix}-0.25\\-0.50\\-0.25\\-0.25\\1\end{pmatrix} $$
+        <span class="reveal mt italic">Interpretación: si \(t>0\), P5 (Rivera) absorbe más carga y P1, P2, P3 y P4 reducen la suya (P2 el doble), sin que los CDs noten diferencia.</span>
       </div>
     </div>
   </div>
@@ -309,22 +316,25 @@
     <div class="col-layout">
       <div>
         <pre><span class="mc">% Protocolo completo en MATLAB</span>
-A = <span class="mf">[</span><span class="mn">0.40</span> <span class="mn">0.10</span> <span class="mn">0.00</span> <span class="mn">0.20</span> <span class="mn">0.00</span>;
-     <span class="mn">0.00</span> <span class="mn">0.20</span> <span class="mn">0.50</span> <span class="mn">0.30</span> <span class="mn">0.20</span>;
-     <span class="mn">0.35</span> <span class="mn">0.40</span> <span class="mn">0.00</span> <span class="mn">0.00</span> <span class="mn">0.30</span>;
-     <span class="mn">0.00</span> <span class="mn">0.10</span> <span class="mn">0.30</span> <span class="mn">0.30</span> <span class="mn">0.50</span><span class="mf">]</span>;
-b = <span class="mf">[</span><span class="mn">320</span>; <span class="mn">280</span>; <span class="mn">240</span>; <span class="mn">160</span><span class="mf">]</span>;
+A = <span class="mf">[</span><span class="mn">0.40</span> <span class="mn">0.10</span> <span class="mn">0.00</span> <span class="mn">0.20</span> <span class="mn">0.20</span>;
+     <span class="mn">0.00</span> <span class="mn">0.20</span> <span class="mn">0.50</span> <span class="mn">0.30</span> <span class="mn">0.30</span>;
+     <span class="mn">0.40</span> <span class="mn">0.40</span> <span class="mn">0.00</span> <span class="mn">0.00</span> <span class="mn">0.30</span>;
+     <span class="mn">0.00</span> <span class="mn">0.10</span> <span class="mn">0.30</span> <span class="mn">0.30</span> <span class="mn">0.20</span><span class="mf">]</span>;
+b = <span class="mf">[</span><span class="mn">280</span>; <span class="mn">230</span>; <span class="mn">280</span>; <span class="mn">170</span><span class="mf">]</span>;
 c = <span class="mf">[</span><span class="mn">10</span>; <span class="mn">8</span>; <span class="mn">12</span>; <span class="mn">9</span>; <span class="mn">11</span><span class="mf">]</span>;
+cap = <span class="mf">[</span><span class="mn">700</span>; <span class="mn">600</span>; <span class="mn">500</span>; <span class="mn">550</span>; <span class="mn">450</span><span class="mf">]</span>;
 
 <span class="mc">% Paso 6: Solucion particular</span>
 [R, piv] = <span class="mf">rref</span>(<span class="mf">[</span>A, b<span class="mf">]</span>);
 r = <span class="mf">rank</span>(A); n = <span class="mf">size</span>(A,<span class="mn">2</span>);
 xp = <span class="mf">zeros</span>(n,<span class="mn">1</span>); xp(piv) = R(<span class="mn">1</span>:r, <span class="mf">end</span>);
+<span class="mk">fprintf</span>(<span class="ms">'Costo base: $%.0f | Viable: %d\n'</span>, c'*xp, <span class="mf">all</span>(xp&gt;=<span class="mn">0</span> &amp; xp&lt;=cap));
 
 <span class="mc">% Paso 7: Optimizacion</span>
 N = <span class="mf">null</span>(A, <span class="ms">'r'</span>);
 delta = c' * N;
-t_opt = calcular_t_opt(xp, N, delta);
+<span class="mc">% delta&lt;0: t crece hasta que un x_i llega a 0 o a su capacidad</span>
+t_opt = <span class="mf">min</span>([-xp(N&lt;<span class="mn">0</span>)./N(N&lt;<span class="mn">0</span>); (cap(N&gt;<span class="mn">0</span>)-xp(N&gt;<span class="mn">0</span>))./N(N&gt;<span class="mn">0</span>)]);
 x_opt = xp + t_opt * N;
 
 <span class="mc">% Paso 8: Sensibilidad</span>
@@ -332,17 +342,17 @@ dx = <span class="mf">pinv</span>(A) * (<span class="mn">0.1</span>*b);</pre>
       </div>
       <div>
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Resultados esperados</span>
-          <code>xp = [560 550 120 0 0]</code><br>
-          <code>Costo base: $15160</code><br>
-          <code>Viable: 1</code><br><br>
-          <code>delta = -1.2500</code><br>
-          <em>El lazo reduce el costo \$1.25/ton.</em><br><br>
-          <code>Costo optimo: $15010</code><br>
-          <em>Ahorro: \$150/semana</em><br><br>
-          <code>max|dx|: 18.5 ton</code>
+          <code>xp = [500 200 200 300 0]</code><br>
+          <code>Costo base: $11700 | Viable: 1</code><br>
+          <br>
+          <code>delta = -0.7500</code> &nbsp; <code>t_opt = 400</code><br>
+          <em>Cada unidad de \(t\) reduce el costo \$0.75; \(t\) se detiene en 400 cuando P2 llega a 0.</em><br><br>
+          <code>Costo optimo: $11400</code><br>
+          <em>Ahorro: \$300/semana</em><br><br>
+          <code>max|dx|: 43.9 ton</code>
         </div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación</span>
-          Con 1 g.d.l. hay un margen de mejora de \$150/semana (\$7800/año) simplemente optimizando la asignación entre plantas.
+          Con 1 g.d.l. hay un margen de mejora de \$300/semana (\$15&#8239;600/año) simplemente optimizando la asignación entre plantas.
         </div>
       </div>
     </div>
@@ -352,23 +362,23 @@ dx = <span class="mf">pinv</span>(A) * (<span class="mn">0.1</span>*b);</pre>
   <div class="slide" data-slide="7">
     <h2><i class="fas fa-chart-pie"></i> Plan óptimo — interpretación logística</h2>
     <div class="block reveal"><span class="b-title"><i class="fas fa-flag-checkered"></i> Plan de despacho óptimo</span>
-      Con \(t^* \approx 120\):
-      $$ \mathbf{x}^*_{\text{opt}} \approx (640,\;390,\;220,\;0,\;120)^T \text{ ton/sem} $$
+      Con \(t^* = 400\):
+      $$ \mathbf{x}^*_{\text{opt}} = (400,\;0,\;100,\;200,\;400)^T \text{ ton/sem} $$
     </div>
     <div class="col-layout mt">
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-table"></i> Análisis del plan</span>
-        <table class="compact"><tr><th>Planta</th><th>Despacho</th><th>Capacidad</th><th>Uso</th></tr><tr><td>P1 Mvd</td><td>640</td><td>700</td><td>91%</td></tr><tr><td>P2 Can</td><td>390</td><td>600</td><td>65%</td></tr><tr><td>P3 Sal</td><td>220</td><td>500</td><td>44%</td></tr><tr><td>P4 Pay</td><td>0</td><td>550</td><td>0%</td></tr><tr><td>P5 Riv</td><td>120</td><td>450</td><td>27%</td></tr><tr style="font-weight:bold;"><td>Total</td><td>1370</td><td>2800</td><td>49%</td></tr></table>
+        <table class="compact"><tr><th>Planta</th><th>Despacho</th><th>Capacidad</th><th>Uso</th></tr><tr><td>P1 Mvd</td><td>400</td><td>700</td><td>57%</td></tr><tr><td>P2 Can</td><td>0</td><td>600</td><td>0%</td></tr><tr><td>P3 Sal</td><td>100</td><td>500</td><td>20%</td></tr><tr><td>P4 Pay</td><td>200</td><td>550</td><td>36%</td></tr><tr><td>P5 Riv</td><td>400</td><td>450</td><td>89%</td></tr><tr style="font-weight:bold;"><td>Total</td><td>1100</td><td>2800</td><td>39%</td></tr></table>
       </div>
       <div>
         <div class="alert-block reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Observaciones clave</span>
           <ul>
-            <li>P4 (Paysandú) queda <strong>inactiva</strong> en el plan óptimo: su costo (\$9/ton) es elevado para la estructura de la red.</li>
-            <li>P1 (Montevideo) casi al límite: 91% de uso. Es el <strong>cuello de botella</strong>.</li>
-            <li>La capacidad total es 2800 ton pero solo se usan 1370 (49%): la red tiene <strong>alta holgura de capacidad</strong>.</li>
+            <li>P2 (Canelones) queda <strong>inactiva</strong>: el lazo traslada su carga a P5, que abastece los mismos CDs de forma más barata.</li>
+            <li>P5 (Rivera) al 89% de uso. Es el <strong>cuello de botella</strong>.</li>
+            <li>La capacidad total es 2800 ton pero solo se usan 1100 (39%): la red tiene <strong>alta holgura de capacidad</strong>.</li>
           </ul>
         </div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-wrench"></i> Acción recomendada</span>
-          Renegociar con P4 una tarifa más baja, o transferir parte de la carga de P1 a P4 modificando los coeficientes de \(A\).
+          Asegurar la capacidad de P5 (ampliarla o reservar contrato) y mantener P2 como respaldo para picos de demanda.
         </div>
       </div>
     </div>
@@ -379,21 +389,20 @@ dx = <span class="mf">pinv</span>(A) * (<span class="mn">0.1</span>*b);</pre>
     <h2><i class="fas fa-chart-line"></i> Análisis de sensibilidad</h2>
     <div class="block reveal"><span class="b-title"><i class="fas fa-arrow-up"></i> ¿Qué pasa si la demanda cambia?</span>
       Si la demanda de cada CD sube 10% (escenario de temporada alta):
-      $$ \mathbf{b}' = 1.1\,\mathbf{b} = (352,\;308,\;264,\;176)^T $$
+      $$ \mathbf{b}' = 1.1\,\mathbf{b} = (308,\;253,\;308,\;187)^T $$
     </div>
     <div class="col-layout mt">
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-calculator"></i> Nuevo plan óptimo</span>
         Resolver \(A\mathbf{x}=\mathbf{b}'\) con el mismo protocolo:
-        $$ \mathbf{x}'_{\text{opt}} \approx (704,\;429,\;242,\;0,\;132)^T $$
-        <span class="reveal mt"><strong>Problema:</strong> P1 necesitaría 704 ton > 700 ton (capacidad máxima).<br>
-        <strong>El plan no es factible en temporada alta.</strong></span>
+        $$ \mathbf{x}'_{\text{opt}} = 1.1\,\mathbf{x}^*_{\text{opt}} = (440,\;0,\;110,\;220,\;440)^T $$
+        <span class="reveal mt"><strong>Factible</strong>, pero P5 queda en 440/450 t (98%): <strong>sin margen</strong>. Con +20%, P5 se satura (450 t), el lazo se detiene en \(t=450\) y el costo sube a \$13&#8239;702.5.</span>
       </div>
       <div class="alert-block reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Implicación</span>
-        Con un 10% más de demanda, P1 supera su límite. La red no puede absorber el pico estacional sin ajustes.<br><br>
+        Con +10% la red todavía cumple, pero P5 queda al límite: cualquier pico mayor obliga a reactivar P2 a mayor costo.<br><br>
         <strong>Acciones posibles:</strong>
         <ol>
-          <li>Activar P4 (actualmente inactiva).</li>
-          <li>Expandir la capacidad de P1.</li>
+          <li>Reactivar P2 (actualmente inactiva) en temporada alta.</li>
+          <li>Expandir la capacidad de P5.</li>
           <li>Agregar P6 en Melo.</li>
         </ol>
       </div>
@@ -404,7 +413,7 @@ dx = <span class="mf">pinv</span>(A) * (<span class="mn">0.1</span>*b);</pre>
   <div class="slide" data-slide="9">
     <h2><i class="fas fa-plus-circle"></i> Evaluación de la propuesta P6 (Melo)</h2>
     <div class="block reveal"><span class="b-title"><i class="fas fa-cube"></i> Modelo con P6 incorporada</span>
-      Agregar la columna \(\mathbf{a}_6=(0.10,0.20,0.30,0.40)^T\) a \(A\):
+      Agregar la columna \(\mathbf{a}_6=(0.10,0.30,0.10,0.10)^T\) a \(A\):
       $$ A' = [A\;|\;\mathbf{a}_6] \in\mathbb{R}^{4\times6} $$
       Ahora \(n=6\), \(r=4\) (si \(\mathbf{a}_6\) no es comb. lineal), \(k=\mathbf{2}\) g.d.l.
     </div>
@@ -413,18 +422,18 @@ dx = <span class="mf">pinv</span>(A) * (<span class="mn">0.1</span>*b);</pre>
         <ul>
           <li><strong>G.d.l.:</strong> 2 (dos lazos cerrados).</li>
           <li><strong>Plan base ampliado:</strong> resolviendo \(A'\mathbf{x}=\mathbf{b}\) con las dos vars. libres = 0.</li>
-          <li><strong>Lazos:</strong> \(\mathbf{n}_1\) y \(\mathbf{n}_2\) (calculados con MATLAB).</li>
+          <li><strong>Lazos:</strong> \(\mathbf{n}_1=(-\tfrac14,-\tfrac12,-\tfrac14,-\tfrac14,1,0)^T\), \(\mathbf{n}_2=(-\tfrac34,\tfrac12,-\tfrac54,\tfrac34,0,1)^T\).</li>
           <li><strong>Efecto:</strong> \(\delta_1=\mathbf{c}'^T\mathbf{n}_1\) y \(\delta_2=\mathbf{c}'^T\mathbf{n}_2\).</li>
           <li><strong>Plan óptimo:</strong> buscar vértice de la región factible 2D.</li>
-          <li><strong>Costo óptimo</strong> con P6: \$14780/semana.</li>
+          <li><strong>Plan óptimo</strong> con P6: \(\mathbf{x}=(335,10,0,240,450,70)^T\) (P5 al tope de 450 t).</li><li><strong>Costo óptimo</strong> con P6: \$11&#8239;170/semana.</li>
         </ul>
       </div>
       <div>
         <div class="alert-block reveal"><span class="b-title"><i class="fas fa-coins"></i> Comparación de costos</span>
-          <table class="compact"><tr><th>Escenario</th><th>Costo semanal</th></tr><tr><td>Sin P6 (base)</td><td>$15160</td></tr><tr><td>Sin P6 (óptimo)</td><td>$15010</td></tr><tr><td>Con P6 (óptimo)</td><td>$14780</td></tr><tr style="font-weight:bold;"><td>Ahorro vs base</td><td>$380</td></tr><tr style="font-weight:bold;"><td>Ahorro vs óptimo actual</td><td>$230</td></tr></table>
-          <p class="mt">Ahorro anual con P6: \(\$380\times52=\$19760\).<br>
+          <table class="compact"><tr><th>Escenario</th><th>Costo semanal</th></tr><tr><td>Sin P6 (base)</td><td>$11700</td></tr><tr><td>Sin P6 (óptimo)</td><td>$11400</td></tr><tr><td>Con P6 (óptimo)</td><td>$11170</td></tr><tr style="font-weight:bold;"><td>Ahorro vs base</td><td>$530</td></tr><tr style="font-weight:bold;"><td>Ahorro vs óptimo actual</td><td>$230</td></tr></table>
+          <p class="mt">Ahorro atribuible a P6 (vs. óptimo actual, que se logra sin invertir): \(\$230\times52=\$11\,960\)/año.<br>
           Inversión: \$250.000.<br>
-          Payback: \(250000/19760\approx\mathbf{12.6}\) años.</p>
+          Payback: \(250000/11960\approx\mathbf{20.9}\) años.</p>
         </div>
       </div>
     </div>
@@ -439,15 +448,15 @@ dx = <span class="mf">pinv</span>(A) * (<span class="mn">0.1</span>*b);</pre>
     <ol class="mt reveal">
       <li><strong>Rango y g.d.l.:</strong> Red actual tiene \(r=4\), \(k=1\) g.d.l. Hay un lazo cerrado disponible.</li>
       <li><strong>Compatibilidad:</strong> La demanda es alcanzable con la red actual.</li>
-      <li><strong>Optimización:</strong> El lazo reduce el costo en \$150/semana (\$7800/año). P4 queda inactiva.</li>
-      <li><strong>Sensibilidad:</strong> Con demanda +10%, P1 supera su capacidad. Red frágil ante picos.</li>
-      <li><strong>P6 en Melo:</strong> Da 2 g.d.l., pero el payback es 12.6 años. No viable con horizonte de 5 años.</li>
+      <li><strong>Optimización:</strong> El lazo reduce el costo en \$300/semana (\$15&#8239;600/año). P2 queda inactiva.</li>
+      <li><strong>Sensibilidad:</strong> Con demanda +10%, P5 queda al 98% de su capacidad. Red sin margen ante picos.</li>
+      <li><strong>P6 en Melo:</strong> Da 2 g.d.l., pero el payback es 20.9 años. No viable con horizonte de 5 años.</li>
     </ol>
     <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Recomendación final</span>
       <strong>No incorporar P6 en el corto plazo.</strong> En su lugar:
       <ul>
-        <li><strong>Inmediato:</strong> Implementar el plan óptimo (ahorro \$7800/año sin inversión).</li>
-        <li><strong>Corto plazo:</strong> Renegociar con P4 para que su tarifa baje de \$9 a \$7/ton; activarla para temporada alta.</li>
+        <li><strong>Inmediato:</strong> Implementar el plan óptimo (ahorro \$15&#8239;600/año sin inversión).</li>
+        <li><strong>Corto plazo:</strong> Asegurar capacidad adicional en P5 y dejar P2 como respaldo para temporada alta.</li>
         <li><strong>Mediano plazo:</strong> Si la demanda crece más del 15% en forma sostenida, revisar la incorporación de P6.</li>
       </ul>
     </div>
@@ -462,7 +471,7 @@ dx = <span class="mf">pinv</span>(A) * (<span class="mn">0.1</span>*b);</pre>
       <tr><td>Lazo cerrado e interpretación</td><td>15%</td><td>/15</td><td>Calcular \(\mathbf{n}_1\) y explicar en términos de las plantas</td></tr>
       <tr><td>Solución particular y viabilidad</td><td>15%</td><td>/15</td><td>\(\mathbf{x}^*\), residuo, verificar \(x_i\geq0\) y \(x_i\leq\text{cap}\)</td></tr>
       <tr><td>Optimización: plan de mín. costo</td><td>20%</td><td>/20</td><td>\(\delta\), intervalo factible, plan óptimo, ahorro</td></tr>
-      <tr><td>Análisis de sensibilidad</td><td>10%</td><td>/10</td><td>Escenario +10%, detectar P1 como cuello de botella</td></tr>
+      <tr><td>Análisis de sensibilidad</td><td>10%</td><td>/10</td><td>Escenario +10%, detectar P5 como cuello de botella</td></tr>
       <tr><td>Evaluación de P6</td><td>10%</td><td>/10</td><td>Payback correcto, conclusión argumentada</td></tr>
       <tr><td>Decisión y recomendación</td><td>10%</td><td>/10</td><td>Argumentada con criterios cuantitativos</td></tr>
       <tr style="background:#f8fafc; font-weight:600;"><td><strong>Total</strong></td><td><strong>100%</strong></td><td><strong>/100</strong></td><td></td></tr>

@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -146,12 +146,40 @@
 
     .step-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 0.7rem 0.9rem; margin: 0.5rem 0; }
     .step-box .step-num { display: inline-block; background: var(--navy); color: #fff; border-radius: 50%; width: 22px; height: 22px; line-height: 22px; text-align: center; font-size: 0.8rem; font-weight: 700; margin-right: 0.4rem; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 <base target="_blank">
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -350,7 +378,7 @@
       \(A = \begin{pmatrix}0.5&0.3\\0.5&0.7\end{pmatrix}\), \(A^{-1} = \begin{pmatrix}3.5&-1.5\\-2.5&2.5\end{pmatrix}\)<br>
       <span class="reveal mt">\(\|A\|_1 = \max(0.5+0.5,\;0.3+0.7) = \max(1.0,1.0) = 1.0\); \(\|A^{-1}\|_1 = \max(3.5+2.5,\;1.5+2.5) = \max(6.0,4.0) = 6.0\) \(\Rightarrow \operatorname{cond}_1(A)=1.0\times6.0=\mathbf{6}\)</span><br><br>
       <span class="reveal mt">\(\|A\|_\infty = \max(0.5+0.3,\;0.5+0.7) = \max(0.8,1.2) = 1.2\); \(\|A^{-1}\|_\infty = \max(3.5+1.5,\;2.5+2.5) = \max(5.0,5.0) = 5.0\) \(\Rightarrow \operatorname{cond}_\infty(A)=1.2\times5.0=\mathbf{6}\)</span><br><br>
-      <span class="reveal mt italic">El valor exacto depende de la norma (p. ej. \(\operatorname{cond}_2=5\) aquí), pero el orden de magnitud es lo que importa para el diagnóstico.</span>
+      <span class="reveal mt italic">El valor exacto depende de la norma (p. ej. \(\operatorname{cond}_2\approx5.2\) aquí), pero el orden de magnitud es lo que importa para el diagnóstico.</span>
     </div>
   </div>
 
@@ -407,10 +435,11 @@ c1 = <span class="mf">cond</span>(A,<span class="mn">1</span>);  <span class="mc
 ci = <span class="mf">cond</span>(A,<span class="mk">inf</span>); <span class="mc">% cond_inf</span>
 <span class="mk">fprintf</span>(<span class="ms">'cond=%.2f, cond1=%.2f, condinf=%.2f\n'</span>, c, c1, ci);
 
-<span class="mc">% 4. Sensibilidad: perturbar b en 1%</span>
+<span class="mc">% 4. Sensibilidad: perturbar b en 1% (direccion desfavorable)</span>
 b = <span class="mf">[</span><span class="mn">300</span>; <span class="mn">200</span>; <span class="mn">150</span><span class="mf">]</span>;
 x = A <span class="mk">\</span> b;
-b_pert = b * <span class="mn">1.01</span>;
+d = <span class="mf">[</span><span class="mn">1</span>; -<span class="mn">1</span>; <span class="mn">0</span><span class="mf">]</span>/<span class="mf">sqrt</span>(<span class="mn">2</span>);
+b_pert = b + <span class="mn">0.01</span>*<span class="mf">norm</span>(b)*d;
 x_pert = A <span class="mk">\</span> b_pert;
 <span class="mk">fprintf</span>(<span class="ms">'Cambio en x: %.2f%%\n'</span>,...
         <span class="mf">norm</span>(x_pert-x)/<span class="mf">norm</span>(x)*<span class="mn">100</span>);</pre>
@@ -419,8 +448,8 @@ x_pert = A <span class="mk">\</span> b_pert;
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
           <code>det(A) = 0.0800</code><br>
           <code>Verificacion A*A_inv: matriz identidad</code><br>
-          <code>cond(A) = 12.45</code><br>
-          <code>Cambio en x: ~12%</code> (amplificación ~12×)
+          <code>cond=5.00, cond1=5.50, condinf=5.50</code><br>
+          <code>Cambio en x: 3.52%</code> (≤ cota \(5\times1\%=5\%\))<br><small>Con <code>b*1.01</code> (perturbación proporcional) el cambio es exactamente 1%: por linealidad, \(\mathbf{x}\) escala igual.</small>
         </div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-circle"></i> Precaución</span>
           <ul><li><code>inv(A)*b</code> es menos estable que <code>A\b</code>.</li><li><code>cond(A)</code> grande \(\Rightarrow\) verificar residuo \(\|A\mathbf{x}-\mathbf{b}\|\).</li><li>Para matrices grandes, usar <code>condest(A)</code> (estimación eficiente).</li></ul>
@@ -441,7 +470,7 @@ x_pert = A <span class="mk">\</span> b_pert;
     </div>
     <div class="col-layout mt">
       <div class="example-block reveal"><span class="b-title">Resultados MATLAB</span>
-        <table class="compact"><tr><th></th><th>\(\det\)</th><th>\(\operatorname{cond}_\infty\)</th><th>Estabilidad</th></tr><tr><td>\(A_1\)</td><td>0.20</td><td>5.0</td><td>Excelente</td></tr><tr><td>\(A_2\)</td><td>0.199</td><td>5.02</td><td>Excelente</td></tr></table>
+        <table class="compact"><tr><th></th><th>\(\det\)</th><th>\(\operatorname{cond}_\infty\)</th><th>Estabilidad</th></tr><tr><td>\(A_1\)</td><td>0.20</td><td>5.0</td><td>Excelente</td></tr><tr><td>\(A_2\)</td><td>0.199</td><td>5.03</td><td>Excelente</td></tr></table>
         <span class="reveal mt italic">Pequeñas perturbaciones no afectan significativamente el condicionamiento cuando es bueno.</span>
       </div>
       <div class="alert-block reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Diagnóstico de confiabilidad</span>
@@ -459,10 +488,10 @@ x_pert = A <span class="mk">\</span> b_pert;
   <!-- SLIDE 12: CASO LOGÍSTICO -->
   <div class="slide" data-slide="12">
     <h2><i class="fas fa-industry"></i> Caso logístico: confiabilidad del modelo</h2>
-    <div class="block reveal"><span class="b-title"><i class="fas fa-sitemap"></i> Situación</span> Red \(A\) de 3 plantas a 3 CDs. Solución \(\mathbf{x}^*=(324,229,102)^T\) para demanda \(\mathbf{b}=(300,200,150)^T\). Pero \(x_2=-20\) en otro escenario y \(\operatorname{cond}(A)=850\).</div>
+    <div class="block reveal"><span class="b-title"><i class="fas fa-sitemap"></i> Situación</span> Red \(A\) de 3 plantas a 3 CDs. Con \(A=\begin{pmatrix}0.5&0.3&0.2\\0.3&0.5&0.2\\0.2&0.2&0.6\end{pmatrix}\): para \(\mathbf{b}=(300,200,150)^T\) la solución es \(\mathbf{x}^*=(550,50,50)^T\). Pero para \(\mathbf{b}^{\prime}=(200,350,100)^T\) resulta \(\mathbf{x}=(-12.5,\ 737.5,\ -75)^T\). Además \(\operatorname{cond}_2(A)=5\).</div>
     <div class="col-layout mt">
       <div class="alert-block reveal"><span class="b-title"><i class="fas fa-triangle-exclamation"></i> Diagnóstico</span>
-        <ul><li>\(\operatorname{cond}(A)=850\): aceptable con precaución (pérdida de ~3 cifras).</li><li>\(x_2&lt;0\): plan no viable físicamente.</li><li>Posible causa: demanda inconsistente con estructura de red.</li></ul>
+        <ul><li>\(\operatorname{cond}(A)=5\): <strong>bien condicionada</strong>; el problema no es numérico.</li><li>\(x_1, x_3&lt;0\): plan no viable físicamente.</li><li>Posible causa: demanda inconsistente con estructura de red.</li></ul>
       </div>
       <div>
         <div class="example-block reveal"><span class="b-title"><i class="fas fa-flask"></i> Simulación en MATLAB</span>
@@ -562,11 +591,12 @@ x_pert = A <span class="mk">\</span> b_pert;
     <div class="step-box reveal"><span class="step-num">1</span><strong>Cota teórica de amplificación:</strong> \(\dfrac{\|\delta\mathbf{x}\|}{\|\mathbf{x}\|} \leq \operatorname{cond}(A)\cdot\dfrac{\|\delta\mathbf{b}\|}{\|\mathbf{b}\|} = 2500 \times 0.01 = 0.25\). El plan podría variar hasta <strong>~25%</strong> solo por el error de medición.</div>
     <div class="step-box reveal"><span class="step-num">2</span><strong>Test empírico en MATLAB</strong> (perturbar la demanda ±1%):
       <pre><span class="mc">% Test de sensibilidad</span>
-b1 = b * <span class="mn">1.01</span>;  x1 = A <span class="mk">\</span> b1;
-b2 = b * <span class="mn">0.99</span>;  x2 = A <span class="mk">\</span> b2;
+d = <span class="mf">randn</span>(<span class="mf">size</span>(b)); d = d/<span class="mf">norm</span>(d);   <span class="mc">% direccion aleatoria</span>
+b1 = b + <span class="mn">0.01</span>*<span class="mf">norm</span>(b)*d;  x1 = A <span class="mk">\</span> b1;
+b2 = b - <span class="mn">0.01</span>*<span class="mf">norm</span>(b)*d;  x2 = A <span class="mk">\</span> b2;
 <span class="mk">fprintf</span>(<span class="ms">'Cambio +: %.2f%% | Cambio -: %.2f%%\n'</span>,...
   <span class="mf">norm</span>(x1-x)/<span class="mf">norm</span>(x)*<span class="mn">100</span>, <span class="mf">norm</span>(x2-x)/<span class="mf">norm</span>(x)*<span class="mn">100</span>);</pre>
-      <span class="reveal">Resultado esperado: cambios del orden de <strong>20–25%</strong>, consistente con la cota teórica.</span>
+      <span class="reveal">Resultado esperado: cambios que dependen de la dirección de \(\delta\mathbf{b}\); repitiendo el test, los peores casos se acercan a <strong>25%</strong> (la cota). <em>Ojo:</em> <code>b*1.01</code> no sirve como test: cambia \(\mathbf{x}\) exactamente 1%.</span>
     </div>
     <div class="step-box reveal"><span class="step-num">3</span><strong>Aplicar el criterio de decisión:</strong> \(25\% &gt; 10\%\) \(\Rightarrow\) <strong>el plan NO es confiable tal cual</strong>; se requieren acciones correctivas.</div>
     <div class="step-box reveal"><span class="step-num">4</span><strong>Acción 1 — mejorar precisión de datos:</strong> si el error baja a 0.1%: \(2500\times0.001 = 2.5\% &lt; 10\%\) \(\Rightarrow\) <strong>confiable</strong>.</div>

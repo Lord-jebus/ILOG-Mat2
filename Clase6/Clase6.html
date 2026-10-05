@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -142,11 +142,39 @@
     table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
     table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
     table.compact th { background: #f8fafc; font-weight: 600; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -335,7 +363,7 @@
       </div>
     </div>
     <div class="alert-block mt reveal center"><span class="b-title"><i class="fas fa-table"></i> Tabla comparativa de operaciones</span>
-      <table class="compact" style="width:50%; margin:0 auto;"><tr><th></th><th>Gauss</th><th>Gauss-Jordan</th></tr><tr><td>Mults.</td><td>\(\approx \frac{2}{3}n^3\)</td><td>\(\approx n^3\)</td></tr><tr><td>Resultado</td><td>FE triangular</td><td>RREF diagonal</td></tr><tr><td>Sustitución</td><td>Sí</td><td>No</td></tr></table>
+      <table class="compact" style="width:50%; margin:0 auto;"><tr><th></th><th>Gauss</th><th>Gauss-Jordan</th></tr><tr><td>Flops</td><td>\(\approx \frac{2}{3}n^3\)</td><td>\(\approx n^3\)</td></tr><tr><td>Resultado</td><td>FE triangular</td><td>RREF diagonal</td></tr><tr><td>Sustitución</td><td>Sí</td><td>No</td></tr></table>
     </div>
   </div>
 
@@ -352,28 +380,72 @@
       </div>
       <div class="example-block reveal"><span class="b-title">Normalización + fase atrás</span>
         \(F_4\div(-4)\) → Eliminar sobre pivotes (de abajo arriba):
-        $$ \left(\begin{array}{cccc|c}\color{#dc6b1f}{\mathbf{1}}&0&0&0&\color{#b41414}{\mathbf{1}}\\0&\color{#dc6b1f}{\mathbf{1}}&0&0&\color{#b41414}{\mathbf{2.5}}\\0&0&\color{#dc6b1f}{\mathbf{1}}&0&\color{#b41414}{\mathbf{1}}\\0&0&0&\color{#dc6b1f}{\mathbf{1}}&\color{#b41414}{\mathbf{2.5}}\end{array}\right) $$
+        $$ \left(\begin{array}{cccc|c}\color{#dc6b1f}{\mathbf{1}}&0&0&0&\color{#b41414}{\mathbf{0}}\\0&\color{#dc6b1f}{\mathbf{1}}&0&0&\color{#b41414}{\mathbf{2.5}}\\0&0&\color{#dc6b1f}{\mathbf{1}}&0&\color{#b41414}{\mathbf{1}}\\0&0&0&\color{#dc6b1f}{\mathbf{1}}&\color{#b41414}{\mathbf{2.5}}\end{array}\right) $$
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 11: RESULTADO 4x4 -->
-  <div class="slide" data-slide="11">
-    <h2><i class="fas fa-check-circle"></i> Resultado \(4\times4\) — interpretación logística</h2>
-    <div class="block reveal"><span class="b-title">Solución leída directamente de la RREF</span>
-      $$ \mathbf{x}^* = \begin{pmatrix}1.0\\2.5\\1.0\\2.5\end{pmatrix}\text{ ton} $$
-    </div>
-    <div class="col-layout mt">
+ 
+  <!-- SLIDE 11: RESULTADO 4x4 con operaciones -->
+<div class="slide" data-slide="11">
+  <h2><i class="fas fa-check-circle"></i> Resultado \(4\times4\) — interpretación logística</h2>
+  
+  <div class="block reveal">
+    <span class="b-title">Solución leída directamente de la RREF</span>
+    $$ \mathbf{x}^* = \begin{pmatrix}0\\2.5\\1.0\\2.5\end{pmatrix}\text{ ton} $$
+  </div>
+
+  <!-- NUEVO BLOQUE: OPERACIONES DE FILA (FASE ATRÁS) -->
+  <div class="example-block reveal" style="margin-top: 16px;">
+    <span class="b-title"><i class="fas fa-arrow-up"></i> Operaciones de eliminación hacia atrás</span>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; margin-top: 8px; font-size: 0.95em;">
       <div>
-        <div class="example-block reveal"><span class="b-title"><i class="fas fa-shield-halved"></i> Verificación</span> Fila 1: \(1(1)+1(2.5)+0(1)+1(2.5) = 6 \neq 5\) (error ilustrativo en cálculo manual). <span class="reveal mt">Regla: usar <code>rref</code> o <code>A\b</code> en MATLAB para precisión.</span></div>
-        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-gavel"></i> Regla de oro</span> Gauss-Jordan manual es para <strong>entender el método</strong>. Para producción: MATLAB.</div>
+        <strong>Pivote \(F_4\) (fila 4):</strong><br>
+        \(F_3 \leftarrow F_3 - 2F_4\)<br>
+        \(F_2 \leftarrow F_2 + F_4\)<br>
+        \(F_1 \leftarrow F_1 - F_4\)
       </div>
-      <div class="block reveal"><span class="b-title"><i class="fas fa-info-circle"></i> Información extra de RREF</span>
-        <ul><li>N° exacto de <strong>variables libres</strong>.</li><li>Expresión explícita de básicas vs libres.</li><li>Base para <strong>inversa de \(A\)</strong> (Clase 11).</li><li>Base para <strong>espacio nulo/columna</strong> (Mód 4).</li></ul>
+      <div>
+        <strong>Pivote \(F_3\) (fila 3):</strong><br>
+        \(F_2 \leftarrow F_2 - F_3\)<br>
+        \(F_1 \leftarrow F_1 - 0\cdot F_3\) (no cambia)
       </div>
+      <div style="grid-column: 1 / span 2;">
+        <strong>Pivote \(F_2\) (fila 2):</strong><br>
+        \(F_1 \leftarrow F_1 - F_2\)
+      </div>
+    </div>
+    <div style="margin-top: 10px; font-size: 0.9em; color: #2c5282; background: #ebf8ff; padding: 6px 12px; border-radius: 8px;">
+      <i class="fas fa-info-circle"></i> Todas las operaciones se aplican a la <strong>matriz aumentada</strong> completa (coeficientes + lado derecho).
     </div>
   </div>
 
+  <div class="col-layout mt">
+    <div>
+      <div class="example-block reveal">
+        <span class="b-title"><i class="fas fa-shield-halved"></i> Verificación</span> 
+        Fila 1: \(1(0)+1(2.5)+0(1)+1(2.5) = 5\) ✅<br>
+        Fila 2: \(1(0)+2(2.5)+1(1)+0(2.5) = 6\) ✅<br>
+        Fila 3: \(0(0)+1(2.5)+2(1)+1(2.5) = 7\) ✅<br>
+        Fila 4: \(1(0)+0(2.5)+1(1)+2(2.5) = 6\) ✅        
+      </div>
+      <div class="alert-block mt reveal">
+        <span class="b-title"><i class="fas fa-gavel"></i> Regla de oro</span> Gauss-Jordan manual es para <strong>entender el método</strong>. Para producción: MATLAB.
+      </div>
+    </div>
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-info-circle"></i> Información extra de RREF</span>
+      <ul>
+        <li>N° exacto de <strong>variables libres</strong>.</li>
+        <li>Expresión explícita de básicas vs libres.</li>
+        <li>Base para <strong>inversa de \(A\)</strong> (Clase 11).</li>
+        <li>Base para <strong>espacio nulo/columna</strong> (Mód 4).</li>
+      </ul>
+    </div>
+  </div>
+</div>
+  
+  
   <!-- SLIDE 12: MATLAB RREF -->
   <div class="slide" data-slide="12">
     <h2><i class="fas fa-laptop-code"></i> MATLAB — <code>rref</code> y comparación</h2>
@@ -411,7 +483,7 @@ b2 = <span class="mf">[</span><span class="mn">5</span>; <span class="mn">11</sp
           <code>RREF: 1 0 0 3.5 | 0 1 0 0.5 | 0 0 1 1.5</code><br>
           <code>Solucion: 3.5  0.5  1.5</code><br>
           <code>Gauss:    3.5  0.5  1.5</code><br>
-          <code>Res. GJ/Gauss: 0.00e+00</code>
+          <code>Res. GJ / Gauss: ≈ 0 (orden 1e-15)</code><br><code>Vars. libres: x[2 4]</code>
         </div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-plus-circle"></i> ¿Qué da <code>rref</code> extra?</span> Devuelve <code>pivots</code>: columnas de pivote, permitiendo identificar variables libres automáticamente.</div>
       </div>
@@ -440,7 +512,7 @@ A3_inv = R_inv(:, <span class="mn">3</span>:<span class="mn">4</span>);
 <span class="mf">disp</span>(A3_inv)</pre>
       </div>
       <div>
-        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-bolt"></i> Eficiencia</span> <code>A\b</code> es significativamente más rápido. Para \(n=300\): 10–100x más veloz que <code>rref</code>.</div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-bolt"></i> Eficiencia</span> <code>A\b</code> es significativamente más rápido. Para \(n=300\) suele ser decenas de veces más veloz que <code>rref</code> (los tiempos exactos dependen del equipo).</div>
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-forward-step"></i> Anticipo: inversa con <code>rref</code></span>
           Aplicar GJ a \([A\;|\;I] \Rightarrow [I\;|\;A^{-1}]\).
           $$ \left[\begin{array}{cc|cc}2&1&1&0\\5&3&0&1\end{array}\right] \xrightarrow{\text{RREF}} \left[\begin{array}{cc|cc}1&0&3&-1\\0&1&-5&2\end{array}\right] $$
@@ -459,8 +531,8 @@ A3_inv = R_inv(:, <span class="mn">3</span>:<span class="mn">4</span>);
     <div class="example-block mt reveal"><span class="b-title">Resolución</span>
       Normalizar: \(F_1\div3\), \(F_2\div2\), \(F_3\div5\) →
       $$ \left(\begin{array}{ccc|c}\color{#dc6b1f}{\mathbf{1}}&2&-1&4\\0&\color{#dc6b1f}{\mathbf{1}}&2&4\\0&0&\color{#dc6b1f}{\mathbf{1}}&2\end{array}\right) $$
-      <span class="reveal mt">Atrás: \(F_2 \leftarrow F_2-2F_3\) → \((0,1,0,0)\). \(F_1 \leftarrow F_1+F_3-2F_2\) → \((1,0,0,2)\).</span>
-      $$ \left(\begin{array}{ccc|c}1&0&0&\color{#b41414}{\mathbf{2}}\\0&1&0&\color{#b41414}{\mathbf{0}}\\0&0&1&\color{#b41414}{\mathbf{2}}\end{array}\right) \Rightarrow x_1=2,\;x_2=0,\;x_3=2 $$
+      <span class="reveal mt">Atrás: \(F_2 \leftarrow F_2-2F_3\) → \((0,1,0,0)\). \(F_1 \leftarrow F_1+F_3-2F_2\) → \((1,0,0,6)\) (\(4+2-2\cdot0=6\)).</span>
+      $$ \left(\begin{array}{ccc|c}1&0&0&\color{#b41414}{\mathbf{6}}\\0&1&0&\color{#b41414}{\mathbf{0}}\\0&0&1&\color{#b41414}{\mathbf{2}}\end{array}\right) \Rightarrow x_1=6,\;x_2=0,\;x_3=2 $$
     </div>
   </div>
 
@@ -475,7 +547,8 @@ A3_inv = R_inv(:, <span class="mn">3</span>:<span class="mn">4</span>);
       $$ \left(\begin{array}{ccc|c}1&2&-1&3\\2&1&1&7\\3&-1&2&8\end{array}\right) \xrightarrow{F_2-2F_1;\;F_3-3F_1} \left(\begin{array}{ccc|c}1&2&-1&3\\0&-3&3&1\\0&-7&5&-1\end{array}\right) $$
       <span class="reveal mt">\(F_3\leftarrow F_3-\frac{7}{3}F_2\) → \(\left(\begin{array}{ccc|c}1&2&-1&3\\0&-3&3&1\\0&0&-2&-\frac{10}{3}\end{array}\right)\)</span><br>
       <span class="reveal mt">Normalizar y atrás:</span>
-      $$ \left(\begin{array}{ccc|c}1&0&0&\color{#b41414}{\mathbf{\frac{13}{9}}}\\0&1&0&\color{#b41414}{\mathbf{\frac{4}{9}}}\\0&0&1&\color{#b41414}{\mathbf{\frac{5}{3}}}\end{array}\right) $$
+      $$ \left(\begin{array}{ccc|c}1&0&0&\color{#b41414}{\mathbf{2}}\\0&1&0&\color{#b41414}{\mathbf{\frac{4}{3}}}\\0&0&1&\color{#b41414}{\mathbf{\frac{5}{3}}}\end{array}\right) $$
+      <span class="reveal" style="font-size:0.9rem">\(x_3=\frac{-10/3}{-2}=\frac{5}{3}\); \(-3x_2+3\cdot\frac{5}{3}=1\Rightarrow x_2=\frac{4}{3}\); \(x_1=3-2\cdot\frac{4}{3}+\frac{5}{3}=2\). Verificación: \(2(2)+\frac43+\frac53=7\) ✓</span>
     </div>
   </div>
 
@@ -496,7 +569,7 @@ A3_inv = R_inv(:, <span class="mn">3</span>:<span class="mn">4</span>);
       </div>
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-chart-line"></i> Análisis de decisión</span>
         <strong>Sistema B</strong>: \(t\) es <strong>controlable</strong>. El gerente puede elegir \(t\) para minimizar costos, respetar capacidades o balancear carga.
-        <span class="reveal mt">Con costos \((3,5,2)\): Costo \(= 2000-t\). Maximizar \(t\) (\(x_i\geq0\)): \(t^*=250 \Rightarrow \mathbf{x}^*=(0,350,250)\).</span>
+        <span class="reveal mt">Con costos \((3,5,2)\): Costo \(=3(500-2t)+5(100+t)+2t = 2000+t\). Crece con \(t\) ⇒ conviene \(t^*=0\) (rango factible \(0\le t\le250\)): \(\mathbf{x}^*=(500,100,0)\), costo \(\mathbf{2000}\).<br><em>Con costos \((3,4,1)\) el costo sería \(1900-t\) y el óptimo pasaría a \(t^*=250\): \(\mathbf{x}^*=(0,350,250)\).</em></span>
       </div>
     </div>
   </div>
@@ -552,9 +625,9 @@ A3_inv = R_inv(:, <span class="mn">3</span>:<span class="mn">4</span>);
       <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
         <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
         <ul class="mt">
-          <li>Khan Academy: ``Reduced row echelon form''</li>
+          <li>Khan Academy: “Reduced row echelon form”</li>
           <li>MathWorks: MATLAB <code>rref</code> oficial</li>
-          <li><em>3Blue1Brown</em> — ``Linear transformations'', Ep. 3</li>
+          <li><em>3Blue1Brown</em> — “Linear transformations”, Ep. 3</li>
         </ul>
       </div>
     </div>

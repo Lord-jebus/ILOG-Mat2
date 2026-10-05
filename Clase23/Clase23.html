@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 23: Regresión Lineal Multiple</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003a6b;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff3e0;
+      --red: #b41414;
+      --purple: #640096;
+      --purple-light: #f3e6f7;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--navy);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--navy);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block strong { color: var(--orange); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--purple); border-color: var(--purple); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    /* Matrix visualization */
+    .matrix-grid { display: inline-grid; gap: 2px; margin: 0.5rem auto; font-family: var(--font-code); font-size: 0.8rem; }
+    .matrix-bracket { font-size: 1.5rem; color: var(--navy); }
+    .matrix-cell { padding: 2px 6px; text-align: center; background: #f1f5f9; border-radius: 2px; }
+    .matrix-cell.highlight { background: var(--green-light); color: var(--green); font-weight: 600; }
+    .matrix-cell.ones { background: var(--orange-light); color: var(--orange); }
+
+    /* Coefficient table */
+    .coef-table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.9rem; }
+    .coef-table th, .coef-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    .coef-table th { background: #f8fafc; font-weight: 600; }
+
+    /* R² adjusted curve */
+    .r2-curve { width: 280px; height: 160px; margin: 0.5rem auto; position: relative; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; }
+    .rc-axis { position: absolute; font-size: 0.7rem; color: #64748b; }
+    .rc-x { bottom: -15px; right: 5px; } .rc-y { top: 5px; left: -30px; }
+    .rc-line { position: absolute; height: 2px; background: var(--navy); transform-origin: left center; }
+    .rc-point { position: absolute; width: 6px; height: 6px; background: var(--green); border-radius: 50%; transform: translate(-50%, -50%); }
+    .rc-point.optimal { background: var(--orange); width: 8px; height: 8px; }
+    .rc-label { position: absolute; font-size: 0.7rem; font-weight: 600; }
+
+    /* 3D plane placeholder */
+    .plane-3d { width: 260px; height: 180px; margin: 0.5rem auto; position: relative; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); border-radius: 8px; border: 2px solid #cbd5e1; display: flex; align-items: center; justify-content: center; }
+    .plane-grid { position: absolute; width: 200px; height: 120px; border: 2px solid var(--navy); transform: perspective(400px) rotateX(60deg) rotateZ(-20deg); background: rgba(0,82,147,0.1); }
+    .plane-grid::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, transparent, transparent 29px, var(--navy) 30px), repeating-linear-gradient(90deg, transparent, transparent 29px, var(--navy) 30px); opacity: 0.3; }
+    .plane-point { position: absolute; width: 5px; height: 5px; background: var(--red); border-radius: 50%; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .decision-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+    .dc-card { padding: 0.8rem; border-radius: 8px; text-align: center; border: 2px solid; font-size: 0.85rem; }
+    .dc-card.a { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .dc-card.b { border-color: var(--orange); background: var(--orange-light); }
+    .dc-card.c { border-color: #94a3b8; background: #f1f5f9; }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--navy); margin: 0.5rem 0; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-cubes fa-3x" style="color:var(--purple); margin-bottom:1rem;"></i>
+      <h1>Regresión Lineal Múltiple</h1>
+      <p class="sub">Formulación Matricial y Modelado de Costos Logísticos</p>
+      <p class="sub" style="color:var(--purple); font-weight:600;">Módulo 5 — Regresión y Análisis de Datos</p>
+      <p class="sub">Matemáticas 2 — Clase 23</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 23</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Objetivos de Aprendizaje</li>
+      <li class="reveal">¿Por qué Necesitamos Múltiples Variables?</li>
+      <li class="reveal">Modelo de Regresión Múltiple</li>
+      <li class="reveal">Ecuaciones Normales: Obtención de β̂</li>
+      <li class="reveal">Matriz de Diseño: Construcción Paso a Paso</li>
+      <li class="reveal">Interpretación: Efectos Parciales</li>
+      <li class="reveal">¿Por qué los Coeficientes Cambian al Agregar Variables?</li>
+      <li class="reveal">MATLAB: Regresión Múltiple — Método Matricial</li>
+      <li class="reveal">MATLAB: Evaluación y Predicción</li>
+      <li class="reveal">MATLAB: fitlm — Análisis Completo Automático</li>
+      <li class="reveal">R² Ajustado: Penalizar por Complejidad</li>
+      <li class="reveal">Selección de Variables: Principio de Parsimonia</li>
+      <li class="reveal">Caso: Modelar el Costo Total de Distribución</li>
+      <li class="reveal">¿Qué Factor Atacar para Reducir Costos?</li>
+      <li class="reveal">Imagen: Plano de Regresión en ℝ³</li>
+      <li class="reveal">Resumen: Regresión Múltiple vs Simple</li>
+      <li class="reveal">Punto de Decisión</li>
+      <li class="reveal">Tarea para la Clase 24</li>
+      <li class="reveal">Referencias</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de Aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Formular</strong> un modelo de regresión lineal múltiple con \(k\) predictores.</li>
+      <li class="reveal"><strong>Escribir</strong> el modelo en forma matricial \(\mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon}\).</li>
+      <li class="reveal"><strong>Obtener</strong> los coeficientes vía ecuaciones normales \(\hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}\).</li>
+      <li class="reveal"><strong>Implementar</strong> la regresión múltiple en MATLAB usando la división matricial y <code>fitlm</code>.</li>
+      <li class="reveal"><strong>Interpretar</strong> cada coeficiente como efecto parcial (manteniendo constantes las demás variables).</li>
+      <li class="reveal"><strong>Decidir</strong> qué factor atacar primero para reducir costos logísticos.</li>
+    </ol>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Conexión con Clases 21–22</span>
+      Clases 21–22: un solo predictor \(x\).<br>
+      Clase 23: <strong>varios predictores</strong> simultáneos \(x_1, x_2, \ldots, x_k\).<br>
+      El álgebra lineal (ecuaciones normales) ya la conocemos del Módulo 1–2.
+    </div>
+  </div>
+
+  <!-- SLIDE 3: ¿POR QUÉ MÚLTIPLES VARIABLES? -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-question-circle"></i> ¿Por qué Necesitamos Múltiples Variables?</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-triangle-exclamation"></i> El problema de la regresión simple</span>
+          Modelos separados para distancia, peso y paradas.
+          <ul>
+            <li class="reveal">Cada modelo ignora las demás variables</li>
+            <li class="reveal">Los coeficientes pueden estar sesgados</li>
+            <li class="reveal">No se puede controlar el efecto de otras variables</li>
+          </ul>
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Ejemplo de sesgo</span>
+          Las rutas largas también tienen más paradas.<br>
+          Si modelamos "costo vs distancia" sin controlar paradas, \(\hat\beta_{\text{dist}}\) absorbe parte del efecto de las paradas.<br>
+          El coeficiente queda <strong>sobreestimado</strong>.
+        </div>
+      </div>
+      <div>
+        <div class="alert-block reveal">
+          <span class="b-title"><i class="fas fa-lightbulb"></i> La solución: incluir todo</span>
+          \[ \hat y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3 \]
+          Cada \(\hat\beta_j\) mide el efecto de \(x_j\) <strong>manteniendo constantes</strong> las demás variables.<br><br>
+          Esto elimina el sesgo de variables omitidas.
+        </div>
+        <div class="example-block mt reveal">
+          <span class="b-title"><i class="fas fa-truck-loading"></i> Logística en la práctica</span>
+          El costo de un envío depende <strong>simultáneamente</strong> de: distancia, peso, paradas, tipo de vehículo, hora del día...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: MODELO DE REGRESIÓN MÚLTIPLE -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-cube"></i> Modelo de Regresión Múltiple</h2>
+    <div class="block reveal">
+      <span class="b-title">Modelo con \(k\) predictores</span>
+      \[ y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_k x_{ik} + \varepsilon_i, \quad i = 1,\ldots,n \]
+    </div>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-table"></i> Para \(n\) observaciones y \(k=3\) predictores (distancia, peso, paradas):</span>
+      \[ \begin{pmatrix}y_1\\\vdots\\y_n\end{pmatrix} = \begin{pmatrix} 1 & x_{11} & x_{12} & x_{13}\\ \vdots & \vdots & \vdots & \vdots\\ 1 & x_{n1} & x_{n2} & x_{n3} \end{pmatrix} \begin{pmatrix}\beta_0\\\beta_1\\\beta_2\\\beta_3\end{pmatrix} + \begin{pmatrix}\varepsilon_1\\\vdots\\\varepsilon_n\end{pmatrix} \]
+    </div>
+    
+    <div class="formula-card reveal">
+      \[ \underbrace{\mathbf{y}}_{n\times1} = \underbrace{\mathbf{X}}_{n\times(k+1)} \underbrace{\boldsymbol{\beta}}_{(k+1)\times1} + \underbrace{\boldsymbol{\varepsilon}}_{n\times1} \]
+      donde \(\mathbf{X}\) es la <strong>matriz de diseño</strong> (primera columna = unos).
+    </div>
+    
+    <div class="example-block reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Conexión directa con Módulo 1-2</span>
+      Esta es exactamente la forma \(A\mathbf{x}=\mathbf{b}\) que estudiamos.<br>
+      Ahora \(A=\mathbf{X}\), \(\mathbf{x}=\boldsymbol{\beta}\), \(\mathbf{b}=\mathbf{y}\).<br>
+      Como \(n > k+1\), el sistema es sobredeterminado: usamos MCO.
+    </div>
+  </div>
+
+  <!-- SLIDE 5: ECUACIONES NORMALES -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-calculator"></i> Ecuaciones Normales: Obtención de \(\hat{\boldsymbol{\beta}}\)</h2>
+    
+    <p class="reveal"><strong>Criterio MCO:</strong> minimizar \(\|\mathbf{y}-\mathbf{X}\boldsymbol{\beta}\|^2\).</p>
+    <p class="reveal mt">La solución satisface las <strong>ecuaciones normales</strong>:
+      \[ \mathbf{X}^T\mathbf{X}\,\hat{\boldsymbol{\beta}} = \mathbf{X}^T\mathbf{y} \]
+    </p>
+    
+    <div class="formula-card reveal">
+      Si \(\mathbf{X}^T\mathbf{X}\) es invertible:
+      \[ \boxed{\hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}} \]
+    </div>
+    
+    <div class="col-layout mt">
+      <div class="reveal">
+        <span class="b-title"><i class="fas fa-list-check"></i> Propiedades de \(\mathbf{X}^T\mathbf{X}\)</span>
+        <ul>
+          <li>Es simétrica: \((\mathbf{X}^T\mathbf{X})^T = \mathbf{X}^T\mathbf{X}\)</li>
+          <li>Es semidefinida positiva</li>
+          <li>Es invertible si las columnas de \(\mathbf{X}\) son linealmente independientes (no hay multicolinealidad perfecta)</li>
+          <li>Dimensión: \((k+1)\times(k+1)\)</li>
+        </ul>
+      </div>
+      <div class="reveal mt">
+        <span class="b-title"><i class="fas fa-laptop-code"></i> En MATLAB</span>
+        <ul>
+          <li>Método 1 (ecuaciones normales): <code>beta = (X'*X) \ (X'*y)</code></li>
+          <li>Método 2 (división matricial directa): <code>beta = X \ y</code></li>
+          <li>Método 3 (Statistics Toolbox): <code>mdl = fitlm(X_data, y)</code></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: MATRIZ DE DISEÑO -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-th"></i> Matriz de Diseño: Construcción Paso a Paso</h2>
+    
+    <p class="reveal"><strong>Datos de 6 envíos (distancia km, peso ton, paradas #, costo $):</strong></p>
+    
+    <table class="compact reveal" style="font-size:0.85rem;">
+      <tr><th>Envío</th><th>Dist. \(x_1\)</th><th>Peso \(x_2\)</th><th>Paradas \(x_3\)</th><th>Costo \(y\)</th></tr>
+      <tr><td>1</td><td>100</td><td>2.0</td><td>3</td><td>420</td></tr>
+      <tr><td>2</td><td>200</td><td>3.5</td><td>5</td><td>750</td></tr>
+      <tr><td>3</td><td>150</td><td>1.5</td><td>4</td><td>540</td></tr>
+      <tr><td>4</td><td>300</td><td>5.0</td><td>6</td><td>1050</td></tr>
+      <tr><td>5</td><td>250</td><td>4.0</td><td>7</td><td>950</td></tr>
+      <tr><td>6</td><td>180</td><td>2.5</td><td>4</td><td>640</td></tr>
+    </table>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-table"></i> Matriz de diseño \(\mathbf{X}\) (con columna de unos):</span>
+      \[ \mathbf{X} = \begin{pmatrix} 1 & 100 & 2.0 & 3 \\ 1 & 200 & 3.5 & 5 \\ 1 & 150 & 1.5 & 4 \\ 1 & 300 & 5.0 & 6 \\ 1 & 250 & 4.0 & 7 \\ 1 & 180 & 2.5 & 4 \end{pmatrix} \in \mathbb{R}^{6\times4}, \quad \mathbf{y} = \begin{pmatrix}420\\750\\540\\1050\\950\\640\end{pmatrix} \]
+    </div>
+    
+    <p class="reveal mt">El sistema \(\mathbf{X}\boldsymbol{\beta}=\mathbf{y}\) tiene 6 ecuaciones y 4 incógnitas (\(\beta_0,\beta_1,\beta_2,\beta_3\)).<br>
+    <strong>Sobredeterminado</strong>: MCO da la mejor solución.</p>
+  </div>
+
+  <!-- SLIDE 7: INTERPRETACIÓN COEFICIENTES -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-info-circle"></i> Interpretación: Efectos Parciales</h2>
+    
+    <div class="formula-card reveal">
+      \[ \hat y = \hat\beta_0 + \hat\beta_1 x_1 + \hat\beta_2 x_2 + \hat\beta_3 x_3 \]
+    </div>
+    
+    <div class="block reveal">
+      <span class="b-title">Definición de efecto parcial</span>
+      \(\hat\beta_j\) es el cambio esperado en \(y\) por una unidad adicional de \(x_j\), <strong>manteniendo constantes todas las demás variables</strong>.
+    </div>
+    
+    <p class="reveal mt"><strong>Con los 15 envíos del script <code>clase23_regresion_multiple.m</code>, el modelo ajustado es:</strong>
+      \[ \hat y = 22.3 + 1.41\,x_1 + 57.3\,x_2 + 49.6\,x_3 \]
+    </p>
+    
+    <table class="coef-table reveal">
+      <tr><th>Coeficiente</th><th>Valor</th><th>Interpretación</th><th>Acción</th></tr>
+      <tr><td>\(\hat\beta_0 = 22.3\)</td><td>$22.3</td><td>Costo fijo base (sin carga, sin distancia)</td><td>—</td></tr>
+      <tr><td>\(\hat\beta_1 = 1.41\)</td><td>$1.41/km</td><td>Efecto de distancia, <em>dado peso y paradas fijos</em></td><td>Optimizar rutas</td></tr>
+      <tr><td>\(\hat\beta_2 = 57.3\)</td><td>$57.3/ton</td><td>Efecto de peso, <em>dado distancia y paradas fijos</em></td><td>Reducir carga</td></tr>
+      <tr><td>\(\hat\beta_3 = 49.6\)</td><td>$49.6/par</td><td>Efecto de paradas, <em>dado distancia y peso fijos</em></td><td>Consolidar</td></tr>
+    </table>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Diferencia clave con regresión simple</span>
+      En regresión simple, \(\hat\beta_{\text{dist}}\) capturaba parte del efecto de peso y paradas.<br>
+      Ahora, <strong>cada coeficiente es el efecto "puro" de su variable</strong>.
+    </div>
+  </div>
+
+  <!-- SLIDE 8: POR QUÉ CAMBIAN LOS COEFICIENTES -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-code-branch"></i> ¿Por qué los Coeficientes Cambian al Agregar Variables?</h2>
+    
+    <p class="reveal"><strong>Comparación: regresión simple vs múltiple</strong> (15 envíos del script)</p>
+    
+    <table class="compact reveal" style="width:60%; margin:0 auto;">
+      <tr><th>Modelo</th><th>\(\hat\beta_{\text{dist}}\) ($/km)</th><th>\(R^2\)</th></tr>
+      <tr><td>Simple: solo distancia</td><td>3.56</td><td>0.967</td></tr>
+      <tr><td>Múltiple: dist + peso + paradas</td><td>1.41</td><td>0.994</td></tr>
+    </table>
+    
+    <p class="reveal mt"><strong>Explicación:</strong> en el modelo simple, cuando la distancia es alta, también tiende a ser alto el peso y el número de paradas. El coeficiente \(\hat\beta_{\text{dist}} = 3.56\) absorbió parte del efecto de las otras variables.</p>
+    
+    <p class="reveal mt">En el modelo múltiple, con peso y paradas controlados, el efecto "puro" de la distancia es \(\hat\beta_{\text{dist}} = 1.41\) $/km. (En estos datos, la correlación entre distancia y peso es 0.96, y entre distancia y paradas 0.94.)</p>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Implicación práctica</span>
+      Si la empresa decide reducir solo la distancia recorrida (manteniendo el peso y las paradas constantes), el ahorro real es $1.41/km, <strong>no</strong> $3.56/km.<br>
+      El modelo múltiple da una estimación más precisa del efecto real.
+    </div>
+  </div>
+
+  <!-- SLIDE 9: MATLAB MÉTODO MATRICIAL -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Regresión Múltiple — Método Matricial</h2>
+    
+    <pre><span class="mc">% Datos de 15 envios: distancia (km), peso (ton), paradas (#), costo ($)</span>
+dist    = <span class="mf">[</span><span class="mn">100</span>;<span class="mn">200</span>;<span class="mn">150</span>;<span class="mn">300</span>;<span class="mn">250</span>;<span class="mn">180</span>;<span class="mn">220</span>;<span class="mn">280</span>;<span class="mn">130</span>;<span class="mn">350</span>;<span class="mn">190</span>;<span class="mn">240</span>;<span class="mn">310</span>;<span class="mn">170</span>;<span class="mn">260</span><span class="mf">]</span>;
+peso    = <span class="mf">[</span><span class="mn">2.0</span>;<span class="mn">3.5</span>;<span class="mn">1.5</span>;<span class="mn">5.0</span>;<span class="mn">4.0</span>;<span class="mn">2.5</span>;<span class="mn">3.0</span>;<span class="mn">4.5</span>;<span class="mn">1.8</span>;<span class="mn">6.0</span>;<span class="mn">2.2</span>;<span class="mn">3.8</span>;<span class="mn">5.5</span>;<span class="mn">2.0</span>;<span class="mn">4.2</span><span class="mf">]</span>;
+paradas = <span class="mf">[</span><span class="mn">3</span>;<span class="mn">5</span>;<span class="mn">4</span>;<span class="mn">6</span>;<span class="mn">7</span>;<span class="mn">4</span>;<span class="mn">5</span>;<span class="mn">6</span>;<span class="mn">3</span>;<span class="mn">8</span>;<span class="mn">4</span>;<span class="mn">6</span>;<span class="mn">7</span>;<span class="mn">3</span>;<span class="mn">6</span><span class="mf">]</span>;
+y       = <span class="mf">[</span><span class="mn">420</span>;<span class="mn">750</span>;<span class="mn">540</span>;<span class="mn">1050</span>;<span class="mn">950</span>;<span class="mn">640</span>;<span class="mn">760</span>;<span class="mn">980</span>;<span class="mn">480</span>;<span class="mn">1280</span>;<span class="mn">580</span>;<span class="mn">860</span>;<span class="mn">1100</span>;<span class="mn">510</span>;<span class="mn">900</span><span class="mf">]</span>;
+
+n = <span class="mf">length</span>(y);   k = <span class="mn">3</span>;  <span class="mc">% numero de predictores</span>
+
+<span class="mc">% Matriz de diseno (columna de unos + predictores)</span>
+X = <span class="mf">[</span><span class="mk">ones</span>(n,<span class="mn">1</span>), dist, peso, paradas<span class="mf">]</span>;   <span class="mc">% n x (k+1)</span>
+
+<span class="mc">% Metodo 1: ecuaciones normales  X'X * beta = X'y</span>
+beta_normal = (X'*X) \ (X'*y);
+
+<span class="mc">% Metodo 2: division matricial (mas estable numericamente)</span>
+beta = X \ y;
+
+<span class="mk">fprintf</span>(<span class="ms">'=== COEFICIENTES ESTIMADOS ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'beta0 (intercepto):  $%.4f\n'</span>, beta(<span class="mn">1</span>))
+<span class="mk">fprintf</span>(<span class="ms">'beta1 (distancia):   $%.4f/km\n'</span>, beta(<span class="mn">2</span>))
+<span class="mk">fprintf</span>(<span class="ms">'beta2 (peso):        $%.4f/ton\n'</span>, beta(<span class="mn">3</span>))
+<span class="mk">fprintf</span>(<span class="ms">'beta3 (paradas):     $%.4f/#\n'</span>,  beta(<span class="mn">4</span>))
+<span class="mk">fprintf</span>(<span class="ms">'\nNota: X\\y usa QR internamente, mas estable que inv(X''*X)*X''*y\n'</span>)</pre>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> Los dos métodos dan el mismo resultado</span>
+      Salida: <code>beta0 = 22.3158</code>, <code>beta1 = 1.4116</code>, <code>beta2 = 57.2612</code>, <code>beta3 = 49.5542</code>.<br>
+      <code>(X'*X)\(X'*y)</code> y <code>X\y</code> son equivalentes para datos bien condicionados.<br>
+      Preferir <code>X\y</code> en la práctica.
+    </div>
+  </div>
+
+  <!-- SLIDE 10: MATLAB EVALUACIÓN -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Evaluación y Predicción</h2>
+    
+    <pre><span class="mc">% Valores ajustados y residuos</span>
+y_hat = X * beta;
+e     = y - y_hat;
+
+<span class="mc">% Bondad del ajuste</span>
+SCR = <span class="mk">sum</span>(e.^<span class="mn">2</span>);
+SCT = <span class="mk">sum</span>((y - <span class="mk">mean</span>(y)).^<span class="mn">2</span>);
+R2  = <span class="mn">1</span> - SCR/SCT;
+se  = <span class="mf">sqrt</span>(SCR / (n - k - <span class="mn">1</span>));   <span class="mc">% n - k - 1 grados de libertad residuales</span>
+
+<span class="mk">fprintf</span>(<span class="ms">'\n=== BONDAD DEL AJUSTE ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'R^2  = %.6f  (%.2f%% de variabilidad explicada)\n'</span>, R2, <span class="mn">100</span>*R2)
+<span class="mk">fprintf</span>(<span class="ms">'se   = $%.4f por envio\n'</span>, se)
+<span class="mk">fprintf</span>(<span class="ms">'SCR  = %.4f\n'</span>, SCR)
+
+<span class="mc">% Prediccion para un nuevo envio</span>
+nuevo = <span class="mf">[</span><span class="mn">1</span>, <span class="mn">220</span>, <span class="mn">3.2</span>, <span class="mn">5</span><span class="mf">]</span>;  <span class="mc">% [1, dist, peso, paradas]</span>
+costo_pred = nuevo * beta;
+<span class="mk">fprintf</span>(<span class="ms">'\nPrediccion para ruta 220km, 3.2ton, 5 paradas:\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'  Costo estimado: $%.2f\n'</span>, costo_pred)
+<span class="mk">fprintf</span>(<span class="ms">'  Intervalo 95%%:  [$%.2f, $%.2f]\n'</span>, ...
+    costo_pred - <span class="mn">2</span>*se, costo_pred + <span class="mn">2</span>*se)
+
+<span class="mc">% R^2 ajustado (penaliza por numero de predictores)</span>
+R2_adj = <span class="mn">1</span> - (<span class="mn">1</span>-R2)*(n-<span class="mn">1</span>)/(n-k-<span class="mn">1</span>);
+<span class="mk">fprintf</span>(<span class="ms">'\nR^2 ajustado = %.6f\n'</span>, R2_adj)</pre>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span><code>R^2 = 0.9940</code> · <code>se = $22.43</code> · <code>Costo estimado (220 km, 3.2 t, 5 par.) = $763.88</code> · <code>Intervalo ≈ [$719, $809]</code> · <code>R^2 ajustado = 0.9924</code></div>
+  </div>
+
+  <!-- SLIDE 11: MATLAB FITLM -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: fitlm — Análisis Completo Automático</h2>
+    
+    <pre><span class="mc">% Tabla de datos como tabla de MATLAB</span>
+T = <span class="mk">table</span>(dist, peso, paradas, y, <span class="ms">'VariableNames'</span>, ...
+    <span class="mf">{</span><span class="ms">'Distancia'</span>,<span class="ms">'Peso'</span>,<span class="ms">'Paradas'</span>,<span class="ms">'Costo'</span><span class="mf">}</span>);
+
+<span class="mc">% Ajuste con fitlm (formula de Wilkinson)</span>
+mdl = <span class="mk">fitlm</span>(T, <span class="ms">'Costo ~ Distancia + Peso + Paradas'</span>);
+
+<span class="mc">% Mostrar resumen completo</span>
+<span class="mk">disp</span>(mdl)
+
+<span class="mc">% Acceder a componentes especificos</span>
+<span class="mk">fprintf</span>(<span class="ms">'Coeficientes:\n'</span>)
+<span class="mk">disp</span>(mdl.Coefficients)
+<span class="mk">fprintf</span>(<span class="ms">'R^2 = %.6f\n'</span>, mdl.Rsquared.Ordinary)
+<span class="mk">fprintf</span>(<span class="ms">'R^2 ajustado = %.6f\n'</span>, mdl.Rsquared.Adjusted)
+<span class="mk">fprintf</span>(<span class="ms">'se = $%.4f\n'</span>, mdl.RMSE)
+
+<span class="mc">% Grafico de diagnostico automatico</span>
+<span class="mk">figure</span>
+<span class="mk">plotResiduals</span>(mdl, <span class="ms">'fitted'</span>)
+<span class="mk">title</span>(<span class="ms">'Residuos vs Valores Ajustados (fitlm)'</span>)</pre>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-terminal"></i> Salida de fitlm</span>
+      Devuelve automáticamente: coeficientes, errores estándar, \(t\)-estadísticos, \(p\)-valores, \(R^2\), \(R^2\) ajustado, \(F\)-estadístico del modelo completo.
+    </div>
+  </div>
+
+  <!-- SLIDE 12: R² AJUSTADO -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-percentage"></i> \(R^2\) Ajustado: Penalizar por Complejidad</h2>
+    
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      \[ R^2_{\text{adj}} = 1 - \frac{\text{SCR}/(n-k-1)}{\text{SCT}/(n-1)} = 1 - (1-R^2)\frac{n-1}{n-k-1} \]
+      Penaliza por cada predictor adicional (\(k\) sube \(\Rightarrow\) denominador baja \(\Rightarrow\) \(R^2_\text{adj}\) puede bajar).
+    </div>
+    
+    <div class="col-layout mt">
+      <div class="reveal">
+        <span class="b-title"><i class="fas fa-lightbulb"></i> ¿Por qué es importante?</span>
+        <ul>
+          <li class="reveal">\(R^2\) nunca disminuye al agregar variables</li>
+          <li class="reveal">Agregar una variable irrelevante aumenta \(R^2\) marginalmente</li>
+          <li class="reveal">\(R^2_\text{adj}\) <strong>disminuye</strong> si la variable no aporta suficiente información</li>
+          <li class="reveal">Usar \(R^2_\text{adj}\) para comparar modelos con distinto número de predictores</li>
+        </ul>
+      </div>
+      <div class="reveal mt">
+        <span class="b-title"><i class="fas fa-calculator"></i> Ejemplo comparativo (15 envíos)</span>
+        <table class="compact" style="font-size:0.85rem;">
+          <tr><th>Modelo</th><th>\(R^2\)</th><th>\(R^2_\text{adj}\)</th></tr>
+          <tr><td>dist solo</td><td>0.967</td><td>0.964</td></tr>
+          <tr><td>dist+peso</td><td>0.984</td><td>0.981</td></tr>
+          <tr><td>dist+peso+par</td><td>0.9940</td><td>0.9924</td></tr>
+          <tr><td>+variable ruido</td><td>0.9942</td><td>0.9919</td></tr>
+        </table>
+        <p class="mt italic" style="font-size:0.9rem;">Al agregar variable ruido: \(R^2\) sube levemente pero \(R^2_\text{adj}\) <strong>baja</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: SELECCIÓN DE VARIABLES -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-filter"></i> Selección de Variables: Principio de Parsimonia</h2>
+    
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-feather-alt"></i> Navaja de Occam aplicada a regresión</span>
+          Entre dos modelos con similar capacidad predictiva, preferir el <strong>más simple</strong> (menos variables).
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-check-circle"></i> Criterios para incluir una variable</span>
+          <ol>
+            <li class="reveal">\(R^2_\text{adj}\) mejora al incluirla</li>
+            <li class="reveal">Tiene sentido logístico (no solo estadístico)</li>
+            <li class="reveal">Sus datos son fáciles de obtener en operación</li>
+            <li class="reveal">No está altamente correlacionada con otras variables ya incluidas</li>
+          </ol>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/r2_ajustado_vs_k.png" alt="R2 ajustado según número de variables" style="max-width:400px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">El \(R^2_\text{adj}\) alcanza un máximo en el número óptimo de variables \(k^*\).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: CASO APLICADO -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-box-open"></i> Caso: Modelar el Costo Total de Distribución</h2>
+    
+    <p class="reveal"><strong>Dataset:</strong> 15 envíos con 3 variables predictoras (script <code>clase23_regresion_multiple.m</code>):</p>
+    
+    <table class="compact reveal" style="width:70%; margin:0 auto; font-size:0.85rem;">
+      <tr><th></th><th>\(x_1\): Distancia (km)</th><th>\(x_2\): Peso (ton)</th><th>\(x_3\): Paradas (#)</th><th>\(y\): Costo ($)</th></tr>
+      <tr><td>Media</td><td>222</td><td>3.43</td><td>5.13</td><td>786.7</td></tr>
+      <tr><td>Min</td><td>100</td><td>1.5</td><td>3</td><td>420</td></tr>
+      <tr><td>Max</td><td>350</td><td>6.0</td><td>8</td><td>1280</td></tr>
+    </table>
+    
+    <p class="reveal mt"><strong>Modelo ajustado (ejecutar en MATLAB):</strong>
+      \[ \hat y = 22.3 + 1.41\,x_1 + 57.3\,x_2 + 49.6\,x_3 \]
+      \(R^2 = 0.994\), \(R^2_\text{adj} = 0.992\), \(s_e = \$22.4\)
+    </p>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Lectura ejecutiva</span>
+      Costo fijo: $22. Por km: +$1.41. Por tonelada: +$57.3. Por parada: +$49.6.<br>
+      El modelo explica el 99.4% de la variación en costos. Error típico: ±$22.4.
+    </div>
+  </div>
+
+  <!-- SLIDE 15: ¿QUÉ FACTOR ATACAR? -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-bullseye"></i> ¿Qué Factor Atacar para Reducir Costos?</h2>
+    
+    <p class="reveal"><strong>Modelo:</strong> \(\hat y = 22.3 + 1.41\,x_1 + 57.3\,x_2 + 49.6\,x_3\)</p>
+    
+    <p class="reveal mt"><strong>Escenarios de mejora (manteniendo las otras variables fijas):</strong></p>
+    
+    <table class="compact reveal" style="font-size:0.85rem;">
+      <tr><th></th><th>Acción</th><th>\(\hat\beta_j\)</th><th>\(\Delta x_j\)</th><th>Ahorro/envío</th></tr>
+      <tr><td>A</td><td>Reducir ruta 25 km</td><td>$1.41/km</td><td>\(-25\) km</td><td>\(25\times1.41=\$35.25\)</td></tr>
+      <tr><td>B</td><td>Reducir carga 0.5 ton</td><td>$57.3/ton</td><td>\(-0.5\) ton</td><td>\(0.5\times57.3=\$28.65\)</td></tr>
+      <tr><td>C</td><td>Eliminar 1 parada</td><td>$49.6/par</td><td>\(-1\) par</td><td>\(1\times49.6=\$49.60\)</td></tr>
+    </table>
+    
+    <p class="reveal mt"><strong>Con 400 envíos/mes:</strong>
+      <ul>
+        <li>Acción A: \(\$35.25 \times 400 = \$14.100\)/mes</li>
+        <li>Acción B: \(\$28.65 \times 400 = \$11.460\)/mes</li>
+        <li>Acción C: \(\$49.60 \times 400 = \$19.840\)/mes</li>
+      </ul>
+    </p>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-gavel"></i> Decisión: Acción C (eliminar paradas)</span>
+      Mayor ahorro unitario. A diferencia de la Clase 22, aquí el efecto es <strong>puro</strong>: controlamos distancia y peso. El ahorro de $49.6 por parada no incluye el efecto de otras variables.
+    </div>
+  </div>
+
+  <!-- SLIDE 16: PLANO DE REGRESIÓN 3D -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-cube"></i> Plano de Regresión en \(\mathbb{R}^3\)</h2>
+    
+    <div class="reveal"><img class="fig" src="imagenes/clase23_plano_regresion.png" alt="Plano de regresión en R3" style="max-width:520px"><p class="fig-cap">Plano ajustado con 2 predictores (distancia, peso) sobre los 15 envíos; en verde, los residuos</p></div>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Geometría de la regresión múltiple</span>
+      Con 2 predictores: la recta de regresión simple se convierte en un <strong>plano</strong>.<br>
+      Con 3 o más: un <strong>hiperplano</strong> en espacio de mayor dimensión.<br>
+      Los residuos son distancias verticales de los puntos al hiperplano.
+    </div>
+  </div>
+
+  <!-- SLIDE 17: RESUMEN -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-flag-checkered"></i> Resumen: Regresión Múltiple vs Simple</h2>
+    
+    <table class="compact reveal" style="font-size:0.85rem;">
+      <tr><th>Aspecto</th><th>Regresión Simple</th><th>Regresión Múltiple</th></tr>
+      <tr><td>Modelo</td><td>\(\hat y = \beta_0 + \beta_1 x\)</td><td>\(\hat y = \beta_0 + \sum_{j=1}^k \beta_j x_j\)</td></tr>
+      <tr><td>Forma matricial</td><td>\(\hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}\)</td><td>idem</td></tr>
+      <tr><td>MATLAB</td><td><code>polyfit(x,y,1)</code></td><td><code>X\y</code> o <code>fitlm</code></td></tr>
+      <tr><td>Interpretación</td><td>Efecto total de \(x\)</td><td>Efecto parcial de \(x_j\)</td></tr>
+      <tr><td>Geometría</td><td>Recta en \(\mathbb{R}^2\)</td><td>Hiperplano en \(\mathbb{R}^{k+1}\)</td></tr>
+      <tr><td>Bondad</td><td>\(R^2\)</td><td>\(R^2\) y \(R^2_\text{adj}\)</td></tr>
+      <tr><td>Sesgo</td><td>Posible (variables omitidas)</td><td>Reducido</td></tr>
+    </table>
+    
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-check-circle"></i> Ventajas de la regresión múltiple</span>
+        Efectos parciales más precisos. Mayor \(R^2\). Controla variables de confusión. Decisión más informada.
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Cuidados</span>
+        Multicolinealidad (variables correlacionadas entre sí). Necesita más datos (\(n \gg k\)). Más complejo de interpretar.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: PUNTO DE DECISIÓN -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-gavel"></i> Punto de Decisión</h2>
+    
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Pregunta de Cierre</span><br><br>
+      <em>El modelo múltiple da \(\hat\beta_{\text{dist}}=\$1.41\)/km, pero el modelo simple daba \(\hat\beta_{\text{dist}}=\$3.56\)/km. Tu gerente quiere saber: si reducimos 30 km en cada ruta, ¿ahorramos $42.3 o $106.8 por envío?</em><br><br>
+      <strong>¿Cuál estimación usarías y por qué? ¿Qué condición debe cumplirse para que cada estimación sea correcta?</strong>
+    </div>
+    
+    <div class="decision-cards mt">
+      <div class="dc-card a reveal">
+        <strong>Usar $1.41 (múltiple)</strong><br><br>
+        Si al reducir distancia, el peso y las paradas permanecen constantes. Efecto puro de la distancia.
+      </div>
+      <div class="dc-card b reveal">
+        <strong>Usar $3.56 (simple)</strong><br><br>
+        Si al reducir distancia, también se reducen peso y paradas proporcionalmente (todo junto).
+      </div>
+      <div class="dc-card c reveal">
+        <strong>En la práctica</strong><br><br>
+        Depende del contexto operativo. El modelo múltiple es más preciso cuando se puede controlar cada variable.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: TAREA -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 24</h2>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lecturas</span>
+      <ul>
+        <li class="reveal"><strong>Montgomery</strong>, Cap. 3: Regresión múltiple — pruebas de hipótesis y bondad</li>
+        <li class="reveal"><strong>Montgomery</strong>, Cap. 2.4: Error cuadrático medio (MSE) y RMSE</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Ejercicio preparatorio</span>
+      Con los datos del script <code>clase23_regresion_multiple.m</code>:
+      <ol>
+        <li class="reveal">Ajustar el modelo con los 3 predictores (dist, peso, paradas).</li>
+        <li class="reveal">Ajustar los 3 modelos simples correspondientes y comparar los coeficientes.</li>
+        <li class="reveal">Calcular \(R^2\) y \(R^2_\text{adj}\) para el modelo múltiple.</li>
+        <li class="reveal">Agregar una cuarta variable aleatoria (<code>randn(n,1)</code>) y ver si \(R^2_\text{adj}\) sube o baja.</li>
+        <li class="reveal">Predecir el costo de un envío de 280 km, 4 ton, 6 paradas.</li>
+      </ol>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Próxima clase 24</span>
+      <strong>MSE y RMSE</strong> — Evaluar la precisión de los pronósticos logísticos
+    </div>
+  </div>
+
+  <!-- SLIDE 20: REFERENCIAS -->
+  <div class="slide" data-slide="20">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Montgomery, D.C., Peck, E.A. & Vining, G.G.</strong> (2012). <em>Introduction to Linear Regression Analysis</em> (5th ed.). Wiley. <strong>Cap. 3</strong> (Regresión lineal múltiple), pp. 67–130.</li>
+      <li class="reveal"><strong>Lay, D.C., Lay, S.R., McDonald, J.J.</strong> (2016). <em>Álgebra Lineal y sus Aplicaciones</em> (5a ed.). Pearson. Cap. 6.5 (Mínimos cuadrados y ecuaciones normales).</li>
+      <li class="reveal"><strong>Draper, N.R. & Smith, H.</strong> (1998). <em>Applied Regression Analysis</em> (3rd ed.). Wiley. Cap. 4–5.</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>fitlm</code>, <code>plotResiduals</code>, <code>stepwiselm</code>. <a href="https://www.mathworks.com/help/stats/" style="color:var(--navy);">https://www.mathworks.com/help/stats/</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Dataset costos logísticos, Script <code>clase23_regresion_multiple.m</code>.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--navy); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 23 | Regresión Múltiple</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 21: CIERRE -->
+  <div class="slide" data-slide="21">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 24: MSE y RMSE — Evaluar la Precisión de Pronósticos</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

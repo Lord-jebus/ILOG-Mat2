@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 27: Mini-caso 4 — Predicción de Demanda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003a6b;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff3e0;
+      --red: #b41414;
+      --red-light: #ffe0e0;
+      --purple: #640096;
+      --purple-light: #f3e6f7;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--navy);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--navy);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block strong { color: var(--orange); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--red); border-color: var(--red); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    /* Module flow diagram */
+    .module-flow { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem; margin: 1rem 0; }
+    .mf-step { padding: 0.4rem 0.6rem; border-radius: 6px; background: rgba(0,82,147,0.1); border: 2px solid var(--navy); color: var(--navy); font-size: 0.7rem; text-align: center; min-width: 70px; }
+    .mf-step.active { background: var(--red); border-color: var(--red); color: white; font-weight: 600; }
+    .mf-arrow { color: #94a3b8; font-size: 0.9rem; }
+
+    /* Inventory planning table */
+    .inv-table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.85rem; }
+    .inv-table th, .inv-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    .inv-table th { background: #f8fafc; font-weight: 600; }
+    .inv-table .highlight { color: var(--red); font-weight: 600; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .decision-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+    .dc-card { padding: 0.8rem; border-radius: 8px; text-align: center; border: 2px solid; font-size: 0.85rem; }
+    .dc-card.a { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .dc-card.b { border-color: var(--orange); background: var(--orange-light); }
+    .dc-card.c { border-color: #94a3b8; background: #f1f5f9; }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--navy); margin: 0.5rem 0; }
+
+    /* Scenario visualization */
+    .scenario-viz { display: flex; justify-content: center; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; }
+    .sv-bar { width: 60px; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+    .sv-fill { width: 100%; border-radius: 4px 4px 0 0; }
+    .sv-fill.pes { background: var(--red); height: 80px; }
+    .sv-fill.base { background: var(--navy); height: 100px; }
+    .sv-fill.opt { background: var(--green); height: 120px; }
+    .sv-label { font-size: 0.7rem; font-weight: 600; }
+    .sv-value { font-size: 0.75rem; color: var(--text-muted); }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-chart-pie fa-3x" style="color:var(--red); margin-bottom:1rem;"></i>
+      <h1>Mini-caso 4: Predicción de Demanda</h1>
+      <p class="sub">Inventario, Abastecimiento y Estrategia</p>
+      <p class="sub" style="color:var(--purple); font-weight:600;">Módulo 5 — Regresión y Análisis de Datos</p>
+      <p class="sub">Matemáticas 2 — Clase 27</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 27 — Integradora</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Objetivos del Mini-caso</li>
+      <li class="reveal">Conexión con Clases del Módulo 5</li>
+      <li class="reveal">El Caso: Distribuidora Pacífico S.A.</li>
+      <li class="reveal">Datos Históricos: 30 Semanas</li>
+      <li class="reveal">Paso 1: Análisis Exploratorio</li>
+      <li class="reveal">Paso 2: Ajustar y Comparar Modelos</li>
+      <li class="reveal">Resultados Esperados de la Comparación</li>
+      <li class="reveal">Paso 3: Pronóstico de las Próximas 8 Semanas</li>
+      <li class="reveal">Visualización del Pronóstico con Escenarios</li>
+      <li class="reveal">Paso 4: Calcular Inventario de Seguridad</li>
+      <li class="reveal">Plan de Abastecimiento: Semanas 31-38</li>
+      <li class="reveal">Análisis de Escenarios: Impacto en el Negocio</li>
+      <li class="reveal">Marco de Decisión Ejecutiva</li>
+      <li class="reveal">Rúbrica de Evaluación del Mini-caso 4</li>
+      <li class="reveal">Punto de Decisión Final</li>
+      <li class="reveal">Tarea para la Clase 28</li>
+      <li class="reveal">Referencias</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos del Mini-caso</h2>
+    <p class="reveal">Esta es una clase <strong>integradora</strong> del Módulo 5. Los estudiantes aplican <strong>todo</strong> lo aprendido en clases 21–26.</p>
+    
+    <p class="reveal mt">Al finalizar, el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Analizar</strong> datos históricos de demanda y detectar patrones.</li>
+      <li class="reveal"><strong>Seleccionar</strong> el mejor modelo de regresión mediante validación.</li>
+      <li class="reveal"><strong>Pronosticar</strong> la demanda futura con intervalos de incertidumbre.</li>
+      <li class="reveal"><strong>Calcular</strong> el inventario de seguridad óptimo basado en RMSE.</li>
+      <li class="reveal"><strong>Recomendar</strong> una estrategia de abastecimiento fundamentada.</li>
+    </ol>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-clock"></i> Estructura de la clase</span>
+      <strong>20 min</strong> Planteamiento del caso &nbsp;|&nbsp;
+      <strong>50 min</strong> Modelado y pronóstico &nbsp;|&nbsp;
+      <strong>30 min</strong> Análisis de escenarios &nbsp;|&nbsp;
+      <strong>20 min</strong> Decisión ejecutiva
+    </div>
+  </div>
+
+  <!-- SLIDE 3: CONEXIÓN CON CLASES -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-link"></i> Conexión con Clases del Módulo 5</h2>
+    
+    <div class="module-flow reveal">
+      <div class="mf-step">C21<br>Regr. Lineal</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">C22<br>Coeficientes</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">C23<br>Mult. Var</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">C24<br>MSE/RMSE</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">C25<br>Cuadrático</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">C26<br>Comparar</div>
+      <i class="fas fa-arrow-down mf-arrow"></i>
+      <div class="mf-step active">C27:<br>Mini-caso 4<br>TODO INTEGRADO</div>
+    </div>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-file-alt"></i> Entregable</span>
+      Script MATLAB ejecutable + informe de decisión (150 palabras):<br>
+      modelo elegido, pronóstico, IS recomendado, estrategia de abastecimiento.
+    </div>
+  </div>
+
+  <!-- SLIDE 4: EL CASO -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-industry"></i> El Caso: Distribuidora Pacífico S.A.</h2>
+    
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-building"></i> Empresa</span>
+          <strong>Distribuidora Pacífico S.A.</strong><br>
+          Distribución de alimentos no perecederos, 3 centros de distribución.
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-exclamation-circle"></i> Situación</span>
+          <ul>
+            <li class="reveal">30 semanas de datos históricos de demanda</li>
+            <li class="reveal">3 variables disponibles: semana, precio promedio del producto, campañas de marketing activas</li>
+            <li class="reveal">El área de supply chain necesita el pronóstico de las próximas <strong>8 semanas</strong></li>
+            <li class="reveal">Decisión crítica: definir el nivel de inventario de seguridad y la frecuencia de reabastecimiento</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-cogs"></i> Parámetros operativos</span>
+          <ul>
+            <li class="reveal">Costo de almacenamiento: $3.5/ton/semana</li>
+            <li class="reveal">Costo de ruptura de stock: $800/ton</li>
+            <li class="reveal">Nivel de servicio requerido: 95%</li>
+            <li class="reveal">Tiempo de reposición: 2 semanas</li>
+            <li class="reveal">Capacidad máxima del CD: 500 ton</li>
+          </ul>
+        </div>
+        <div class="alert-block mt reveal">
+          <span class="b-title"><i class="fas fa-question-circle"></i> Pregunta del gerente</span>
+          ¿Cuánto pedir y cuándo, para las próximas 8 semanas, minimizando costos sin romper stock?
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: DATOS HISTÓRICOS -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-database"></i> Datos Históricos: 30 Semanas</h2>
+    
+    <p class="reveal"><strong>Datos completos de las 30 semanas</strong> (media 207.7 ton, desv. 64.2 ton, mín 107, máx 310):</p>
+    
+    <table class="compact reveal" style="font-size:0.72rem;">
+<tr><th>Sem</th><th>Dem. (ton)</th><th>Precio ($/kg)</th><th>Camp.</th><th>Sem</th><th>Dem. (ton)</th><th>Precio ($/kg)</th><th>Camp.</th><th>Sem</th><th>Dem. (ton)</th><th>Precio ($/kg)</th><th>Camp.</th></tr>
+<tr><td><strong>1</strong></td><td>107</td><td>4.24</td><td>1</td><td><strong>11</strong></td><td>165</td><td>4.10</td><td>1</td><td><strong>21</strong></td><td>252</td><td>3.99</td><td>2</td></tr>
+<tr><td><strong>2</strong></td><td>111</td><td>4.26</td><td>1</td><td><strong>12</strong></td><td>154</td><td>4.02</td><td>0</td><td><strong>22</strong></td><td>246</td><td>3.86</td><td>1</td></tr>
+<tr><td><strong>3</strong></td><td>118</td><td>4.22</td><td>1</td><td><strong>13</strong></td><td>179</td><td>3.99</td><td>0</td><td><strong>23</strong></td><td>269</td><td>3.90</td><td>2</td></tr>
+<tr><td><strong>4</strong></td><td>148</td><td>4.10</td><td>2</td><td><strong>14</strong></td><td>212</td><td>4.11</td><td>2</td><td><strong>24</strong></td><td>275</td><td>3.92</td><td>2</td></tr>
+<tr><td><strong>5</strong></td><td>112</td><td>4.07</td><td>0</td><td><strong>15</strong></td><td>201</td><td>4.02</td><td>1</td><td><strong>25</strong></td><td>281</td><td>3.87</td><td>2</td></tr>
+<tr><td><strong>6</strong></td><td>152</td><td>4.13</td><td>1</td><td><strong>16</strong></td><td>229</td><td>4.05</td><td>2</td><td><strong>26</strong></td><td>295</td><td>3.88</td><td>2</td></tr>
+<tr><td><strong>7</strong></td><td>141</td><td>4.16</td><td>1</td><td><strong>17</strong></td><td>240</td><td>3.93</td><td>2</td><td><strong>27</strong></td><td>265</td><td>3.86</td><td>1</td></tr>
+<tr><td><strong>8</strong></td><td>139</td><td>4.13</td><td>0</td><td><strong>18</strong></td><td>213</td><td>3.96</td><td>1</td><td><strong>28</strong></td><td>293</td><td>3.88</td><td>2</td></tr>
+<tr><td><strong>9</strong></td><td>184</td><td>4.18</td><td>2</td><td><strong>19</strong></td><td>217</td><td>3.91</td><td>1</td><td><strong>29</strong></td><td>310</td><td>3.83</td><td>2</td></tr>
+<tr><td><strong>10</strong></td><td>167</td><td>4.12</td><td>1</td><td><strong>20</strong></td><td>249</td><td>3.92</td><td>2</td><td><strong>30</strong></td><td>308</td><td>3.85</td><td>2</td></tr>
+</table>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-chart-line"></i> Patrones observados</span>
+      <ul>
+        <li>Tendencia creciente a lo largo del tiempo</li>
+        <li>Demanda mayor cuando el precio es menor (relación inversa)</li>
+        <li>Campañas de marketing asociadas con mayor demanda</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Tarea del equipo</span>
+      Determinar qué modelo captura mejor estos patrones y produce el pronóstico más confiable.
+    </div>
+  </div>
+
+  <!-- SLIDE 6: PASO 1 ANÁLISIS EXPLORATORIO -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-search"></i> Paso 1: Análisis Exploratorio (10 min)</h2>
+    <p class="mb" style="font-size:0.85rem;"><strong>Salida esperada:</strong> media 207.73 ton · min/max 107/310 · desv. 64.18 · correlaciones: semana 0.9768, precio −0.8956, campañas 0.6676.</p>
+    
+    <pre><span class="mc">% Cargar datos del caso</span>
+<span class="mc">% Datos de las 30 semanas (tabla de la diapositiva anterior)</span>
+t        = (1:30)';
+demanda  = [107 111 118 148 112 152 141 139 184 167 165 154 179 212 201 229 240 213 217 249 252 246 269 275 281 295 265 293 310 308]';
+precio   = [4.24 4.26 4.22 4.10 4.07 4.13 4.16 4.13 4.18 4.12 4.10 4.02 3.99 4.11 4.02 4.05 3.93 3.96 3.91 3.92 3.99 3.86 3.90 3.92 3.87 3.88 3.86 3.88 3.83 3.85]';
+campanas = [1 1 1 2 0 1 1 0 2 1 1 0 0 2 1 2 2 1 1 2 2 1 2 2 2 2 1 2 2 2]';
+
+<span class="mc">% Estadisticas basicas</span>
+<span class="mk">fprintf</span>(<span class="ms">'=== ANALISIS EXPLORATORIO ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'Semanas de datos: %d\n'</span>, <span class="mf">length</span>(t))
+<span class="mk">fprintf</span>(<span class="ms">'Demanda media: %.2f ton\n'</span>, <span class="mk">mean</span>(demanda))
+<span class="mk">fprintf</span>(<span class="ms">'Demanda min/max: %.1f / %.1f ton\n'</span>, <span class="mk">min</span>(demanda), <span class="mk">max</span>(demanda))
+<span class="mk">fprintf</span>(<span class="ms">'Desv. estandar: %.2f ton\n'</span>, <span class="mk">std</span>(demanda))
+
+<span class="mc">% Correlaciones</span>
+C = <span class="mk">corrcoef</span>(<span class="mf">[</span>demanda, t, precio, campanas<span class="mf">]</span>);
+<span class="mk">fprintf</span>(<span class="ms">'\nCorrelaciones con demanda:\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'  vs semana:   %.4f\n'</span>, C(<span class="mn">1</span>,<span class="mn">2</span>))
+<span class="mk">fprintf</span>(<span class="ms">'  vs precio:   %.4f\n'</span>, C(<span class="mn">1</span>,<span class="mn">3</span>))
+<span class="mk">fprintf</span>(<span class="ms">'  vs campanas: %.4f\n'</span>, C(<span class="mn">1</span>,<span class="mn">4</span>))
+
+<span class="mc">% Grafico exploratorio</span>
+<span class="mk">figure</span>(<span class="ms">'Position'</span>,<span class="mf">[</span><span class="mn">50</span> <span class="mn">50</span> <span class="mn">950</span> <span class="mn">450</span><span class="mf">]</span>);
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">3</span>,<span class="mn">1</span>); <span class="mk">scatter</span>(t, demanda, <span class="mn">60</span>,<span class="ms">'filled'</span>)
+<span class="mk">xlabel</span>(<span class="ms">'Semana'</span>); <span class="mk">ylabel</span>(<span class="ms">'Demanda (ton)'</span>); <span class="mk">title</span>(<span class="ms">'Demanda vs Tiempo'</span>); <span class="mk">grid on</span>
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">3</span>,<span class="mn">2</span>); <span class="mk">scatter</span>(precio, demanda, <span class="mn">60</span>,<span class="ms">'filled'</span>,<span class="ms">'MarkerFaceColor'</span>,<span class="ms">'r'</span>)
+<span class="mk">xlabel</span>(<span class="ms">'Precio ($/kg)'</span>); <span class="mk">ylabel</span>(<span class="ms">'Demanda (ton)'</span>); <span class="mk">title</span>(<span class="ms">'Demanda vs Precio'</span>); <span class="mk">grid on</span>
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">3</span>,<span class="mn">3</span>); <span class="mk">boxplot</span>(demanda, campanas)
+<span class="mk">xlabel</span>(<span class="ms">'Campanas activas'</span>); <span class="mk">ylabel</span>(<span class="ms">'Demanda (ton)'</span>); <span class="mk">title</span>(<span class="ms">'Demanda por campanas'</span>); <span class="mk">grid on</span></pre>
+  </div>
+
+  <!-- SLIDE 7: PASO 2 MODELADO -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-sliders"></i> Paso 2: Ajustar y Comparar Modelos (20 min)</h2>
+    <p class="mb" style="font-size:0.85rem;">Resultados en la diapositiva siguiente.</p>
+    
+    <pre><span class="mc">% Division train/test: semanas 1-22 (train) / 23-30 (test)</span>
+n_tr = <span class="mn">22</span>;
+idx_tr = <span class="mn">1</span>:n_tr;  idx_te = (n_tr+<span class="mn">1</span>):<span class="mn">30</span>;
+
+y_tr = demanda(idx_tr);  y_te = demanda(idx_te);
+t_tr = t(idx_tr);        t_te = t(idx_te);
+
+rmse_f = @(yr,yp) <span class="mf">sqrt</span>(<span class="mk">mean</span>((yr-yp).^<span class="mn">2</span>));
+mape_f = @(yr,yp) <span class="mk">mean</span>(<span class="mf">abs</span>((yr-yp)./yr))*<span class="mn">100</span>;
+
+<span class="mc">% Modelo A: Tendencia lineal en t</span>
+pA = <span class="mk">polyfit</span>(t_tr, y_tr, <span class="mn">1</span>);
+yA_te = <span class="mk">polyval</span>(pA, t_te);
+
+<span class="mc">% Modelo B: Tendencia cuadratico en t</span>
+pB = <span class="mk">polyfit</span>(t_tr, y_tr, <span class="mn">2</span>);
+yB_te = <span class="mk">polyval</span>(pB, t_te);
+
+<span class="mc">% Modelo C: Regresion multiple (t + precio + campanas)</span>
+Xc_tr = <span class="mf">[</span><span class="mk">ones</span>(n_tr,<span class="mn">1</span>), t_tr, precio(idx_tr), campanas(idx_tr)<span class="mf">]</span>;
+Xc_te = <span class="mf">[</span><span class="mk">ones</span>(<span class="mn">8</span>,<span class="mn">1</span>), t_te, precio(idx_te), campanas(idx_te)<span class="mf">]</span>;
+bC = Xc_tr \ y_tr;
+yC_te = Xc_te * bC;
+
+<span class="mc">% Modelo D: Solo precio y campanas (sin tendencia temporal)</span>
+Xd_tr = <span class="mf">[</span><span class="mk">ones</span>(n_tr,<span class="mn">1</span>), precio(idx_tr), campanas(idx_tr)<span class="mf">]</span>;
+Xd_te = <span class="mf">[</span><span class="mk">ones</span>(<span class="mn">8</span>,<span class="mn">1</span>), precio(idx_te), campanas(idx_te)<span class="mf">]</span>;
+bD = Xd_tr \ y_tr;
+yD_te = Xd_te * bD;
+
+<span class="mc">% Tabla comparativa</span>
+modelos = <span class="mf">{</span><span class="ms">'A: Lineal(t)'</span>,<span class="ms">'B: Cuadrat(t)'</span>,<span class="ms">'C: Multiple'</span>,<span class="ms">'D: Sin tiempo'</span><span class="mf">}</span>;
+YP_te = <span class="mf">{</span>yA_te, yB_te, yC_te, yD_te<span class="mf">}</span>;
+<span class="mk">fprintf</span>(<span class="ms">'%-18s %-12s %-12s\n'</span>, <span class="ms">'Modelo'</span>, <span class="ms">'RMSE_test'</span>, <span class="ms">'MAPE_test'</span>)
+<span class="mk">for</span> m = <span class="mn">1</span>:<span class="mn">4</span>
+    <span class="mk">fprintf</span>(<span class="ms">'%-18s %-12.4f %-12.2f%%\n'</span>, modelos<span class="mf">{</span>m<span class="mf">}</span>,...
+        rmse_f(y_te,YP_te<span class="mf">{</span>m<span class="mf">}</span>), mape_f(y_te,YP_te<span class="mf">{</span>m<span class="mf">}</span>))
+<span class="mk">end</span></pre>
+  </div>
+
+  <!-- SLIDE 8: RESULTADOS COMPARACIÓN -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-chart-bar"></i> Resultados Esperados de la Comparación</h2>
+    
+    <table class="compact reveal" style="font-size:0.85rem;">
+      <tr><th></th><th>Modelo</th><th>RMSE\(_\text{test}\)</th><th>MAPE\(_\text{test}\)</th><th>Veredicto</th></tr>
+      <tr><td>A</td><td>Lineal en \(t\)</td><td>11.1 ton</td><td>3.2%</td><td>Aceptable</td></tr>
+      <tr><td>B</td><td>Cuadrático en \(t\)</td><td>12.4 ton</td><td>3.2%</td><td>Aceptable</td></tr>
+      <tr><td>C</td><td>Múltiple (\(t\)+precio+camp)</td><td>5.4 ton</td><td>1.5%</td><td>Excelente</td></tr>
+      <tr><td>D</td><td>Solo precio+campañas</td><td>21.1 ton</td><td>6.8%</td><td>Débil</td></tr>
+    </table>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-eye"></i> Lectura de resultados</span>
+      <ul>
+        <li><strong>Modelo C</strong> gana claramente: RMSE=5.4 ton, MAPE=1.5% (&lt;5%: excelente).</li>
+        <li>El modelo D (sin tiempo) es débil: la tendencia temporal es un predictor clave.</li>
+        <li>El modelo B <strong>no</strong> mejora al A (12.4 vs 11.1): no hay curvatura relevante; por parsimonia, entre ambos se prefiere A.</li>
+        <li>El modelo C combina tendencia + variables de negocio: el mejor de todos.</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> Decisión de modelado</span>
+      <strong>Usar Modelo C</strong> para el pronóstico de las 8 semanas siguientes.<br>
+      RMSE\(_\text{test}\)/RMSE\(_\text{train}\) = 5.42/5.61 ≈ 0.97 &lt; 2: no hay sobreajuste.
+    </div>
+  </div>
+
+  <!-- SLIDE 9: PASO 3 PRONÓSTICO -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-chart-line"></i> Paso 3: Pronóstico de las Próximas 8 Semanas (15 min)</h2>
+    <p class="mb" style="font-size:0.85rem;"><strong>Salida esperada:</strong> <code>b0=244.23, b_t=5.70, b_precio=-38.27, b_camp=21.63</code>. Base: 297.1 → 337.0 ton (total 2.536 ton); optimista: 326.4 → 366.3 (total 2.770); pesimista: 264.0 → 303.9 (total 2.271).</p>
+    
+    <pre><span class="mc">% Reajustar modelo C con TODOS los datos (train + test)</span>
+X_full = <span class="mf">[</span><span class="mk">ones</span>(<span class="mn">30</span>,<span class="mn">1</span>), t, precio, campanas<span class="mf">]</span>;
+bC_full = X_full \ demanda;
+
+<span class="mk">fprintf</span>(<span class="ms">'Modelo C reajustado (todos los datos):\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'  b0=%.4f, b_t=%.4f, b_precio=%.4f, b_camp=%.4f\n'</span>,...
+    bC_full(<span class="mn">1</span>), bC_full(<span class="mn">2</span>), bC_full(<span class="mn">3</span>), bC_full(<span class="mn">4</span>))
+
+<span class="mc">% Escenarios para semanas 31-38</span>
+t_fut = (<span class="mn">31</span>:<span class="mn">38</span>)';
+precio_base = <span class="mn">3.80</span>;   <span class="mc">% precio esperado</span>
+precio_bajo = <span class="mn">3.60</span>;   <span class="mc">% precio bajo (promo)</span>
+camp_base   = <span class="mn">1</span>;      <span class="mc">% 1 campana</span>
+camp_alto   = <span class="mn">2</span>;      <span class="mc">% 2 campanas (temporada alta)</span>
+
+<span class="mc">% Escenario base</span>
+X_base = <span class="mf">[</span><span class="mk">ones</span>(<span class="mn">8</span>,<span class="mn">1</span>), t_fut, <span class="mk">repmat</span>(precio_base,<span class="mn">8</span>,<span class="mn">1</span>), <span class="mk">repmat</span>(camp_base,<span class="mn">8</span>,<span class="mn">1</span>)<span class="mf">]</span>;
+y_base = X_base * bC_full;
+
+<span class="mc">% Escenario optimista (precio bajo + 2 campanas)</span>
+X_opt  = <span class="mf">[</span><span class="mk">ones</span>(<span class="mn">8</span>,<span class="mn">1</span>), t_fut, <span class="mk">repmat</span>(precio_bajo,<span class="mn">8</span>,<span class="mn">1</span>), <span class="mk">repmat</span>(camp_alto,<span class="mn">8</span>,<span class="mn">1</span>)<span class="mf">]</span>;
+y_opt  = X_opt * bC_full;
+
+<span class="mc">% Escenario pesimista (precio alto + 0 campanas)</span>
+X_pes  = <span class="mf">[</span><span class="mk">ones</span>(<span class="mn">8</span>,<span class="mn">1</span>), t_fut, <span class="mk">repmat</span>(<span class="mn">4.10</span>,<span class="mn">8</span>,<span class="mn">1</span>), <span class="mk">zeros</span>(<span class="mn">8</span>,<span class="mn">1</span>)<span class="mf">]</span>;
+y_pes  = X_pes * bC_full;
+
+<span class="mk">fprintf</span>(<span class="ms">'\nPronostico semanas 31-38 (ton):\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%-6s %-14s %-14s %-14s\n'</span>,<span class="ms">'Sem'</span>,<span class="ms">'Base'</span>,<span class="ms">'Optimista'</span>,<span class="ms">'Pesimista'</span>)
+<span class="mk">for</span> i=<span class="mn">1</span>:<span class="mn">8</span>
+    <span class="mk">fprintf</span>(<span class="ms">'%-6d %-14.2f %-14.2f %-14.2f\n'</span>, <span class="mn">30</span>+i, y_base(i), y_opt(i), y_pes(i))
+<span class="mk">end</span></pre>
+  </div>
+
+  <!-- SLIDE 10: VISUALIZACIÓN PRONÓSTICO -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-chart-area"></i> Visualización del Pronóstico con Escenarios</h2>
+    
+    <div class="reveal"><img class="fig" src="imagenes/clase27_pronostico_escenarios.png" alt="Pronóstico con escenarios"><p class="fig-cap">Histórico (azul), pronóstico base (verde) y banda optimista/pesimista para las semanas 31–38</p></div>
+    
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-eye"></i> Qué muestra el gráfico</span>
+        La banda de escenarios define el rango de demanda posible.<br>
+        El supply chain debe estar preparado para el escenario <strong>optimista</strong> (mayor demanda posible).
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Advertencia</span>
+        Las semanas 31-38 están fuera del rango de entrenamiento.<br>
+        La confianza en el pronóstico disminuye con la distancia al último dato.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: PASO 4 INVENTARIO -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-warehouse"></i> Paso 4: Calcular Inventario de Seguridad (10 min)</h2>
+    <p class="mb" style="font-size:0.85rem;"><strong>Salida esperada:</strong> IS = 1.645 × 5.42 × 1.4142 = 12.61 ton · demanda media base 317.0 ton/sem · punto de reorden 646.7 ton (&gt; 500: pedir semanalmente) · inventario máximo 378.9 ton · costo IS $44.13/sem ($2.294.84/año).</p>
+    
+    <pre><span class="mc">% Parametros operativos</span>
+RMSE_modelo = <span class="mn">5.42</span>;          <span class="mc">% ton (del modelo C en test)</span>
+z95  = <span class="mn">1.645</span>;               <span class="mc">% nivel de servicio 95%</span>
+lead_time = <span class="mn">2</span>;              <span class="mc">% semanas de reposicion</span>
+costo_alm  = <span class="mn">3.5</span>;           <span class="mc">% $/ton/semana</span>
+costo_rupt = <span class="mn">800</span>;           <span class="mc">% $/ton</span>
+cap_max    = <span class="mn">500</span>;           <span class="mc">% ton (capacidad CD)</span>
+
+<span class="mc">% Inventario de seguridad</span>
+IS = z95 * RMSE_modelo * <span class="mf">sqrt</span>(lead_time);
+<span class="mk">fprintf</span>(<span class="ms">'Inventario de seguridad:\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'  IS = z95 * RMSE * sqrt(LT) = %.2f * %.2f * %.4f = %.2f ton\n'</span>,...
+    z95, RMSE_modelo, <span class="mf">sqrt</span>(lead_time), IS)
+
+<span class="mc">% Punto de reorden (cuando pedir)</span>
+demanda_promedio = <span class="mk">mean</span>(y_base);
+punto_reorden = demanda_promedio * lead_time + IS;
+<span class="mk">fprintf</span>(<span class="ms">'\nDemanda promedio semanal (base): %.2f ton\n'</span>, demanda_promedio)
+<span class="mk">fprintf</span>(<span class="ms">'Punto de reorden: %.2f ton\n'</span>, punto_reorden)
+<span class="mk">fprintf</span>(<span class="ms">'  (pedir cuando el inventario baje a %.0f ton)\n'</span>, punto_reorden)
+
+<span class="mc">% Chequeo de capacidad: el punto de reorden supera la capacidad del CD</span>
+<span class="mk">if</span> punto_reorden > cap_max
+    <span class="mk">fprintf</span>(<span class="ms">'Reorden (%.0f) > capacidad (%d): pedir SEMANALMENTE\n'</span>, punto_reorden, cap_max)
+<span class="mk">end</span>
+<span class="mc">% Politica semanal: pedido = demanda pronosticada de la semana de llegada (t+2)</span>
+inv_max = <span class="mf">max</span>(y_opt) + IS;     <span class="mc">% inventario maximo (escenario optimista)</span>
+<span class="mk">fprintf</span>(<span class="ms">'Inventario maximo esperado: %.1f ton (cap. %d)\n'</span>, inv_max, cap_max)
+<span class="mc">% Costo semanal del IS</span>
+costo_IS_sem = IS * costo_alm;
+<span class="mk">fprintf</span>(<span class="ms">'\nCosto semanal del IS: $%.2f\n'</span>, costo_IS_sem)
+<span class="mk">fprintf</span>(<span class="ms">'Costo anual del IS: $%.2f\n'</span>, costo_IS_sem*<span class="mn">52</span>)</pre>
+  </div>
+
+  <!-- SLIDE 12: PLAN DE ABASTECIMIENTO -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-truck-loading"></i> Plan de Abastecimiento: Semanas 31-38</h2>
+    
+    <p class="reveal">Política de <strong>revisión semanal</strong>: cada semana se pide la demanda pronosticada de la semana en que llegará el pedido (lead time = 2 semanas). Así el inventario inicial de cada semana es su demanda + IS:</p>
+    
+    <table class="inv-table reveal">
+<tr><th>Sem</th><th>Dem. pred. base (ton)</th><th>Inventario inicio sem = llegada + IS (ton)</th><th>Inventario fin sem ≈ IS (ton)</th><th>Pedido a colocar (ton)</th></tr>
+<tr><td>31</td><td>297</td><td>310</td><td>13</td><td class="highlight">308 (llega sem 33)</td></tr>
+<tr><td>32</td><td>303</td><td>315</td><td>13</td><td class="highlight">314 (llega sem 34)</td></tr>
+<tr><td>33</td><td>308</td><td>321</td><td>13</td><td class="highlight">320 (llega sem 35)</td></tr>
+<tr><td>34</td><td>314</td><td>327</td><td>13</td><td class="highlight">326 (llega sem 36)</td></tr>
+<tr><td>35</td><td>320</td><td>332</td><td>13</td><td class="highlight">331 (llega sem 37)</td></tr>
+<tr><td>36</td><td>326</td><td>338</td><td>13</td><td class="highlight">337 (llega sem 38)</td></tr>
+<tr><td>37</td><td>331</td><td>344</td><td>13</td><td class="highlight">343 (llega sem 39)</td></tr>
+<tr><td>38</td><td>337</td><td>350</td><td>13</td><td class="highlight">348 (llega sem 40)</td></tr>
+</table>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Cálculo del inventario de seguridad</span>
+      RMSE = 5.42 ton, \(z_{0.95}=1.645\), lead time = 2 semanas: \(IS = 1.645 \times 5.42 \times \sqrt{2} \approx 12.6\) ton.<br>
+      Punto de reorden \(= 317\times 2 + 12.6 \approx 647\) ton &gt; capacidad (500 ton) ⇒ no se puede pedir cada 4 semanas: se pide <strong>semanalmente</strong>. Inventario máximo (optimista, sem 38): \(366 + 12.6 \approx 379\) ton ≤ 500 ✓.
+    </div>
+  </div>
+
+  <!-- SLIDE 13: ANÁLISIS DE ESCENARIOS -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-chart-pie"></i> Análisis de Escenarios: Impacto en el Negocio</h2>
+    
+    <p class="reveal"><strong>Tres escenarios para las semanas 31-38:</strong></p>
+    
+    <table class="compact reveal" style="font-size:0.85rem;">
+      <tr><th>Escenario</th><th>Dem.total (8 sem, ton)</th><th>IS (ton)</th><th>Costo IS ($/sem)</th><th>Riesgo ruptura</th></tr>
+      <tr><td>Pesimista</td><td>2.271</td><td>12.6 ton</td><td>$44.1</td><td>5%</td></tr>
+      <tr><td>Base</td><td>2.536</td><td>12.6 ton</td><td>$44.1</td><td>5%</td></tr>
+      <tr><td>Optimista</td><td>2.770</td><td>12.6 ton</td><td>$44.1</td><td>5%</td></tr>
+    </table>
+    
+    <p class="reveal mt"><strong>El IS (12.6 ton) es el mismo en todos los escenarios:</strong> depende del RMSE del modelo, no del nivel de demanda.</p>
+    
+    <p class="reveal mt"><strong>Pero la cantidad a pedir varía:</strong>
+      <ul>
+        <li>Escenario pesimista: pedir menos, reducir costos de almacenamiento.</li>
+        <li>Escenario base: pedido estándar según el pronóstico.</li>
+        <li>Escenario optimista: pedir más, asegurar disponibilidad ante mayor demanda.</li>
+      </ul>
+    </p>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Recomendación conservadora</span>
+      Planificar para el escenario <strong>optimista</strong> en cantidades de pedido, con el IS calculado en base al RMSE del modelo.<br>
+      Revisar el modelo y el IS cada 4 semanas.
+    </div>
+  </div>
+
+  <!-- SLIDE 14: MARCO DE DECISIÓN -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-gavel"></i> Marco de Decisión Ejecutiva</h2>
+    
+    <div class="center reveal" style="background:var(--orange-light); padding:0.8rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Recomendación para Distribuidora Pacífico S.A.</span>
+    </div>
+    
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-cube"></i> Modelo seleccionado</span>
+        <strong>Modelo C</strong> (regresión múltiple):<br>
+        \(\hat y = \beta_0 + \beta_1 t + \beta_2 \cdot\text{precio} + \beta_3 \cdot\text{camp}\)<br>
+        RMSE\(_\text{test}\) = 5.4 ton, MAPE = 1.5%.<br>
+        Monitorear mensualmente.
+      </div>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-warehouse"></i> Política de inventario</span>
+        IS ≈ 12.6 ton (nivel 95%).<br>
+      Reorden teórico (647 ton) supera la capacidad ⇒ revisión <strong>semanal</strong>.<br>
+      Pedido semanal = demanda pronosticada de la semana de llegada.
+      </div>
+    </div>
+    
+    <div class="col-layout mt">
+      <div class="example-block reveal">
+        <span class="b-title"><i class="fas fa-chart-line"></i> Pronóstico base semanas 31-38</span>
+        Total: 2.536 ton (≈ 317 ton/sem).<br>
+      Banda: 2.271 (pesimista) – 2.770 ton (optimista).<br>
+      Pedidos: semanales, de ≈ 309–348 ton.
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-tasks"></i> Acciones inmediatas</span>
+        <ol>
+          <li>Negociar con proveedor entregas semanales de 300–370 ton.</li>
+          <li>Verificar capacidad del CD para pico optimista.</li>
+          <li>Revisar el modelo en la semana 34.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: RÚBRICA -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-clipboard-check"></i> Rúbrica de Evaluación del Mini-caso 4</h2>
+    
+    <table class="compact reveal" style="font-size:0.8rem;">
+      <tr><th>Criterio</th><th>Logrado (3)</th><th>En proceso (2)</th><th>Inicial (1)</th></tr>
+      <tr><td>Análisis exploratorio</td><td>Gráfico, correlaciones e interpretación completa</td><td>Gráfico sin interpretación</td><td>Solo estadísticas básicas</td></tr>
+      <tr><td>Selección del modelo</td><td>Validación train/test, tabla comparativa, justificación</td><td>Tabla sin justificación</td><td>Solo ajuste sin comparar</td></tr>
+      <tr><td>Pronóstico y escenarios</td><td>3 escenarios con bandas e interpretación</td><td>Un escenario sin banda</td><td>Solo valores puntuales</td></tr>
+      <tr><td>Inventario de seguridad</td><td>Fórmula correcta, IS calculado, punto de reorden</td><td>IS correcto sin reorden</td><td>Sin cálculo de IS</td></tr>
+      <tr><td>Decisión ejecutiva</td><td>Recomendación con argumentos matemáticos y operativos</td><td>Recomendación parcial</td><td>Sin recomendación fundamentada</td></tr>
+    </table>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-file-code"></i> Entregable</span>
+      Script MATLAB ejecutable (<code>.m</code>) + párrafo de decisión (150 palabras).<br>
+      Entregar antes del inicio de la Clase 28.
+    </div>
+  </div>
+
+  <!-- SLIDE 16: PUNTO DE DECISIÓN FINAL -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-gavel"></i> Punto de Decisión Final</h2>
+    
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Decisión Ejecutiva</span><br><br>
+      <em>El Modelo C predice una demanda media de 317 ton/semana en el escenario base (297 → 337), con hasta 366 ton/semana en el escenario optimista. El IS calculado es 12.6 ton.</em><br><br>
+      <strong>¿Qué le recomiendas al gerente de supply chain? ¿Cuánto pedir, con qué frecuencia y qué IS mantener? Justifica con los números del análisis.</strong>
+    </div>
+    
+    <div class="decision-cards mt">
+      <div class="dc-card a reveal">
+        <strong>Cantidad por pedido</strong><br><br>
+        Un lote de 4 semanas (≈ 1.280 ton) no cabe en el CD (500 ton). Pedido semanal ≈ demanda de la semana de llegada: 309–348 ton (base), hasta 366 (optimista).
+      </div>
+      <div class="dc-card b reveal">
+        <strong>Frecuencia</strong><br><br>
+        Con demanda ≈ 317 ton/sem y capacidad 500 ton, el inventario máximo esperado es ≈ 379 ton (optimista + IS): el pedido <strong>semanal</strong> es viable.
+      </div>
+      <div class="dc-card c reveal">
+        <strong>Revisión</strong><br><br>
+        El modelo debe revisarse en la semana 34 (a mitad del horizonte de pronóstico). Si el RMSE real supera 1.2×5.4 ≈ 6.5 ton, reentrenar.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: TAREA -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 28</h2>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-file-code"></i> Entregable del Mini-caso 4</span>
+      <ul>
+        <li class="reveal">Script <code>clase27_mini_caso4.m</code> completamente ejecutable.</li>
+        <li class="reveal">Los 4 modelos ajustados con tabla comparativa.</li>
+        <li class="reveal">Pronóstico con 3 escenarios para semanas 31-38.</li>
+        <li class="reveal">Cálculo del IS y punto de reorden.</li>
+        <li class="reveal">Párrafo de decisión ejecutiva (150 palabras máximo).</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lectura preparatoria para Clase 28</span>
+      <strong>Lay</strong>, Cap. 6.3: Normas de vectores — L1, L2 y L∞.<br>
+      Pensar: en logística, ¿qué significa minimizar el error máximo vs el error promedio?
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Inicio Módulo 6 — Clase 28</span>
+      <strong>Normas de vectores (L1, L2, L∞)</strong> y su interpretación en logística
+    </div>
+  </div>
+
+  <!-- SLIDE 18: REFERENCIAS -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Montgomery, D.C., Peck, E.A. & Vining, G.G.</strong> (2012). <em>Introduction to Linear Regression Analysis</em> (5th ed.). Wiley. Cap. 3 (Regresión múltiple), Cap. 9 (Validación).</li>
+      <li class="reveal"><strong>Hyndman, R.J. & Athanasopoulos, G.</strong> (2021). <em>Forecasting: Principles and Practice</em> (3rd ed.). OTexts. Cap. 5 (Evaluación). <a href="https://otexts.com/fpp3/" style="color:var(--navy);">https://otexts.com/fpp3/</a></li>
+      <li class="reveal"><strong>Silver, E.A., Pyke, D.F. & Thomas, D.J.</strong> (2017). <em>Inventory and Production Management in Supply Chains</em> (4th ed.). CRC Press. Cap. 7 (Inventario de seguridad).</li>
+      <li class="reveal"><strong>Material propio</strong>: Dataset Distribuidora Pacífico S.A., Script <code>clase27_mini_caso4.m</code>, Rúbrica de evaluación.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--navy); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 27 | Mini-caso 4</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: CIERRE -->
+  <div class="slide" data-slide="19">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>¡Fin del Módulo 5!</h1>
+      <p class="sub mt">Regresión y Análisis de Datos — Completado</p>
+      <p class="sub" style="color:var(--green); font-weight:600;">Próximo: Módulo 6 — Normas de Vectores</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

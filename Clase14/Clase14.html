@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -151,11 +151,39 @@
     table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
     table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
     table.compact th { background: #f8fafc; font-weight: 600; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -241,7 +269,7 @@
         <ul>
           <li class="reveal"><strong>Demanda semanal:</strong> \(\mathbf{d}=(320,280,240,160)^T\in\mathbb{R}^4\) (una componente por CD).</li>
           <li class="reveal"><strong>Inventario:</strong> \(\mathbf{s}=(450,320,180,270)^T\in\mathbb{R}^4\) (unidades en stock por CD).</li>
-          <li class="reveal"><strong>Plan de despacho:</strong> \(\mathbf{x}=(560,390,0,0,120)^T\in\mathbb{R}^5\) (toneladas por planta).</li>
+          <li class="reveal"><strong>Plan de despacho:</strong> \(\mathbf{x}=(400,0,100,200,400)^T\in\mathbb{R}^5\) (toneladas por planta).</li>
           <li class="reveal"><strong>Serie de tiempo:</strong> \(\mathbf{v}=(d_1,d_2,\ldots,d_{52})^T\in\mathbb{R}^{52}\) (demanda anual).</li>
         </ul>
       </div>
@@ -262,30 +290,11 @@
     <div class="col-layout">
       <div class="block reveal"><span class="b-title">Vector en \(\mathbb{R}^2\): dos CDs</span>
         \(\mathbf{d}=\begin{pmatrix}320\\280\end{pmatrix}\): demanda de D1 y D2.
-        <div class="vector-graph mt">
-          <div class="vg-axis-label vg-axis-x">d1 (D1)</div>
-          <div class="vg-axis-label vg-axis-y">d2 (D2)</div>
-          <!-- Vector at approx 45 degrees for 320,280 -->
-          <div class="vg-vector" style="width: 140px; transform: rotate(-38deg);"></div>
-          <div class="vg-val" style="bottom: -18px; right: 10px;">320</div>
-          <div class="vg-val" style="top: 5px; left: -20px;">280</div>
-          <div class="vg-label" style="top: 25px; right: 0;">d=(320,280)</div>
-          <div class="vg-dash" style="width: 125px; height: 60px; bottom: 0; left: 0;"></div>
-        </div>
+        <div class="mt"><img class="fig" src="imagenes/vector_r2_r3.png" alt="Vector de demanda en R2 y en R3"></div>
       </div>
       <div class="block reveal"><span class="b-title">Suma de vectores</span>
-        <div class="vector-graph">
-          <!-- d1 vector -->
-          <div class="vg-vector" style="width: 100px; background: var(--navy); transform: rotate(-25deg);"></div>
-          <div class="vg-label" style="top: 25px; right: 10px; color: var(--navy);">d1</div>
-          <!-- d2 vector starting from tip of d1 -->
-          <div class="vg-vector" style="width: 110px; left: 90px; bottom: 42px; background: var(--green); transform: rotate(-30deg);"></div>
-          <div class="vg-label" style="top: 5px; right: 5px; color: var(--green);">d2</div>
-          <!-- Result vector -->
-          <div class="vg-vector" style="width: 190px; background: var(--red); transform: rotate(-28deg); opacity: 0.8;"></div>
-          <div class="vg-label" style="bottom: -20px; right: 0; color: var(--red);">d1+d2</div>
-        </div>
-        <p class="mt italic text-center">La demanda total es la suma de los vectores de demanda individuales.</p>
+        <div><img class="fig" src="imagenes/suma_vectores.png" alt="Suma de dos vectores de demanda"></div>
+        <p class="mt italic text-center">La demanda total de dos fábricas, \((200,120)+(120,160)=(320,280)\), es la suma componente a componente.</p>
       </div>
     </div>
   </div>
@@ -305,7 +314,7 @@
         \(\mathbf{e} = \mathbf{d}_{\text{real}} - \mathbf{d}_{\text{previsto}} = (20,-15,8,-3)^T\)
         \[ \begin{aligned}
           \|\mathbf{e}\|_1 &= 20+15+8+3 = \mathbf{46} \\
-          \|\mathbf{e}\|_2 &= \sqrt{400+225+64+9} \approx \mathbf{26.1} \\
+          \|\mathbf{e}\|_2 &= \sqrt{400+225+64+9}=\sqrt{698} \approx \mathbf{26.4} \\
           \|\mathbf{e}\|_\infty &= \max(20,15,8,3) = \mathbf{20}
         \end{aligned} \]
       </div>
@@ -368,10 +377,10 @@
         \(\mathbf{d}_2-\mathbf{d}_1=(20,-20,10,-10)^T\)
         <ul class="mt">
           <li>\(d_1=20+20+10+10=60\)</li>
-          <li>\(d_2\approx30.0\)</li>
+          <li>\(d_2=\sqrt{400+400+100+100}=\sqrt{1000}\approx31.6\)</li>
           <li>\(d_\infty=20\)</li>
         </ul>
-        <span class="mt italic block" style="display:block; background:#f1f5f9; padding:0.5rem; border-radius:4px;">La variación total fue 60 ton; dividida entre los 4 CD, en promedio cada CD varió 60/4 = 15 ton entre semanas.</span>
+        <span class="mt italic block" style="display:block; background:#f1f5f9; padding:0.5rem; border-radius:4px;">En promedio, cada CD varió 15 ton entre semanas.</span>
       </div>
     </div>
   </div>
@@ -407,13 +416,13 @@
     <div class="col-layout mt">
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-chart-pie"></i> Interpretación logística</span>
         Si \(\mathbf{d}=(320,280,240,160)^T\) es la demanda semanal:
-        \(\|\mathbf{d}\|_2\approx524.1\)
-        \(\hat{\mathbf{d}} \approx (0.611,0.534,0.458,0.305)^T\)
+        \(\|\mathbf{d}\|_2=\sqrt{320^2+280^2+240^2+160^2}\approx513.8\)
+        \(\hat{\mathbf{d}} \approx (0.623,\,0.545,\,0.467,\,0.311)^T\)
         <p class="mt">Es el <strong>patrón relativo de demanda</strong>: indica qué proporción del total va a cada CD, independientemente del volumen total.</p>
       </div>
       <div class="block reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Uso práctico</span>
         Si la demanda total crece de 1000 a 1200 ton manteniendo el mismo patrón:
-        \[ \mathbf{d}' = 1200\,\hat{\mathbf{d}} \]
+        \[ \mathbf{d}' = 1200\,\frac{\mathbf{d}}{\|\mathbf{d}\|_1} = 1.2\,\mathbf{d} = (384,\,336,\,288,\,192)^T \]<small>Para fijar el <em>total</em> se normaliza con \(L_1\); \(\hat{\mathbf{d}}\) (con \(L_2\)) solo da la dirección: \(1200\,\hat{\mathbf{d}}\) tendría norma euclídea 1200, no total 1200.</small>
         La dirección (patrón relativo) se mantiene; solo cambia la magnitud (volumen total).<br><br>
         <em>En logística: separar "cuánto" (norma) de "cómo se distribuye" (dirección).</em>
       </div>
@@ -450,11 +459,11 @@ d_hat = d_sem1 / <span class="mf">norm</span>(d_sem1, <span class="mn">2</span>)
       </div>
       <div>
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
-          <code>||d||_1 = 930.0</code> | <code>||d||_2 = 494.6</code> | <code>||d||_inf = 300.0</code><br>
+          <code>||d||_1 = 930.0</code> | <code>||d||_2 = 474.2</code> | <code>||d||_inf = 300.0</code><br>
           <code>Diferencia d2-d1 = [20 -20 10 -10]</code><br>
-          <code>d_1 = 60.0</code> | <code>d_2 = 30.0</code> | <code>d_inf = 20.0</code><br>
+          <code>d_1 = 60.0</code> | <code>d_2 = 31.6</code> | <code>d_inf = 20.0</code><br>
           <code>Stock final: [430 330 200 280]</code><br>
-          <code>Patron relativo: [0.607 0.506 0.405 0.364]</code>
+          <code>Patron relativo: [0.633 0.527 0.422 0.380]</code>
         </div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-info-circle"></i> Nota</span>
           <code>norm(v)</code> sin segundo argumento calcula la norma \(L_2\) por defecto.<br>
@@ -482,30 +491,16 @@ d_hat = d_sem1 / <span class="mf">norm</span>(d_sem1, <span class="mn">2</span>)
   </div>
 
   <!-- SLIDE 13: EJERCICIO 2 -->
-<div class="slide" data-slide="13">
-  <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Comparación de semanas</h2>
-  <p class="reveal"><strong>Enunciado:</strong> Se tienen las demandas semanales
-    (en toneladas) de cuatro centros de distribución durante cuatro semanas.
-    ¿Cuáles son las dos semanas más parecidas? Usar distancia \(L_2\).</p>
-  <div class="block mt reveal">
-    \[
-      \mathbf{d}_1=\begin{pmatrix}300\\250\\200\\180\end{pmatrix},\;
-      \mathbf{d}_2=\begin{pmatrix}320\\230\\210\\170\end{pmatrix},\;
-      \mathbf{d}_3=\begin{pmatrix}310\\280\\220\\190\end{pmatrix},\;
-      \mathbf{d}_4=\begin{pmatrix}310\\250\\205\\175\end{pmatrix}
-    \]
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Comparación de semanas</h2>
+    <p class="reveal"><strong>Enunciado:</strong> Se tienen demandas de cuatro semanas. ¿Cuáles son las dos semanas más parecidas? Usar distancia \(L_2\).
+      \(\mathbf{d}_1=(300,250,200,180)^T,\; \mathbf{d}_2=(320,230,210,170)^T,\; \mathbf{d}_3=(270,285,215,160)^T,\; \mathbf{d}_4=(310,245,195,190)^T\)
+    </p>
+    <div class="example-block mt reveal"><span class="b-title">Matriz de distancias \(d_2(\mathbf{d}_i,\mathbf{d}_j)\)</span>
+      <table class="compact"><tr><th></th><th>S1</th><th>S2</th><th>S3</th><th>S4</th></tr><tr><td>S1</td><td>0</td><td>31.6</td><td>52.4</td><td><strong>15.8</strong></td></tr><tr><td>S2</td><td>31.6</td><td>0</td><td>75.2</td><td>30.8</td></tr><tr><td>S3</td><td>52.4</td><td>75.2</td><td>0</td><td>67.1</td></tr><tr><td>S4</td><td><strong>15.8</strong></td><td>30.8</td><td>67.1</td><td>0</td></tr></table>
+      <span class="reveal mt italic">La menor distancia es entre <strong>S1 y S4</strong> (15.8 ton). Estas semanas son las más similares en patrón de demanda.</span>
+    </div>
   </div>
-  <div class="example-block mt reveal"><span class="b-title">Matriz de distancias \(d_2(\mathbf{d}_i,\mathbf{d}_j)\)</span>
-    <table class="compact">
-      <tr><th></th><th>S1</th><th>S2</th><th>S3</th><th>S4</th></tr>
-      <tr><td>S1</td><td>0</td><td>31.6</td><td>38.7</td><td><strong>12.2</strong></td></tr>
-      <tr><td>S2</td><td>31.6</td><td>0</td><td>55.7</td><td>23.5</td></tr>
-      <tr><td>S3</td><td>38.7</td><td>55.7</td><td>0</td><td>36.7</td></tr>
-      <tr><td>S4</td><td><strong>12.2</strong></td><td>23.5</td><td>36.7</td><td>0</td></tr>
-    </table>
-    <span class="reveal mt italic">La menor distancia es entre <strong>S1 y S4</strong> (≈12.2 ton). Estas semanas son las más similares en patrón de demanda.</span>
-  </div>
-</div>
 
   <!-- SLIDE 14: EJERCICIO 3 -->
   <div class="slide" data-slide="14">

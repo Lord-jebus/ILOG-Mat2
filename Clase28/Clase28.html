@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 28: Normas de Vectores L1, L2, L∞</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --orange: #c85000;
+      --orange-dark: #a04000;
+      --navy: #005293;
+      --navy-light: #0066b8;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --red: #b41414;
+      --red-light: #ffe0e0;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--orange);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--orange);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--red-light); border-left-color: var(--red); }
+    .alert-block strong { color: var(--red); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--orange); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--orange); border-color: var(--orange); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    /* Norms visualization */
+    .norms-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+    .norm-card { padding: 1rem; border-radius: 8px; text-align: center; border: 2px solid; }
+    .norm-card.l1 { border-color: var(--red); background: rgba(180,20,20,0.05); }
+    .norm-card.l2 { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .norm-card.linf { border-color: var(--green); background: rgba(0,130,80,0.05); }
+    .norm-card h4 { margin-bottom: 0.5rem; font-size: 1.1rem; }
+
+    /* Unit ball visualization */
+    .unit-ball { width: 200px; height: 200px; margin: 0.5rem auto; position: relative; }
+    .ub-l1 { border: 3px solid var(--red); width: 140px; height: 140px; transform: rotate(45deg); margin: 30px; }
+    .ub-l2 { border: 3px solid var(--navy); border-radius: 50%; width: 140px; height: 140px; margin: 30px; }
+    .ub-linf { border: 3px dashed var(--green); width: 140px; height: 140px; margin: 30px; }
+    .ub-label { position: absolute; font-size: 0.8rem; font-weight: 600; }
+
+    /* Decision flow diagram */
+    .decision-flow { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin: 1rem 0; }
+    .df-question { padding: 0.6rem 1rem; border-radius: 8px; background: rgba(230,160,0,0.15); border: 2px solid var(--orange); color: var(--orange); font-weight: 600; text-align: center; }
+    .df-answer { padding: 0.5rem 0.8rem; border-radius: 6px; background: rgba(0,82,147,0.1); border: 2px solid var(--navy); color: var(--navy); font-size: 0.85rem; text-align: center; min-width: 120px; }
+    .df-arrow { color: #94a3b8; font-size: 1.2rem; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .decision-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+    .dc-card { padding: 0.8rem; border-radius: 8px; text-align: center; border: 2px solid; font-size: 0.85rem; }
+    .dc-card.a { border-color: var(--red); background: rgba(180,20,20,0.05); }
+    .dc-card.b { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .dc-card.c { border-color: var(--green); background: rgba(0,130,80,0.05); }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--orange); margin: 0.5rem 0; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-ruler-combined fa-3x" style="color:var(--orange); margin-bottom:1rem;"></i>
+      <h1>Normas de Vectores: L1, L2 y L∞</h1>
+      <p class="sub">Interpretación del Error en Logística</p>
+      <p class="sub" style="color:var(--orange); font-weight:600;">Módulo 6 — Herramientas de Ingeniería</p>
+      <p class="sub">Matemáticas 2 — Clase 28</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 28 — Inicio Módulo 6</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Inicio del Módulo 6: Herramientas de Ingeniería</li>
+      <li class="reveal">Objetivos de Aprendizaje</li>
+      <li class="reveal">¿Qué es una Norma?</li>
+      <li class="reveal">Norma L1: Suma de Valores Absolutos</li>
+      <li class="reveal">Norma L2: Raíz de Suma de Cuadrados</li>
+      <li class="reveal">Norma L∞: Máximo Valor Absoluto</li>
+      <li class="reveal">Resumen: Las Tres Normas</li>
+      <li class="reveal">Bolas Unitarias: Geometría de cada Norma</li>
+      <li class="reveal">Caso: Errores de Distribución en una Red</li>
+      <li class="reveal">Selección de la Norma Según Objetivo</li>
+      <li class="reveal">MATLAB: Calcular Normas con norm()</li>
+      <li class="reveal">MATLAB: Comparar Normas entre Modelos</li>
+      <li class="reveal">MATLAB: Visualización de Bolas Unitarias</li>
+      <li class="reveal">Resumen: Cómo Elegir la Norma</li>
+      <li class="reveal">Punto de Decisión</li>
+      <li class="reveal">Tarea para la Clase 29</li>
+      <li class="reveal">Referencias</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: INICIO MÓDULO 6 -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-door-open"></i> Inicio del Módulo 6: Herramientas de Ingeniería</h2>
+    
+    <div class="timeline reveal">
+      <div class="tm-box tm-done">Mod. 4<br>Espacios</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-done">Mod. 5<br>Regresión</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-active">Clase 28<br>Normas</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-active">Clase 29<br>Redes</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-active">Clase 30<br>Eigenval.</div>
+    </div>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-toolbox"></i> ¿Qué cubre el Módulo 6?</span>
+      Herramientas matemáticas avanzadas de uso directo en ingeniería logística:<br>
+      • Normas de vectores para medir errores y distancias<br>
+      • Matrices de adyacencia para modelar redes<br>
+      • Eigenvalores para analizar la estabilidad de sistemas
+    </div>
+  </div>
+
+  <!-- SLIDE 3: OBJETIVOS -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de Aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Definir</strong> las normas L1, L2 y L∞ de un vector.</li>
+      <li class="reveal"><strong>Calcular</strong> cada norma manualmente y con <code>norm(v,p)</code> en MATLAB.</li>
+      <li class="reveal"><strong>Interpretar</strong> geométricamente las "bolas unitarias" de cada norma.</li>
+      <li class="reveal"><strong>Relacionar</strong> L1 con MAE, L2 con RMSE y L∞ con el error máximo.</li>
+      <li class="reveal"><strong>Seleccionar</strong> la norma adecuada según el objetivo logístico.</li>
+      <li class="reveal"><strong>Aplicar</strong> normas para comparar errores de distribución en una red.</li>
+    </ol>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Conexión con Módulo 5</span>
+      En el Módulo 5 calculamos MAE y RMSE para evaluar modelos.<br>
+      Clase 28: MAE y RMSE son <strong>normas de vectores de residuos</strong>.<br>
+      La elección de la norma determina qué tipo de error se minimiza.
+    </div>
+  </div>
+
+  <!-- SLIDE 4: ¿QUÉ ES UNA NORMA? -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-question-circle"></i> ¿Qué es una Norma?</h2>
+    
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      Una <strong>norma</strong> \(\|\cdot\|\) en \(\mathbb{R}^n\) es una función que asigna a cada vector \(\mathbf{x} \in \mathbb{R}^n\) un número real no negativo y que satisface:
+      <ol>
+        <li><strong>N1:</strong> \(\|\mathbf{x}\| \geq 0\) y \(\|\mathbf{x}\|=0 \Leftrightarrow \mathbf{x}=\mathbf{0}\)</li>
+        <li><strong>N2:</strong> \(\|c\mathbf{x}\| = |c|\,\|\mathbf{x}\|\) para \(c \in \mathbb{R}\)</li>
+        <li><strong>N3:</strong> \(\|\mathbf{x}+\mathbf{y}\| \leq \|\mathbf{x}\|+\|\mathbf{y}\|\) (desigualdad triangular)</li>
+      </ol>
+    </div>
+    
+    <p class="reveal mt"><strong>Intuición:</strong> una norma es una <strong>medida de tamaño o longitud</strong> del vector.<br>
+    En logística: mide el tamaño del error de distribución, la distancia entre almacenes, o la magnitud de una desviación del plan.</p>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-ruler"></i> La norma más familiar: L2 (longitud euclidiana)</span>
+      Para \(\mathbf{x} = (3, 4)^T\): \(\|\mathbf{x}\|_2 = \sqrt{3^2+4^2} = \sqrt{25} = 5\).<br>
+      Esta es la "distancia euclidiana" del punto \((3,4)\) al origen.
+    </div>
+  </div>
+
+  <!-- SLIDE 5: NORMA L1 -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-plus"></i> Norma L1: Suma de Valores Absolutos</h2>
+    
+    <div class="formula-card reveal">
+      <span class="b-title">Norma L1 (norma de Manhattan)</span>
+      \[ \|\mathbf{x}\|_1 = \sum_{i=1}^n |x_i| = |x_1| + |x_2| + \cdots + |x_n| \]
+    </div>
+    
+    <p class="reveal mt"><strong>Ejemplo:</strong> \(\mathbf{e} = (5, -3, 8, -2)^T\) (errores de distribución en 4 rutas, ton)
+      \[ \|\mathbf{e}\|_1 = |5|+|-3|+|8|+|-2| = 5+3+8+2 = 18 \text{ ton} \]
+    </p>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-truck"></i> Interpretaciones logísticas</span>
+      <ul>
+        <li><strong>Distancia Manhattan</strong>: número de cuadras en una grilla urbana de reparto.</li>
+        <li><strong>MAE</strong>: \(\text{MAE} = \frac{1}{n}\|\mathbf{e}\|_1 = \frac{18}{4} = 4.5\) ton por ruta.</li>
+        <li>Minimizar \(\|\mathbf{e}\|_1\) es equivalente a minimizar el MAE.</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Cuándo usar L1</span>
+      Cuando todos los errores tienen el <strong>mismo costo unitario</strong> independientemente de su magnitud.<br>
+      Ejemplo: costo de reposición = $50/ton sin importar si el error es 1 ton o 10 ton.
+    </div>
+  </div>
+
+  <!-- SLIDE 6: NORMA L2 -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-square-root-alt"></i> Norma L2: Raíz de Suma de Cuadrados</h2>
+    
+    <div class="formula-card reveal">
+      <span class="b-title">Norma L2 (norma euclidiana)</span>
+      \[ \|\mathbf{x}\|_2 = \sqrt{\sum_{i=1}^n x_i^2} = \sqrt{x_1^2 + x_2^2 + \cdots + x_n^2} \]
+    </div>
+    
+    <p class="reveal mt"><strong>Ejemplo:</strong> mismos errores \(\mathbf{e} = (5,-3,8,-2)^T\):
+      \[ \|\mathbf{e}\|_2 = \sqrt{25+9+64+4} = \sqrt{102} \approx 10.1 \text{ ton} \]
+    </p>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-globe-americas"></i> Interpretaciones logísticas</span>
+      <ul>
+        <li><strong>Distancia euclidiana</strong>: distancia real entre dos puntos en el espacio.</li>
+        <li><strong>RMSE</strong>: \(\text{RMSE} = \frac{1}{\sqrt{n}}\|\mathbf{e}\|_2 = \frac{10.1}{\sqrt{4}} = 5.05\) ton.</li>
+        <li>Minimizar \(\|\mathbf{e}\|_2^2\) (MCO) es equivalente a minimizar la SCR.</li>
+      </ul>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Cuándo usar L2</span>
+      Cuando los errores grandes son desproporcionadamente peores.<br>
+      Ejemplo: una ruptura de stock de 10 ton es más del doble de grave que 5 ton (penalidades contractuales, pérdida de clientes).
+    </div>
+  </div>
+
+  <!-- SLIDE 7: NORMA L∞ -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-infinity"></i> Norma L∞: Máximo Valor Absoluto</h2>
+    
+    <div class="formula-card reveal">
+      <span class="b-title">Norma L∞ (norma del supremo)</span>
+      \[ \|\mathbf{x}\|_\infty = \max_{i=1,\ldots,n} |x_i| \]
+      El valor absoluto máximo de las componentes del vector.
+    </div>
+    
+    <p class="reveal mt"><strong>Ejemplo:</strong> \(\mathbf{e} = (5,-3,8,-2)^T\):
+      \[ \|\mathbf{e}\|_\infty = \max(|5|,|-3|,|8|,|-2|) = \max(5,3,8,2) = 8 \text{ ton} \]
+    </p>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-exclamation-circle"></i> Interpretaciones logísticas</span>
+      <ul>
+        <li><strong>El peor caso</strong>: el error más grande que puede ocurrir en cualquier ruta.</li>
+        <li>Minimizar \(\|\mathbf{e}\|_\infty\) garantiza que <strong>ningún</strong> error supere un umbral.</li>
+        <li>Equivalente a minimizar el error máximo (minimax).</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-shield-alt"></i> Cuándo usar L∞</span>
+      Cuando el sistema no tolera ningún error grande, independientemente del promedio.<br>
+      Ejemplo: distribución de medicamentos urgentes o suministros críticos.<br>
+      Un solo fallo grave puede ser inaceptable aunque el promedio sea bueno.
+    </div>
+  </div>
+
+  <!-- SLIDE 8: RESUMEN NORMAS -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-table"></i> Resumen: Las Tres Normas</h2>
+    
+    <p class="reveal"><strong>Para \(\mathbf{e} = (5,-3,8,-2)^T\) (errores en 4 rutas, toneladas):</strong></p>
+    
+    <table class="compact reveal">
+      <tr><th>Norma</th><th>Fórmula</th><th>Valor</th><th>Métrica equiv.</th><th>Minimizar cuando...</th></tr>
+      <tr><td>L1</td><td>\(\sum|e_i|\)</td><td>18 ton</td><td>MAE×n</td><td>Errores tienen igual costo</td></tr>
+      <tr><td>L2</td><td>\(\sqrt{\sum e_i^2}\)</td><td>10.1 ton</td><td>RMSE×√n</td><td>Errores grandes son peores</td></tr>
+      <tr><td>L∞</td><td>\(\max|e_i|\)</td><td>8 ton</td><td>Error máximo</td><td>No se tolera ningún fallo</td></tr>
+    </table>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-link"></i> Relación entre normas (siempre válida)</span>
+      \[ \|\mathbf{e}\|_\infty \leq \|\mathbf{e}\|_2 \leq \|\mathbf{e}\|_1 \]
+      \[ 8 \leq 10.1 \leq 18 \quad\checkmark \]
+    </div>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Caso especial: errores uniformes</span>
+      Si todos los errores son iguales \(|e_i| = c\): todas las normas son proporcionales.<br>
+      \(\|\mathbf{e}\|_1 = nc\), \(\|\mathbf{e}\|_2 = c\sqrt{n}\), \(\|\mathbf{e}\|_\infty = c\).
+    </div>
+  </div>
+
+  <!-- SLIDE 9: BOLAS UNITARIAS -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-circle"></i> Bolas Unitarias: Geometría de cada Norma</h2>
+    
+    <div class="col-layout" style="grid-template-columns:1.5fr 1fr;">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-shapes"></i> Bola unitaria de la norma p</span>
+          Conjunto de puntos \(\mathbf{x} \in \mathbb{R}^2\) con \(\|\mathbf{x}\|_p \leq 1\).
+        </div>
+        
+        <div class="reveal mt"><img class="fig" src="imagenes/clase28_bolas_unitarias.png" alt="Bolas unitarias L1, L2 e L-infinito"><p class="fig-cap">Bolas unitarias en \(\mathbb{R}^2\): \(L_1\subset L_2\subset L_\infty\)</p></div>
+      </div>
+      <div class="reveal mt">
+        <span class="b-title"><i class="fas fa-info-circle"></i> Interpretación</span>
+        <ul>
+          <li><span style="color:var(--red);">L1</span>: diamante (cuadrado rotado). Favorece soluciones con muchos ceros (sparse).</li>
+          <li><span style="color:var(--navy);">L2</span>: círculo. Distribuye el error uniformemente.</li>
+          <li><span style="color:var(--green);">L∞</span>: cuadrado. Limita el error máximo en cada componente.</li>
+        </ul>
+        <p class="mt italic" style="font-size:0.9rem;">La forma de la bola indica <strong>qué tipo de error se penaliza menos</strong>.<br>
+        En optimización, la norma elegida determina la forma de la solución.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: CASO APLICADO -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-network-wired"></i> Caso: Errores de Distribución en una Red</h2>
+    
+    <p class="reveal"><strong>Una empresa distribuye desde un CD hacia 5 clientes. El error de entrega (demanda real – cantidad entregada, en toneladas) es:</strong></p>
+    
+    <div class="formula-card reveal mt">
+      \[ \mathbf{e} = \begin{pmatrix} 3 \\ -8 \\ 1 \\ -2 \\ 6 \end{pmatrix} \leftarrow \begin{array}{l} \text{Cliente 1: +3 ton (entregó de menos)} \\ \text{Cliente 2: -8 ton (entregó de más)} \\ \text{Cliente 3: +1 ton (de menos)} \\ \text{Cliente 4: -2 ton (de más)} \\ \text{Cliente 5: +6 ton (de menos)} \end{array} \]
+    </div>
+    
+    <div class="reveal mt"><strong>Calcular las tres normas:</strong>
+      \[ \|\mathbf{e}\|_1 = 3+8+1+2+6 = 20 \text{ ton} \]
+      \[ \|\mathbf{e}\|_2 = \sqrt{9+64+1+4+36} = \sqrt{114} \approx 10.68 \text{ ton} \]
+      \[ \|\mathbf{e}\|_\infty = \max(3,8,1,2,6) = 8 \text{ ton (Cliente 2)} \]
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> ¿Qué indican los resultados?</span>
+      L1: en total se erraron 20 toneladas. MAE = 20/5 = 4 ton por cliente.<br>
+      L2: RMSE = 10.68/√5 = 4.78 ton (los errores no son uniformes).<br>
+      L∞: el cliente 2 tiene el mayor error (8 ton, 40% del total L1).
+    </div>
+  </div>
+
+  <!-- SLIDE 11: SELECCIÓN DE NORMA -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-bullseye"></i> Selección de la Norma Según Objetivo</h2>
+    
+    <p class="reveal"><strong>Mismo vector de errores \(\mathbf{e} = (3,-8,1,-2,6)^T\). Tres objetivos distintos, tres normas distintas:</strong></p>
+    
+    <div class="decision-cards mt">
+      <div class="dc-card a reveal">
+        <strong>Objetivo: minimizar costo total de reposición</strong><br><br>
+        Cada tonelada mal distribuida cuesta $50 de corrección.<br>
+        Usar <strong>L1</strong>: minimizar \(\sum|e_i|\).<br>
+        Costo total: \(20 \times \$50 = \$1.000\).
+      </div>
+      <div class="dc-card b reveal">
+        <strong>Objetivo: minimizar varianza del error</strong><br><br>
+        Los errores grandes tienen costo desproporcionado (penalidades contractuales).<br>
+        Usar <strong>L2</strong>: minimizar \(\sum e_i^2\).<br>
+        RMSE = 4.78 ton.
+      </div>
+      <div class="dc-card c reveal">
+        <strong>Objetivo: garantizar nivel de servicio</strong><br><br>
+        Ningún cliente puede recibir más de 5 ton de diferencia.<br>
+        Usar <strong>L∞</strong>: minimizar \(\max|e_i|\).<br>
+        Actual: 8 ton. <span style="color:var(--red);">Viola el criterio.</span>
+      </div>
+    </div>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-gavel"></i> Decisión</span>
+      Para este caso: usar L∞ como criterio primario de aceptación (ninguno > 5 ton) y L1 como criterio de optimización del costo. El cliente 2 requiere atención inmediata.
+    </div>
+  </div>
+
+  <!-- SLIDE 12: MATLAB NORM() -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Calcular Normas con norm()</h2>
+    
+    <pre><span class="mc">% Vector de errores de distribucion (ton)</span>
+e = <span class="mf">[</span><span class="mn">3</span>; <span class="mn">-8</span>; <span class="mn">1</span>; <span class="mn">-2</span>; <span class="mn">6</span><span class="mf">]</span>;
+n_clientes = <span class="mf">length</span>(e);
+
+<span class="mc">% Calcular las tres normas</span>
+L1   = <span class="mk">norm</span>(e, <span class="mn">1</span>);          <span class="mc">% suma de |e_i|</span>
+L2   = <span class="mk">norm</span>(e, <span class="mn">2</span>);          <span class="mc">% raiz de suma de cuadrados (default)</span>
+Linf = <span class="mk">norm</span>(e, Inf);        <span class="mc">% maximo de |e_i|</span>
+
+<span class="mk">fprintf</span>(<span class="ms">'=== NORMAS DEL VECTOR DE ERRORES ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'L1   (norma 1):   %.4f ton\n'</span>, L1)
+<span class="mk">fprintf</span>(<span class="ms">'L2   (norma 2):   %.4f ton\n'</span>, L2)
+<span class="mk">fprintf</span>(<span class="ms">'Linf (norma inf): %.4f ton\n'</span>, Linf)
+
+<span class="mc">% Equivalencia con metricas de pronostico</span>
+MAE  = L1 / n_clientes;
+RMSE = L2 / <span class="mf">sqrt</span>(n_clientes);
+<span class="mk">fprintf</span>(<span class="ms">'\nEquivalencias con metricas de pronostico:\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'MAE  = L1/n        = %.4f ton\n'</span>, MAE)
+<span class="mk">fprintf</span>(<span class="ms">'RMSE = L2/sqrt(n)  = %.4f ton\n'</span>, RMSE)
+<span class="mk">fprintf</span>(<span class="ms">'Error max = Linf   = %.4f ton\n'</span>, Linf)
+
+<span class="mc">% Verificar relacion L1 >= L2 >= Linf</span>
+<span class="mk">fprintf</span>(<span class="ms">'\nVerificacion L1 >= L2 >= Linf:\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'  %.4f >= %.4f >= %.4f  [%s]\n'</span>, ...
+    L1, L2, Linf, <span class="mf">string</span>(L1>=L2 && L2>=Linf))   <span class="mc">% imprime true/false</span>
+
+<span class="mc">% Identificar el cliente con mayor error</span>
+[max_err, idx_max] = <span class="mk">max</span>(<span class="mf">abs</span>(e));
+<span class="mk">fprintf</span>(<span class="ms">'\nCliente con mayor error: %d (error = %.1f ton)\n'</span>, idx_max, e(idx_max))
+<span class="mk">fprintf</span>(<span class="ms">'Accion prioritaria: visitar al Cliente %d\n'</span>, idx_max)</pre>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span><code>L1 = 20.0000</code> · <code>L2 = 10.6771</code> · <code>Linf = 8.0000</code> · <code>MAE = 4.0000</code> · <code>RMSE = 4.7749</code> · <code>Cliente con mayor error: 2 (error = -8.0 ton)</code></div>
+  </div>
+
+  <!-- SLIDE 13: MATLAB COMPARAR -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Comparar Normas entre Modelos</h2>
+    <p class="mb" style="font-size:0.85rem;"><strong>Salida esperada:</strong> Plan A: L1 = 23, L2 = 10.909, L∞ = 8 · Plan B: L1 = 18, L2 = 7.616, L∞ = 4. <strong>El plan B es mejor en las tres normas</strong> y cumple el umbral de 5 ton.</p>
+    
+    <pre><span class="mc">% Plan A y Plan B: errores de entrega (ton) en 6 rutas</span>
+e_A = <span class="mf">[</span><span class="mn">4</span>; <span class="mn">-5</span>; <span class="mn">2</span>; <span class="mn">-3</span>; <span class="mn">8</span>; <span class="mn">-1</span><span class="mf">]</span>;   <span class="mc">% plan actual</span>
+e_B = <span class="mf">[</span><span class="mn">2</span>; <span class="mn">-3</span>; <span class="mn">4</span>; <span class="mn">-4</span>; <span class="mn">3</span>; <span class="mn">-2</span><span class="mf">]</span>;   <span class="mc">% plan propuesto</span>
+
+<span class="mk">fprintf</span>(<span class="ms">'Comparacion de planes de distribucion:\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%-20s %-10s %-10s %-10s\n'</span>,<span class="ms">'Plan'</span>,<span class="ms">'L1'</span>,<span class="ms">'L2'</span>,<span class="ms">'Linf'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%s\n'</span>, <span class="mk">repmat</span>(<span class="ms">'-'</span>, <span class="mn">50</span>, <span class="mn">1</span>))
+
+<span class="mk">for</span> plan_data = <span class="mf">{</span><span class="mf">{</span><span class="ms">'A: Actual'</span>, e_A<span class="mf">}</span>, <span class="mf">{</span><span class="ms">'B: Propuesto'</span>, e_B<span class="mf">}</span><span class="mf">}</span>
+    nombre = plan_data<span class="mf">{</span><span class="mn">1</span><span class="mf">}{</span><span class="mn">1</span><span class="mf">}</span>;
+    e = plan_data<span class="mf">{</span><span class="mn">1</span><span class="mf">}{</span><span class="mn">2</span><span class="mf">}</span>;
+    <span class="mk">fprintf</span>(<span class="ms">'%-20s %-10.4f %-10.4f %-10.4f\n'</span>,...
+        nombre, <span class="mk">norm</span>(e,<span class="mn">1</span>), <span class="mk">norm</span>(e,<span class="mn">2</span>), <span class="mk">norm</span>(e,Inf))
+<span class="mk">end</span>
+
+<span class="mc">% Grafico de barras de errores</span>
+<span class="mk">figure</span>(<span class="ms">'Position'</span>,<span class="mf">[</span><span class="mn">50</span> <span class="mn">50</span> <span class="mn">800</span> <span class="mn">380</span><span class="mf">]</span>)
+bar_data = <span class="mf">[</span>e_A, e_B<span class="mf">]</span>;
+b = <span class="mk">bar</span>(bar_data);
+b(<span class="mn">1</span>).FaceColor = <span class="mf">[</span><span class="mn">0</span> <span class="mn">0.45</span> <span class="mn">0.74</span><span class="mf">]</span>;
+b(<span class="mn">2</span>).FaceColor = <span class="mf">[</span><span class="mn">0.85</span> <span class="mn">0.33</span> <span class="mn">0.10</span><span class="mf">]</span>;
+<span class="mk">yline</span>(<span class="mn">0</span>,<span class="ms">'k-'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>)
+<span class="mk">yline</span>(<span class="mn">5</span>,<span class="ms">'r--'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1.2</span>,<span class="ms">'DisplayName'</span>,<span class="ms">'Umbral L_inf=5'</span>)
+<span class="mk">yline</span>(-<span class="mn">5</span>,<span class="ms">'r--'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1.2</span>,<span class="ms">'HandleVisibility'</span>,<span class="ms">'off'</span>)
+<span class="mk">xlabel</span>(<span class="ms">'Ruta'</span>); <span class="mk">ylabel</span>(<span class="ms">'Error de entrega (ton)'</span>)
+<span class="mk">legend</span>(<span class="mf">{</span><span class="ms">'Plan A'</span>,<span class="ms">'Plan B'</span>,<span class="ms">'Umbral +/-5 ton'</span><span class="mf">}</span>,<span class="ms">'Location'</span>,<span class="ms">'best'</span>)
+<span class="mk">title</span>(<span class="ms">'Comparacion de Errores: Plan A vs Plan B'</span>)
+<span class="mk">grid on</span></pre>
+  </div>
+
+  <!-- SLIDE 14: MATLAB VISUALIZACIÓN -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Visualización de Bolas Unitarias</h2>
+    
+    <pre><span class="mc">% Graficar las bolas unitarias en R^2</span>
+<span class="mk">figure</span>(<span class="ms">'Name'</span>,<span class="ms">'Bolas Unitarias'</span>,<span class="ms">'Position'</span>,<span class="mf">[</span><span class="mn">50</span> <span class="mn">50</span> <span class="mn">900</span> <span class="mn">350</span><span class="mf">]</span>)
+theta = <span class="mk">linspace</span>(<span class="mn">0</span>, <span class="mn">2</span>*pi, <span class="mn">400</span>);
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">3</span>,<span class="mn">1</span>)
+<span class="mc">% L1: diamante</span>
+x1_L1 = <span class="mf">[</span><span class="mn">1</span> <span class="mn">0</span> <span class="mn">-1</span> <span class="mn">0</span> <span class="mn">1</span><span class="mf">]</span>; y1_L1 = <span class="mf">[</span><span class="mn">0</span> <span class="mn">1</span> <span class="mn">0</span> <span class="mn">-1</span> <span class="mn">0</span><span class="mf">]</span>;
+<span class="mk">fill</span>(x1_L1, y1_L1, <span class="mf">[</span><span class="mn">1</span> <span class="mn">0.7</span> <span class="mn">0.7</span><span class="mf">]</span>,<span class="ms">'EdgeColor'</span>,<span class="ms">'r'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">2</span>); <span class="mk">hold on</span>
+<span class="mk">axis equal</span>; <span class="mk">axis</span>(<span class="mf">[</span>-<span class="mn">1.5</span> <span class="mn">1.5</span> -<span class="mn">1.5</span> <span class="mn">1.5</span><span class="mf">]</span>); <span class="mk">grid on</span>
+<span class="mk">title</span>(<span class="ms">'Bola unitaria L_1'</span>); <span class="mk">xlabel</span>(<span class="ms">'x_1'</span>); <span class="mk">ylabel</span>(<span class="ms">'x_2'</span>)
+<span class="mk">text</span>(<span class="mn">0</span>,<span class="mn">0</span>,<span class="ms">'||x||_1=1'</span>,<span class="ms">'HorizontalAlignment'</span>,<span class="ms">'center'</span>,<span class="ms">'FontSize'</span>,<span class="mn">10</span>,<span class="ms">'Color'</span>,<span class="ms">'r'</span>)
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">3</span>,<span class="mn">2</span>)
+<span class="mc">% L2: circulo</span>
+<span class="mk">fill</span>(<span class="mk">cos</span>(theta), <span class="mk">sin</span>(theta), <span class="mf">[</span><span class="mn">0.7</span> <span class="mn">0.7</span> <span class="mn">1</span><span class="mf">]</span>,<span class="ms">'EdgeColor'</span>,<span class="ms">'b'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">2</span>)
+<span class="mk">axis equal</span>; <span class="mk">axis</span>(<span class="mf">[</span>-<span class="mn">1.5</span> <span class="mn">1.5</span> -<span class="mn">1.5</span> <span class="mn">1.5</span><span class="mf">]</span>); <span class="mk">grid on</span>
+<span class="mk">title</span>(<span class="ms">'Bola unitaria L_2'</span>); <span class="mk">xlabel</span>(<span class="ms">'x_1'</span>); <span class="mk">ylabel</span>(<span class="ms">'x_2'</span>)
+<span class="mk">text</span>(<span class="mn">0</span>,<span class="mn">0</span>,<span class="ms">'||x||_2=1'</span>,<span class="ms">'HorizontalAlignment'</span>,<span class="ms">'center'</span>,<span class="ms">'FontSize'</span>,<span class="mn">10</span>,<span class="ms">'Color'</span>,<span class="ms">'b'</span>)
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">3</span>,<span class="mn">3</span>)
+<span class="mc">% Linf: cuadrado</span>
+<span class="mk">fill</span>(<span class="mf">[</span>-<span class="mn">1</span> <span class="mn">1</span> <span class="mn">1</span> -<span class="mn">1</span> -<span class="mn">1</span><span class="mf">]</span>, <span class="mf">[</span>-<span class="mn">1</span> -<span class="mn">1</span> <span class="mn">1</span> <span class="mn">1</span> -<span class="mn">1</span><span class="mf">]</span>,<span class="mf">[</span><span class="mn">0.7</span> <span class="mn">1</span> <span class="mn">0.7</span><span class="mf">]</span>,<span class="ms">'EdgeColor'</span>,<span class="ms">'g'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">2</span>)
+<span class="mk">axis equal</span>; <span class="mk">axis</span>(<span class="mf">[</span>-<span class="mn">1.5</span> <span class="mn">1.5</span> -<span class="mn">1.5</span> <span class="mn">1.5</span><span class="mf">]</span>); <span class="mk">grid on</span>
+<span class="mk">title</span>(<span class="ms">'Bola unitaria L_\infty'</span>); <span class="mk">xlabel</span>(<span class="ms">'x_1'</span>); <span class="mk">ylabel</span>(<span class="ms">'x_2'</span>)
+<span class="mk">text</span>(<span class="mn">0</span>,<span class="mn">0</span>,<span class="ms">'||x||_\infty=1'</span>,<span class="ms">'HorizontalAlignment'</span>,<span class="ms">'center'</span>,<span class="ms">'FontSize'</span>,<span class="mn">10</span>,<span class="ms">'Color'</span>,<span class="ms">'g'</span>)</pre>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-image"></i> Resultado</span>
+      Tres figuras: diamante (L1), círculo (L2) y cuadrado (L∞).<br>
+      Exportar como <code>clase28_bolas_unitarias.png</code>.
+    </div>
+  </div>
+
+  <!-- SLIDE 15: RESUMEN ELECCIÓN -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-flag-checkered"></i> Resumen: Cómo Elegir la Norma</h2>
+    
+    <div class="decision-flow reveal">
+      <div class="df-question">¿Qué importa minimizar?</div>
+      <i class="fas fa-arrow-down df-arrow"></i>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:center;">
+        <div style="text-align:center;">
+          <div class="df-answer">Costo total<br>(igual por ton)</div>
+          <i class="fas fa-arrow-down df-arrow"></i>
+          <span style="font-size:0.85rem; color:var(--navy); font-weight:600;">Usar <strong>L1</strong><br>(= minimizar MAE)</span>
+        </div>
+        <div style="text-align:center;">
+          <div class="df-answer">Errores grandes<br>son peores</div>
+          <i class="fas fa-arrow-down df-arrow"></i>
+          <span style="font-size:0.85rem; color:var(--navy); font-weight:600;">Usar <strong>L2</strong><br>(= minimizar RMSE)</span>
+        </div>
+        <div style="text-align:center;">
+          <div class="df-answer">El peor caso<br>(ninguno grande)</div>
+          <i class="fas fa-arrow-down df-arrow"></i>
+          <span style="font-size:0.85rem; color:var(--navy); font-weight:600;">Usar <strong>L∞</strong><br>(= minimizar max)</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> La elección de la norma = la elección del criterio de optimización</span>
+      En MCO minimizamos \(\|\mathbf{e}\|_2^2\) (L2 al cuadrado).<br>
+      Si usáramos L1, obtendríamos la <strong>regresión cuantílica</strong> (mediana).<br>
+      Si usáramos L∞, obtendríamos la <strong>regresión minimax</strong> (Chebyshev).
+    </div>
+  </div>
+
+  <!-- SLIDE 16: PUNTO DE DECISIÓN -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-gavel"></i> Punto de Decisión</h2>
+    
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Pregunta de Cierre</span><br><br>
+      <em>Tu red de distribución tiene errores \(\mathbf{e}=(3,-8,1,-2,6)^T\) toneladas. El contrato con los clientes exige que ningún error supere 5 toneladas. El costo de corrección es $40 por tonelada errada.</em><br><br>
+      <strong>¿Qué tipo de error minimizarías primero? ¿L1, L2 o L∞? Justifica con los números.</strong>
+    </div>
+    
+    <div class="decision-cards mt">
+      <div class="dc-card a reveal">
+        <strong>L∞ = 8 ton</strong><br><br>
+        El cliente 2 viola el contrato (8 > 5 ton). <span style="color:var(--red); font-weight:600;">Prioridad máxima</span>: reducir este error primero.
+      </div>
+      <div class="dc-card b reveal">
+        <strong>L1 = 20 ton</strong><br><br>
+        Costo total: \(20\times\$40=\$800\). Optimizar para reducir el costo total después de resolver L∞.
+      </div>
+      <div class="dc-card c reveal">
+        <strong>L2 = 10.68 ton</strong><br><br>
+        Útil para detectar que los errores no son uniformes. Confirma que el cliente 2 domina.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: TAREA -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 29</h2>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lecturas</span>
+      <ul>
+        <li class="reveal"><strong>Lay</strong>, Cap. 6.3: Normas de vectores y producto interno.</li>
+        <li class="reveal">Revisar el concepto de <strong>grafo</strong> y <strong>matriz de adyacencia</strong> (buscar en Wikipedia o apunte).</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Ejercicio preparatorio</span>
+      Con los vectores de error del script <code>clase28_normas.m</code>:
+      <ol>
+        <li class="reveal">Calcular L1, L2 y L∞ manualmente para \(\mathbf{e}=(2,-5,3,-1,7,-4)^T\).</li>
+        <li class="reveal">Verificar con <code>norm(e,1)</code>, <code>norm(e,2)</code>, <code>norm(e,Inf)</code>.</li>
+        <li class="reveal">Verificar la relación \(\|\mathbf{e}\|_\infty \leq \|\mathbf{e}\|_2 \leq \|\mathbf{e}\|_1\).</li>
+        <li class="reveal">¿Si el contrato exige L∞ ≤ 4 ton, cuántos clientes violan el SLA?</li>
+        <li class="reveal">Calcular el costo total de corrección si $35/ton (norma L1).</li>
+      </ol>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Próxima clase 29</span>
+      <strong>Matrices de Adyacencia y Redes Logísticas</strong> — identificar nodos críticos
+    </div>
+  </div>
+
+  <!-- SLIDE 18: REFERENCIAS -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Lay, D.C., Lay, S.R., McDonald, J.J.</strong> (2016). <em>Álgebra Lineal y sus Aplicaciones</em> (5a ed.). Pearson. <strong>Cap. 6.3</strong> (Normas de vectores), pp. 379–386.</li>
+      <li class="reveal"><strong>Strang, G.</strong> (2016). <em>Introduction to Linear Algebra</em> (5th ed.). Wellesley-Cambridge. Cap. 7.2 (Norms of Vectors and Matrices).</li>
+      <li class="reveal"><strong>Tibshirani, R.</strong> (1996). Regression Shrinkage and Selection via the Lasso. <em>JRSS-B</em>, 58(1), 267-288. (Origen de la regularización L1 en ML.)</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>norm</code>. <a href="https://www.mathworks.com/help/matlab/ref/norm.html" style="color:var(--orange);">https://www.mathworks.com/help/matlab/ref/norm.html</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Script <code>clase28_normas.m</code>.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--orange); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 28 | Normas L1, L2 y L∞</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: CIERRE -->
+  <div class="slide" data-slide="19">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--orange); margin-bottom:1rem;"></i>
+      <h1>¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 29: Matrices de Adyacencia y Redes Logísticas</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -140,11 +140,39 @@
     .geo-plot { width: 220px; height: 180px; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; position: relative; margin: 0 auto; }
     .geo-line { position: absolute; border-radius: 2px; }
     .geo-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -237,7 +265,7 @@
     </div>
     <div>
       <div class="block reveal"><span class="b-title">Interpretación geométrica</span>
-        <img src="estructura_soluciones.png" alt="Interpretación geométrica" style="width:100%; max-width:380px; margin:0 auto; display:block; border-radius:8px;">
+        <img class="fig" style="max-width:420px" src="imagenes/estructura_soluciones.png" alt="Conjunto solución como traslación del espacio nulo">
         <p class="mt italic">El conjunto de soluciones es una <strong>traslación</strong> del espacio nulo: cada punto se obtiene sumando \(\mathbf{x}^*\) a un \(\mathbf{x}_h\).</p>
       </div>
     </div>
@@ -291,7 +319,7 @@
       <div class="block reveal"><span class="b-title"><i class="fas fa-fingerprint"></i> Vector base</span>
         El vector \(\mathbf{n}_1 = (-2,1,0)^T\) forma una <strong>base</strong> del espacio nulo:
         \[ \operatorname{Nul}(A) = \left\{t\begin{pmatrix}-2\\1\\0\end{pmatrix}:\; t\in\mathbb{R}\right\}, \quad \dim=1 \]
-        <strong>Verificación:</strong> \(A\mathbf{n}_1 = \mathbf{0}\) \checkmark
+        <strong>Verificación:</strong> \(A\mathbf{n}_1 = \mathbf{0}\) <span class="ok">✓</span>
       </div>
       <div class="alert-block reveal"><span class="b-title"><i class="fas fa-network-wired"></i> Interpretación logística</span>
         \(\mathbf{n}_1=(-2,1,0)^T\) representa un <strong>reajuste</strong> de despacho:
@@ -312,11 +340,11 @@
   <div class="col-layout mt">
     <div class="example-block reveal"><span class="b-title"><i class="fas fa-diagram-project"></i> Ejemplo gráfico — lazo P1-P2</span>
       <div style="text-align:center; margin-top:1rem;">
-        <img src="lazo_p1_p2.png" alt="Diagrama lazo P1-P2" style="max-width:100%; width:320px; height:auto; display:block; margin:0 auto;">
+        <img class="fig" src="imagenes/lazo_p1_p2.png" alt="Lazo cerrado P1-P2: cambios -2t y +t que no alteran la carga de los CD"><p class="fig-cap">Números en flechas: coeficientes \(a_{ij}\) de la matriz \(A\) de la diapositiva 6.</p>
       </div>
     </div>
     <div>
-      <div class="block reveal"><span class="b-title"><i class="fas fa-eye"></i> Lectura del lazo</span> Si \(t>0\): P1 reduce, P2 aumenta. CDs reciben misma carga. Si \(t<0\): se invierte. Se usa para <strong>optimizar costos</strong> sin afectar servicio.</div>
+      <div class="block reveal"><span class="b-title"><i class="fas fa-eye"></i> Lectura del lazo</span> Si \(t>0\): P1 reduce, P2 aumenta. CDs reciben misma carga. Si \(t&lt;0\): se invierte. Se usa para <strong>optimizar costos</strong> sin afectar servicio.</div>
       <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-coins"></i> Valor práctico</span> Si P2 tiene menor tarifa que P1: usar \(t>0\) reduce costo total manteniendo demanda satisfecha.</div>
     </div>
   </div>
@@ -341,7 +369,7 @@
           </ul>
           Combinación \(s\mathbf{n}_1+t\mathbf{n}_2\) = lazo válido.
         </div>
-        <div class="example-block mt reveal"><span class="b-title">Verificación</span> \(A\mathbf{n}_1=\mathbf{0}\) \checkmark | \(A\mathbf{n}_2=\mathbf{0}\) \checkmark<br>Linealmente independientes: \(\dim(\operatorname{Nul}(A))=2\).</div>
+        <div class="example-block mt reveal"><span class="b-title">Verificación</span> \(A\mathbf{n}_1=\mathbf{0}\) <span class="ok">✓</span> | \(A\mathbf{n}_2=\mathbf{0}\) <span class="ok">✓</span><br>Linealmente independientes: \(\dim(\operatorname{Nul}(A))=2\).</div>
       </div>
     </div>
   </div>
@@ -386,8 +414,7 @@ n1(piv) = -R(<span class="mn">1</span>:<span class="mf">length</span>(piv), libr
       <div>
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
           <code>dim(Nul(A)) = 1</code><br>
-          <code>Residuo A*N = 0.00e+00</code><br>
-          <code>Variables libres: x2</code><br>
+          <code>Residuo A*N = 1.2e-16</code> (≈ 0)<br>
           <code>Base via rref: [-2.0000  1.0000  0.0000]</code>
         </div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-balance-scale"></i> Diferencia</span>
@@ -420,9 +447,10 @@ dc = c' * N2;
 <span class="mk">fprintf</span>(<span class="ms">'Costo s=1,t=0: $%.2f\n'</span>, c'*(xp+N2(:,<span class="mn">1</span>)));</pre>
       </div>
       <div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span><code>Costo xp: $36.00</code> &nbsp; (\(\mathbf{x}^*=(3,1,0,0)\))<br><code>Costo s=1,t=0: $23.00</code><br><small>\(\mathbf{c}^T\mathbf{n}_1=-13\), \(\mathbf{c}^T\mathbf{n}_2=+14\)</small></div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-sliders"></i> Clave de la optimización</span> El costo es <strong>lineal</strong> en \((s,t)\):
           \[ C(s,t) = \mathbf{c}^T\mathbf{x}^* + s(\mathbf{c}^T\mathbf{n}_1) + t(\mathbf{c}^T\mathbf{n}_2) \]
-          <ul><li>Si \(\mathbf{c}^T\mathbf{n}_i<0\): aumentar \(s_i\) reduce costo.</li><li>Si \(\mathbf{c}^T\mathbf{n}_i>0\): disminuir \(s_i\) reduce costo.</li></ul>
+          <ul><li>Si \(\mathbf{c}^T\mathbf{n}_i&lt;0\): aumentar \(s_i\) reduce costo.</li><li>Si \(\mathbf{c}^T\mathbf{n}_i>0\): disminuir \(s_i\) reduce costo.</li></ul>
         </div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-network-wired"></i> Conexión con LP</span> La restricción \(\mathbf{x}\geq\mathbf{0}\) limita \((s,t)\). Esto es <strong>programación lineal en redes</strong>.</div>
       </div>
@@ -452,8 +480,8 @@ dc = c' * N2;
       \[ \mathbf{v}_1=\begin{pmatrix}2\\-3\\1\end{pmatrix}, \mathbf{v}_2=\begin{pmatrix}1\\1\\-2\end{pmatrix}, \mathbf{v}_3=\begin{pmatrix}0\\0\\0\end{pmatrix} \]
     </p>
     <div class="example-block mt reveal"><span class="b-title">Verificación</span>
-      \[ A\mathbf{v}_1 = \begin{pmatrix}0.5(2)+0.2(-3)+0.3(1)\\0.3(2)+0.6(-3)+0.1(1)\\0.2(2)+0.2(-3)+0.6(1)\end{pmatrix} = \begin{pmatrix}0.7\\-1.1\\0.2\end{pmatrix}\neq\mathbf{0} \]
-      <span class="reveal mt">\(\mathbf{v}_1\notin\operatorname{Nul}(A)\). Verifica \(\mathbf{v}_2\) y \(\mathbf{v}_3\) con <code>norm(A*v)</code>.</span>
+      \[ A\mathbf{v}_1 = \begin{pmatrix}0.5(2)+0.2(-3)+0.3(1)\\0.3(2)+0.6(-3)+0.1(1)\\0.2(2)+0.2(-3)+0.6(1)\end{pmatrix} = \begin{pmatrix}0.7\\-1.1\\0.4\end{pmatrix}\neq\mathbf{0} \]
+      <span class="reveal mt">\(\mathbf{v}_1\notin\operatorname{Nul}(A)\). \(A\mathbf{v}_2=(0.1,\,0.7,\,-0.8)^T\neq\mathbf{0}\) ⇒ \(\mathbf{v}_2\notin\operatorname{Nul}(A)\). Solo \(\mathbf{v}_3\in\operatorname{Nul}(A)\): como \(\operatorname{rang}(A)=3=n\), \(\operatorname{Nul}(A)=\{\mathbf{0}\}\).</span>
     </div>
     <div class="alert-block mt reveal"><span class="b-title">Interpretación</span> \(\mathbf{v}_1\) altera carga. \(\mathbf{v}_3=\mathbf{0}\) siempre está (no hacer nada).</div>
   </div>
@@ -461,11 +489,11 @@ dc = c' * N2;
   <!-- SLIDE 15: EJERCICIO 3 -->
   <div class="slide" data-slide="15">
     <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3 — Lazos y reducción de costos</h2>
-    <div class="alert-block reveal"><span class="b-title">Situación</span> \(\mathbf{x}^*=(400,300,200,100)^T\). Base \(\operatorname{Nul}(A)\): \(\mathbf{n}_1=(2,-1,-1,0)^T\). Tarifas \(\mathbf{c}=(10,8,12,6)^T\).</div>
+    <div class="alert-block reveal"><span class="b-title">Situación</span> \(\mathbf{x}^*=(400,300,200,100)^T\). Base \(\operatorname{Nul}(A)\): \(\mathbf{n}_1=(2,-1,-1,0)^T\). Tarifas \(\mathbf{c}=(6,8,12,10)^T\).</div>
     <div class="col-layout mt">
       <div>
-        <div class="block reveal"><span class="b-title">Costo base</span> \(C_0 = 10(400)+8(300)+12(200)+6(100) = \$9400\)</div>
-        <div class="example-block mt reveal"><span class="b-title">Efecto del lazo</span> \(\mathbf{c}^T\mathbf{n}_1 = 10(2)+8(-1)+12(-1)+0 = 0\)<br>Cada unidad de \(t\) <strong>mantiene su costo</strong>. Aplicar con \(t>0\) es beneficioso.</div>
+        <div class="block reveal"><span class="b-title">Costo base</span> \(C_0 = 6(400)+8(300)+12(200)+10(100) = \$8200\)</div>
+        <div class="example-block mt reveal"><span class="b-title">Efecto del lazo</span> \(\mathbf{c}^T\mathbf{n}_1 = 6(2)+8(-1)+12(-1)+0 = -8\)<br>Cada unidad de \(t\) <strong>reduce el costo en \$8</strong>. Conviene \(t>0\) lo más grande posible.</div>
       </div>
       <div>
         <div class="block reveal"><span class="b-title">Restricciones \(\geq 0\)</span>
@@ -474,7 +502,7 @@ dc = c' * N2;
           \(200-t\geq0 \Rightarrow t\leq200\)<br>
           Rango: \(-200\leq t\leq200\).
         </div>
-        <div class="block mt reveal"><span class="b-title"><i class="fas fa-trophy"></i> Solución óptima</span> \(t=200\): costo \(=9400-10(200)=\$7400\).<br>Plan: \((800,100,0,100)^T\) ton.</div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-trophy"></i> Solución óptima</span> \(t=200\): costo \(=8200-8(200)=\$6600\).<br>Plan: \((800,100,0,100)^T\) ton. Verificación: \(6(800)+8(100)+10(100)=6600\) ✓</div>
       </div>
     </div>
   </div>
@@ -486,7 +514,7 @@ dc = c' * N2;
       <div class="block reveal"><span class="b-title"><i class="fas fa-book-open"></i> Lo aprendido hoy</span>
         <ul>
           <li>\(A\mathbf{x}=\mathbf{0}\) siempre compatible (\(\mathbf{x}=\mathbf{0}\)).</li>
-          <li>Sol. no triviales \(\iff \operatorname{rang}(A)<n\).</li>
+          <li>Sol. no triviales \(\iff \operatorname{rang}(A)&lt;n\).</li>
           <li>\(\operatorname{Nul}(A)\) es subespacio. \(\dim=n-\operatorname{rang}(A)\).</li>
           <li>Solución general \(A\mathbf{x}=\mathbf{b}\): \(\mathbf{x}^*\) + cualquier elemento de \(\operatorname{Nul}(A)\).</li>
           <li><strong>Lazos cerrados:</strong> ajustes sin alterar demanda. Optimización lineal sobre parámetros.</li>
@@ -507,7 +535,7 @@ dc = c' * N2;
     <h2><i class="fas fa-book"></i> Tarea para la Clase 10</h2>
     <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
       <ol>
-        <li><strong>Lectura:</strong> Lay, Sec. 2.1: ``Matrix Operations'' (mult. por columnas).</li>
+        <li><strong>Lectura:</strong> Lay, Sec. 2.1: “Matrix Operations” (mult. por columnas).</li>
         <li><strong>Ejercicios:</strong> Guía Clase 9 (B1–B5, I1–I3). Practicar bases de \(\operatorname{Nul}(A)\) desde RREF.</li>
         <li><strong>MATLAB:</strong> Ejecutar <code>clase9_datos.m</code> y responder preguntas.</li>
       </ol>

@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -136,11 +136,39 @@
     .flow-diagram { display: flex; justify-content: center; gap: 1.5rem; align-items: center; margin: 1rem 0; }
     .flow-box { padding: 0.6rem; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); border-radius: 8px; text-align: center; font-size: 0.85rem; max-width: 200px; }
     .flow-arrow { color: var(--red); font-size: 1.2rem; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -275,17 +303,13 @@
   </div>
   <ol class="mt">
     <li class="reveal"><strong>Eliminar \(x_1\) de ec. 2:</strong> \(F_2 \leftarrow F_2 - \frac{2}{3}F_1\)<br>
-      \(\left(\begin{array}{cc|c}0.6&0.4&300\\0&\frac{7}{15}&40\end{array}\right)\)
+      \(\left(\begin{array}{cc|c}0.6&0.4&300\\0&\frac{1}{3}&40\end{array}\right)\)
     </li>
-    <li class="reveal"><strong>Despejar \(x_2\):</strong> \(\frac{7}{15}x_2 = 40 \Rightarrow x_2 = 40\cdot\frac{15}{7} \approx \mathbf{85.7}\) ton</li>
-    <li class="reveal"><strong>Sustitución hacia atrás:</strong> \(0.6x_1 = 300 - 0.4(85.7) = 265.7 \Rightarrow x_1 \approx \mathbf{442.9}\) ton</li>
+    <li class="reveal"><strong>Despejar \(x_2\):</strong> \(\frac{1}{3}x_2 = 40 \Rightarrow x_2 = 40\cdot 3 = \mathbf{120}\) ton <span style="font-size:0.85rem;color:#475569">(\(0.6-\frac{2}{3}(0.4)=\frac{1}{3}\), \(240-\frac{2}{3}(300)=40\))</span></li>
+    <li class="reveal"><strong>Sustitución hacia atrás:</strong> \(0.6x_1 = 300 - 0.4(120) = 252 \Rightarrow x_1 = \mathbf{420}\) ton</li>
     <li class="reveal">
       <strong>Verificación:</strong> 
-      \(0.6(442.9)+0.4(85.7)\approx300 \checkmark\) | 
-      \(0.4(442.9)+0.6(85.7)\approx228.6\) 
-      <span class="reveal mt" style="display:block; color: var(--orange); font-size: 0.9rem;">
-        <i class="fas fa-exclamation-circle"></i> (Error de redondeo — en Clase 5 lo haremos exacto con Gauss)
-      </span>
+      \(0.6(420)+0.4(120)=252+48=300\) ✓ | \(0.4(420)+0.6(120)=168+72=240\) ✓ <span class="reveal mt" style="display:block; color: var(--green); font-size: 0.9rem;"><i class="fas fa-check-circle"></i> Solución exacta: el plan \((420,\,120)\) cubre exactamente ambas demandas.</span>
     </li>
   </ol>
 </div>
@@ -301,7 +325,7 @@
       <div class="example-block reveal"><span class="b-title">Paso 2</span> \(F_3\leftarrow F_3-\frac{1}{3}F_2\)<br>\(\left(\begin{array}{ccc|c}1&2&1&9\\0&-3&-1&-10\\0&0&\frac{7}{3}&\frac{10}{3}\end{array}\right)\)</div>
     </div>
     <div class="example-block mt reveal"><span class="b-title">Sustitución hacia atrás</span>
-      \(x_3=\frac{10/3}{7/3}\approx1.43\) | \(x_2=\frac{-10+x_3}{-3}\approx2.86\) | \(x_1=9-2(2.86)-1.43\approx1.86\)
+      \(x_3=\frac{10/3}{7/3}=\frac{10}{7}\approx1.43\) | \(x_2=\frac{-10+x_3}{-3}=\frac{20}{7}\approx2.86\) | \(x_1=9-2\cdot\frac{20}{7}-\frac{10}{7}=\frac{13}{7}\approx1.86\)
     </div>
   </div>
 
@@ -327,7 +351,7 @@
       <span class="b-title"><i class="fas fa-code-branch"></i> Tipos de solución</span>
       <ul style="font-size: 0.95rem; line-height: 1.6;">
         <li><strong>Única:</strong> \(m=n\) y \(\det(A) \neq 0\) \(\Rightarrow\) una sola solución \((x_1, x_2, \dots)\).</li>
-        <li><strong>Infinitas:</strong> \(m < n\) o dependencia lineal \(\Rightarrow\) infinitas soluciones (familia \(\infty\)).</li>
+        <li><strong>Infinitas:</strong> \(m &lt; n\) o dependencia lineal \(\Rightarrow\) infinitas soluciones (familia \(\infty\)).</li>
         <li><strong>Incompatible:</strong> \(\mathbf{b} \notin \text{Col}(A)\) \(\Rightarrow\) sin solución (no se puede satisfacer la demanda).</li>
       </ul>
     </div>
@@ -358,7 +382,7 @@ x3 = A3 <span class="mk">\</span> b3;</pre>
       </div>
       <div>
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
-          <code>x1 = 442.86 ton</code><br><code>x2 = 85.71 ton</code><br><code>Residuo = 0.00e+00</code><br><br><code>3x3: x=[1.8571, 2.8571, 1.4286]</code>
+          <code>x1 = 420.00 ton</code><br><code>x2 = 120.00 ton</code><br><code>Residuo: 0.00e+00</code> <span style="font-size:0.8rem">(o del orden de 1e-14)</span><br><br><code>3x3: x=[1.8571, 2.8571, 1.4286]</code>
         </div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> ¿Por qué <code>A\ b</code> y no <code>inv(A)*b</code>?</span> <code>A\ b</code> usa eliminación numérica estable. <code>inv(A)*b</code> es más lento y menos preciso. <strong>Regla: siempre usar <code>\</code>.</strong></div>
       </div>
@@ -383,12 +407,12 @@ x_inf = A_inf <span class="mk">\</span> b_inf;
 <span class="mk">fprintf</span>(<span class="ms">'Rango A: %d | [A|b]: %d\n'</span>, <span class="mf">rank</span>(A_inf), <span class="mf">rank</span>([A_inf, b_inf]));</pre>
       </div>
       <div>
-        <div class="block mt reveal"><span class="b-title"><i class="fas fa-info-circle"></i> Warnings</span> <code>Matrix is singular...</code> = sin solución única. MATLAB da solución de mínimos cuadrados.</div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-info-circle"></i> Warnings</span> <code>Warning: Matrix is singular to working precision</code> = sin solución única. Con \(A\) cuadrada singular, el resultado puede contener <code>Inf</code>/<code>NaN</code> (no es confiable); con \(A\) rectangular, <code>\</code> devuelve mínimos cuadrados. <strong>Clasifique siempre con <code>rank</code>.</strong></div>
         <div class="alert-block mt reveal"><span class="b-title">Regla práctica (Residuo)</span>
           <ul><li>\(\approx 0\): solución exacta (única o no)</li><li>\(> 0\): incompatible</li></ul>
         </div>
         <div class="example-block mt reveal"><span class="b-title">Clasificación rápida</span>
-          <ul><li>Rango\((A)=n\) y \(\|r\|=0\): única</li><li>Rango\((A)<n\) y \(\|r\|=0\): infinitas</li><li>\(\|r\|>0\): incompatible</li></ul>
+          <ul><li>Rango\((A)=n\) y \(\|r\|=0\): única</li><li>Rango\((A)&lt;n\) y \(\|r\|=0\): infinitas</li><li>\(\|r\|>0\): incompatible</li></ul>
         </div>
       </div>
     </div>
@@ -404,8 +428,8 @@ x_inf = A_inf <span class="mk">\</span> b_inf;
         Hallar \(\mathbf{x}\) (ton a despachar por planta).
       </div>
       <div>
-        <div class="example-block reveal"><span class="b-title"><i class="fas fa-microchip"></i> Solución MATLAB</span> <code>x = A \ b</code> \(\Rightarrow\) \(\mathbf{x} \approx (569, 405, 344)^T\) ton</div>
-        <div class="alert-block mt reveal"><span class="b-title">Verificación</span> CD1: \(0.5(569)+0.3(405)+0.2(344)\approx474.8\) (esp: 500). <span class="reveal mt">Valores exactos con Gauss (Clase 5). Aquí ilustramos el proceso.</span></div>
+        <div class="example-block reveal"><span class="b-title"><i class="fas fa-microchip"></i> Solución MATLAB</span> <code>x = A \ b</code> \(\Rightarrow\) \(\mathbf{x} = (725,\ 325,\ 200)^T\) ton</div>
+        <div class="alert-block mt reveal"><span class="b-title">Verificación</span> CD1: \(0.5(725)+0.3(325)+0.2(200)=362.5+97.5+40=500\) ✓<br>CD2: \(0.3(725)+0.5(325)+0.1(200)=400\) ✓ · CD3: \(0.2(725)+0.2(325)+0.7(200)=350\) ✓</div>
       </div>
     </div>
   </div>
@@ -413,9 +437,9 @@ x_inf = A_inf <span class="mk">\</span> b_inf;
   <!-- SLIDE 13: DECISIÓN LOGÍSTICA -->
   <div class="slide" data-slide="13">
     <h2><i class="fas fa-scale-balanced"></i> Decisión logística — ¿cómo distribuir envíos?</h2>
-    <div class="alert-block reveal"><span class="b-title"><i class="fas fa-question"></i> Pregunta de decisión</span> Solución \(\mathbf{x}^* \approx (569, 405, 344)^T\). Capacidad máx P1 = 500 ton. <strong>¿Qué hacemos?</strong></div>
+    <div class="alert-block reveal"><span class="b-title"><i class="fas fa-question"></i> Pregunta de decisión</span> Solución \(\mathbf{x}^* = (725, 325, 200)^T\). Capacidad máx P1 = 500 ton. <strong>¿Qué hacemos?</strong></div>
     <div class="col-layout mt">
-      <div class="block reveal"><span class="b-title"><i class="fas fa-chart-pie"></i> Análisis</span> Déficit: 69 ton en P1. Opciones:
+      <div class="block reveal"><span class="b-title"><i class="fas fa-chart-pie"></i> Análisis</span> Déficit: \(725-500=\) <strong>225 ton</strong> en P1. Opciones:
         <ol>
           <li>Aumentar capacidad P1 (inversión).</li>
           <li>Renegociar demanda con CDs.</li>
@@ -497,7 +521,7 @@ x_inf = A_inf <span class="mk">\</span> b_inf;
     <h2><i class="fas fa-book"></i> Tarea para la Clase 5</h2>
     <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
       <ol>
-        <li><strong>Lectura:</strong> Lay, Sec. 1.2: ``Row Reduction and Echelon Forms''.</li>
+        <li><strong>Lectura:</strong> Lay, Sec. 1.2: “Row Reduction and Echelon Forms”.</li>
         <li><strong>Ejercicios manuales:</strong> Guía Clase 4 (B1–B4, I1–I3).</li>
         <li><strong>MATLAB:</strong> Ejecutar <code>clase4_datos.m</code> y responder preguntas.</li>
       </ol>
@@ -520,7 +544,7 @@ x_inf = A_inf <span class="mk">\</span> b_inf;
       <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
         <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
         <ul class="mt">
-          <li><em>3Blue1Brown</em> — ``Essence of Linear Algebra'', Ep. 7: Inverse matrices, column space</li>
+          <li><em>3Blue1Brown</em> — “Essence of Linear Algebra”, Ep. 7: Inverse matrices, column space</li>
           <li>MathWorks: MATLAB backslash operator tutorial</li>
         </ul>
       </div>

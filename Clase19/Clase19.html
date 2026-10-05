@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 19: Base y Dimensión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003a6b;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff3e0;
+      --red: #b41414;
+      --yellow: #e6a800;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--navy);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--navy);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block strong { color: var(--orange); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--navy); border-color: var(--navy); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    .basis-viz { display: flex; justify-content: center; align-items: center; gap: 2rem; margin: 1rem 0; flex-wrap: wrap; }
+    .bv-set { display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
+    .bv-vec { width: 8px; height: 8px; background: var(--navy); border-radius: 50%; }
+    .bv-vec.green { background: var(--green); }
+    .bv-vec.gray { background: #94a3b8; }
+    .bv-label { font-size: 0.75rem; color: var(--text-muted); }
+
+    .reduction-diag { display: flex; justify-content: center; gap: 3rem; margin: 1rem 0; align-items: center; flex-wrap: wrap; }
+    .rd-col { display: flex; flex-direction: column; gap: 0.4rem; align-items: center; }
+    .rd-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem; }
+    .rd-blue { background: rgba(0,82,147,0.15); border: 2px solid var(--navy); color: var(--navy); }
+    .rd-green { background: rgba(0,130,80,0.15); border: 2px solid var(--green); color: var(--green); }
+    .rd-gray { background: #f1f5f9; border: 2px dashed #94a3b8; color: #64748b; }
+    .rd-arrow { color: #94a3b8; font-size: 1.2rem; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .concept-map { display: flex; justify-content: center; gap: 0.5rem; align-items: center; margin: 1rem 0; flex-wrap: wrap; }
+    .cm-box { padding: 0.5rem 0.8rem; border-radius: 6px; background: rgba(0,82,147,0.1); border: 2px solid var(--navy); color: var(--navy); font-size: 0.8rem; text-align: center; min-width: 90px; }
+    .cm-box.green { background: rgba(0,130,80,0.1); border-color: var(--green); color: var(--green); }
+    .cm-arrow { color: #94a3b8; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-vector-square fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Base y Dimensión</h1>
+      <p class="sub">Aplicación a Reducción de Variables Logísticas</p>
+      <p class="sub">Matemáticas 2 — Módulo 4, Clase 19</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 19</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Objetivos de Aprendizaje</li>
+      <li class="reveal">Motivación: El Problema de la Redundancia</li>
+      <li class="reveal">Definición de Base</li>
+      <li class="reveal">Dimensión de un Espacio Vectorial</li>
+      <li class="reveal">Base vs Conjunto Generador</li>
+      <li class="reveal">Cómo Encontrar una Base: Método rref</li>
+      <li class="reveal">Ejemplo Completo Paso a Paso</li>
+      <li class="reveal">Aplicación: Simplificar una Red Logística</li>
+      <li class="reveal">Coordenadas respecto a una Base</li>
+      <li class="reveal">MATLAB: Encontrar Bases</li>
+      <li class="reveal">Ejercicios Prácticos</li>
+      <li class="reveal">Resumen y Tarea</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de Aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Definir</strong> base y dimensión de un espacio vectorial.</li>
+      <li class="reveal"><strong>Encontrar</strong> una base del espacio nulo y del espacio columna usando <code>rref</code>.</li>
+      <li class="reveal"><strong>Eliminar</strong> variables redundantes en un sistema logístico manteniendo la información esencial.</li>
+      <li class="reveal"><strong>Aplicar</strong> <code>rref</code>, <code>null</code> y <code>rank</code> en MATLAB para encontrar bases.</li>
+      <li class="reveal"><strong>Decidir</strong> cómo simplificar una operación logística sin perder control.</li>
+    </ol>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Conexión con Clase 18</span>
+      Clase 18: subespacios — dónde viven los vectores.<br>
+      Clase 19: <strong>base y dimensión</strong> — cuántos vectores describen ese espacio de forma mínima.
+    </div>
+  </div>
+
+  <!-- SLIDE 3: MOTIVACIÓN -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-lightbulb"></i> Motivación: El Problema de la Redundancia</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-industry"></i> Situación real</span>
+          Una empresa de logística tiene 8 variables para describir su operación: distancias, tiempos, costos, cargas...
+        </div>
+        <p class="reveal mt">Tras analizar los datos, el analista nota que algunas variables son <strong>combinaciones lineales</strong> de otras:
+          <ul>
+            <li class="reveal">"El costo por km es siempre 2.3 veces el costo de combustible"</li>
+            <li class="reveal">"El tiempo de ruta B es siempre el doble del tiempo de ruta A"</li>
+          </ul>
+        </p>
+        <p class="reveal mt" style="color:var(--red); font-weight:600;">
+          <i class="fas fa-exclamation-triangle"></i> <strong>Consecuencia:</strong> solo necesita <strong>unas pocas variables clave</strong> para describir todo el sistema.
+        </p>
+      </div>
+      <div>
+        <div class="alert-block mt reveal">
+          <span class="b-title"><i class="fas fa-question-circle"></i> Pregunta central</span>
+          ¿Cuántas variables <strong>independientes</strong> necesita realmente para describir el espacio de operación?<br><br>
+          Esa cantidad es la <strong>dimensión</strong>.<br>
+          Esas variables son una <strong>base</strong>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: DEFINICIÓN DE BASE -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-cube"></i> Definición de Base</h2>
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      Un conjunto \(\mathcal{B} = \{\mathbf{b}_1, \mathbf{b}_2, \ldots, \mathbf{b}_p\}\) es una <strong>base</strong> del subespacio \(H\) si:
+      <ol>
+        <li><strong>B1:</strong> \(\mathcal{B}\) es <strong>linealmente independiente</strong>.</li>
+        <li><strong>B2:</strong> \(\mathcal{B}\) <strong>genera</strong> \(H\): \(H = \text{Gen}\{\mathbf{b}_1,\ldots,\mathbf{b}_p\}\)</li>
+      </ol>
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal">
+        <span class="b-title">Base de \(\mathbb{R}^2\)</span>
+        \[ \mathcal{B} = \left\{ \begin{pmatrix}1\\0\end{pmatrix}, \begin{pmatrix}0\\1\end{pmatrix} \right\} \]
+        <span class="reveal mt" style="font-size:0.9rem;">
+          B1: independientes <span class="ok">✓</span><br>
+          B2: generan todo \(\mathbb{R}^2\) <span class="ok">✓</span><br>
+          Esta es la <strong>base canónica</strong>.
+        </span>
+      </div>
+      <div>
+        <div class="example-block mt reveal">
+          <span class="b-title">Otra base de \(\mathbb{R}^2\)</span>
+          \[ \mathcal{B}' = \left\{ \begin{pmatrix}1\\1\end{pmatrix}, \begin{pmatrix}1\\-1\end{pmatrix} \right\} \]
+          <span class="reveal mt" style="font-size:0.9rem;">
+            B1: independientes <span class="ok">✓</span><br>
+            B2: generan todo \(\mathbb{R}^2\) <span class="ok">✓</span><br>
+            Hay <strong>infinitas</strong> bases posibles.
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-key"></i> Propiedad clave</span>
+      Todas las bases de un mismo espacio tienen el <strong>mismo número de vectores</strong>.<br>
+      Ese número es la <strong>dimensión</strong>.
+    </div>
+  </div>
+
+  <!-- SLIDE 5: DIMENSIÓN -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-ruler-combined"></i> Dimensión de un Espacio Vectorial</h2>
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      La <strong>dimensión</strong> de un subespacio \(H\), denotada \(\dim(H)\), es el número de vectores en cualquier base de \(H\).<br>
+      Convención: \(\dim(\{\mathbf{0}\}) = 0\).
+    </div>
+    <table class="compact mt reveal">
+      <tr><th>Subespacio</th><th>Dimensión</th><th>Ejemplo en \(\mathbb{R}^3\)</th><th>Geometría</th></tr>
+      <tr><td>\(\{\mathbf{0}\}\)</td><td>0</td><td>solo el origen</td><td>punto</td></tr>
+      <tr><td>Recta por origen</td><td>1</td><td>\(\text{Gen}\{(1,0,0)^T\}\)</td><td>línea</td></tr>
+      <tr><td>Plano por origen</td><td>2</td><td>\(\{x_3=0\}\)</td><td>plano</td></tr>
+      <tr><td>Todo \(\mathbb{R}^3\)</td><td>3</td><td>base canónica</td><td>espacio</td></tr>
+    </table>
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Conexión con el rango</span>
+      Para una matriz \(A \in \mathbb{R}^{m\times n}\):
+      \[ \dim(\text{Col}(A)) = \text{rango}(A) = r \qquad \dim(\text{Nul}(A)) = n - r \]
+    </div>
+  </div>
+
+  <!-- SLIDE 6: BASE VS GENERADOR -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-code-branch"></i> Base vs Conjunto Generador: Diferencia Clave</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title">Conjunto generador</span> (puede tener redundancias):
+          \[ S = \left\{ \begin{pmatrix}1\\2\end{pmatrix}, \begin{pmatrix}2\\4\end{pmatrix}, \begin{pmatrix}0\\1\end{pmatrix} \right\} \]
+          <span class="reveal mt" style="font-size:0.9rem;">
+            El segundo vector = \(2\times\) primero:<br>
+            <span style="color:var(--red);">es redundante.</span><br><br>
+            \(S\) genera \(\mathbb{R}^2\) pero <strong>no</strong> es base.
+          </span>
+        </div>
+      </div>
+      <div>
+        <div class="reveal mt"><span class="b-title">Base</span> (mínima, sin redundancias):
+          \[ \mathcal{B} = \left\{ \begin{pmatrix}1\\2\end{pmatrix}, \begin{pmatrix}0\\1\end{pmatrix} \right\} \]
+          <span class="reveal mt" style="font-size:0.9rem;">
+            Independientes y generan \(\mathbb{R}^2\).<br>
+            <span style="color:var(--green);">Esta sí es una base.</span><br><br>
+            <strong>Quitar el vector redundante</strong> no cambia el espacio generado.
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-truck-loading"></i> Interpretación logística</span>
+      En logística: eliminar rutas redundantes del modelo <strong>no reduce la capacidad descriptiva</strong>, pero <strong>simplifica el análisis y la gestión</strong>.
+    </div>
+  </div>
+
+  <!-- SLIDE 7: MÉTODO RREF -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-calculator"></i> Cómo Encontrar una Base: Método rref</h2>
+    <div class="block reveal">
+      <span class="b-title">Algoritmo para encontrar la base de Col(A) y Nul(A):</span>
+    </div>
+    <ol class="mt">
+      <li class="reveal"><span style="color:var(--navy); font-weight:600;">Paso 1.</span> Calcular \(\text{rref}(A)\).</li>
+      <li class="reveal"><span style="color:var(--navy); font-weight:600;">Paso 2.</span> Identificar las <strong>columnas pivote</strong> (con pivote = 1 líder).</li>
+      <li class="reveal"><span style="color:var(--navy); font-weight:600;">Paso 3.</span>
+        <ul style="margin-top:0.3rem;">
+          <li><strong>Base de Col(A):</strong> columnas pivote de la matriz <strong>original</strong> \(A\).</li>
+          <li><strong>Base de Nul(A):</strong> vectores solución del sistema \(A\mathbf{x}=\mathbf{0}\), uno por cada variable libre.</li>
+        </ul>
+      </li>
+    </ol>
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Atención importante</span>
+      La base de \(\text{Col}(A)\) se toma de las columnas <strong>originales</strong> de \(A\), <strong>no</strong> de las columnas de \(\text{rref}(A)\).<br>
+      (rref cambia el espacio columna, no el espacio nulo.)
+    </div>
+  </div>
+
+  <!-- SLIDE 8: EJEMPLO PASO 1-2 -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-calculator"></i> Ejemplo Completo Paso a Paso</h2>
+    <p class="reveal"><strong>Encontrar bases de Col(A) y Nul(A) para:</strong>
+    \[ A = \begin{pmatrix} 1 & 2 & 0 & -1 \\ 2 & 4 & 1 & 1 \\ 1 & 2 & 1 & 2 \end{pmatrix} \]</p>
+    
+    <div class="reveal mt"><span style="color:var(--navy); font-weight:600;">Paso 1 — rref(A):</span>
+      \[ \text{rref}(A) = \begin{pmatrix} 1 & 2 & 0 & -1 \\ 0 & 0 & 1 & 3 \\ 0 & 0 & 0 & 0 \end{pmatrix} \]
+      <strong>Columnas pivote:</strong> 1 y 3 (posiciones con pivote).<br>
+      <strong>Variables libres:</strong> \(x_2\) y \(x_4\).
+    </div>
+    
+    <div class="reveal mt"><span style="color:var(--navy); font-weight:600;">Paso 2 — Base de Col(A):</span> columnas 1 y 3 de \(A\) original:
+      \[ \text{Base de Col}(A) = \left\{ \begin{pmatrix}1\\2\\1\end{pmatrix},\; \begin{pmatrix}0\\1\\1\end{pmatrix} \right\} \quad \Rightarrow \dim(\text{Col}(A)) = 2 = \text{rango}(A) \]
+    </div>
+  </div>
+
+  <!-- SLIDE 9: EJEMPLO BASE NUL(A) -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-calculator"></i> Ejemplo: Base de Nul(A) (continuación)</h2>
+    <p class="reveal">Retomando \(\text{rref}(A)\) con variables libres \(x_2 = s\) y \(x_4 = t\):
+    \[ \text{rref}(A) = \begin{pmatrix} 1 & 2 & 0 & -1 \\ 0 & 0 & 1 & 3 \\ 0 & 0 & 0 & 0 \end{pmatrix} \]</p>
+    
+    <div class="reveal mt">De las ecuaciones:
+      \[ x_1 + 2x_2 - x_4 = 0 \;\Rightarrow\; x_1 = -2s + t \qquad x_3 + 3x_4 = 0 \;\Rightarrow\; x_3 = -3t \]
+    </div>
+    
+    <div class="reveal mt">
+      \[ \mathbf{x} = s\underbrace{\begin{pmatrix}-2\\1\\0\\0\end{pmatrix}}_{\mathbf{v}_1} + t\underbrace{\begin{pmatrix}1\\0\\-3\\1\end{pmatrix}}_{\mathbf{v}_2} \quad\Rightarrow\quad \text{Base de Nul}(A) = \{\mathbf{v}_1,\;\mathbf{v}_2\} \]
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> Verificación del Teorema Rango-Nulidad</span>
+      \[ \underbrace{\dim(\text{Col}(A))}_{2} + \underbrace{\dim(\text{Nul}(A))}_{2} = \underbrace{n}_{4} \quad\checkmark \]
+    </div>
+  </div>
+
+  <!-- SLIDE 10: IMAGEN LIBRO -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-image"></i> Bases y Pivotes: resumen visual</h2>
+    <div class="reveal"><img class="fig" src="imagenes/pivotes_base.png" alt="Columnas pivote y base de Col(A)" style="max-width:680px"><p class="fig-cap">Las columnas pivote se identifican en rref(A), pero la base de Col(A) se toma de la matriz original A</p></div>
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Resumen visual</span>
+      Las columnas con <strong>pivote</strong> (en rref) \(\to\) base de Col(A) (en \(A\) original).<br>
+      Las variables <strong>libres</strong> \(\to\) vectores de la base de Nul(A).
+    </div>
+  </div>
+
+  <!-- SLIDE 11: APLICACIÓN LOGÍSTICA -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-project-diagram"></i> Aplicación: Simplificar una Red Logística</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-industry"></i> Problema</span>
+          una empresa monitorea 6 indicadores operativos:
+          <ul>
+            <li class="reveal">\(x_1\): costo de ruta A</li>
+            <li class="reveal">\(x_2\): costo de ruta B</li>
+            <li class="reveal">\(x_3\): tiempo ruta A</li>
+            <li class="reveal">\(x_4\): tiempo ruta B</li>
+            <li class="reveal">\(x_5\): carga ruta A</li>
+            <li class="reveal">\(x_6\): carga ruta B</li>
+          </ul>
+          Pero detecta que algunos son redundantes.
+        </div>
+      </div>
+      <div>
+        <div class="reveal mt"><span class="b-title">Matriz de datos históricos</span> \(D \in \mathbb{R}^{4\times6}\):
+          \[ D = \begin{pmatrix} 2 & 4 & 1 & 2 & 3 & 6 \\ 1 & 2 & 3 & 6 & 2 & 4 \\ 3 & 6 & 2 & 4 & 1 & 2 \\ 1 & 2 & 1 & 2 & 1 & 2 \end{pmatrix} \]
+        </div>
+        <p class="reveal mt" style="color:var(--red); font-weight:600;">
+          <i class="fas fa-question-circle"></i> ¿Cuántos indicadores son <strong>realmente independientes</strong>?
+          \[ \text{rango}(D) = ? \]
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: REDUCCIÓN CON RREF -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-calculator"></i> Reducción: Cálculo con rref</h2>
+    \[ D = \begin{pmatrix} 2 & 4 & 1 & 2 & 3 & 6 \\ 1 & 2 & 3 & 6 & 2 & 4 \\ 3 & 6 & 2 & 4 & 1 & 2 \\ 1 & 2 & 1 & 2 & 1 & 2 \end{pmatrix} \]
+    
+    <div class="reveal mt">
+      \[ \text{rref}(D) = \begin{pmatrix} 1 & 2 & 0 & 0 & 0 & 0 \\ 0 & 0 & 1 & 2 & 0 & 0 \\ 0 & 0 & 0 & 0 & 1 & 2 \\ 0 & 0 & 0 & 0 & 0 & 0 \end{pmatrix} \]
+      <strong>Columnas pivote:</strong> 1, 3, 5 &nbsp;&nbsp; \(\Rightarrow\) <strong>rango = 3</strong>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación</span>
+      Solo <strong>3 de los 6 indicadores</strong> son independientes:
+      <ul>
+        <li>\(x_1\) (costo ruta A), \(x_3\) (tiempo ruta A), \(x_5\) (carga ruta A)</li>
+        <li>Los indicadores de ruta B son <strong>siempre el doble</strong> de los de ruta A</li>
+      </ul>
+      La empresa puede gestionar con <strong>3 KPIs</strong> en vez de 6.
+    </div>
+  </div>
+
+  <!-- SLIDE 13: INTERPRETACIÓN GEOMÉTRICA -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-chart-area"></i> Reducción: Interpretación Geométrica</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title">Antes: 6 indicadores (dim 6) → Después: 3 indicadores clave (dim 3)</span><img class="fig" src="imagenes/reduccion_kpis.png" alt="Reducción de 6 a 3 indicadores" style="max-width:520px"><p class="fig-cap">rango(D) = 3: los indicadores de la ruta B son el doble de los de la ruta A</p></div>
+        
+      </div>
+      <div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-check-circle"></i> Ventajas de la reducción</span>
+          <ul>
+            <li>Menos datos a recolectar</li>
+            <li>Modelos más simples y rápidos</li>
+            <li>Reducción de costos de monitoreo</li>
+            <li>Mayor claridad en decisión</li>
+          </ul>
+        </div>
+        <div class="alert-block mt reveal">
+          <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Riesgo</span>
+          Si se eliminan variables <strong>incorrectamente</strong>, se pierde información real.<br>
+          La base garantiza que <strong>no se pierde</strong> información esencial.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: COORDENADAS -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-map-marker-alt"></i> Coordenadas respecto a una Base</h2>
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      Si \(\mathcal{B} = \{\mathbf{b}_1,\ldots,\mathbf{b}_p\}\) es base de \(H\) y \(\mathbf{x} = c_1\mathbf{b}_1 + \cdots + c_p\mathbf{b}_p\), entonces \((c_1,\ldots,c_p)\) son las <strong>coordenadas de \(\mathbf{x}\) respecto a \(\mathcal{B}\)</strong>.
+    </div>
+    <div class="reveal mt"><strong>Ejemplo:</strong> base \(\mathcal{B} = \{(1,0)^T, (1,1)^T\}\) en \(\mathbb{R}^2\). Para \(\mathbf{x} = (3,2)^T\):
+      \[ \begin{pmatrix}3\\2\end{pmatrix} = c_1\begin{pmatrix}1\\0\end{pmatrix} + c_2\begin{pmatrix}1\\1\end{pmatrix} \;\Rightarrow\; c_2 = 2,\; c_1 = 1 \]
+      Coordenadas: \([\mathbf{x}]_\mathcal{B} = (1,2)\).
+    </div>
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-truck-loading"></i> Aplicación logística</span>
+      Si la base son los <strong>3 KPIs independientes</strong> de ruta A, las coordenadas de cualquier plan de operación son los valores de esos 3 KPIs.<br>
+      Los otros 3 indicadores se calculan <strong>automáticamente</strong> como el doble.
+    </div>
+  </div>
+
+  <!-- SLIDE 15: MATLAB COL(A) -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Base de Col(A) con rref</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Matriz de indicadores logisticos</span>
+D = <span class="mf">[</span><span class="mn">2</span> <span class="mn">4</span> <span class="mn">1</span> <span class="mn">2</span> <span class="mn">3</span> <span class="mn">6</span>;
+     <span class="mn">1</span> <span class="mn">2</span> <span class="mn">3</span> <span class="mn">6</span> <span class="mn">2</span> <span class="mn">4</span>;
+     <span class="mn">3</span> <span class="mn">6</span> <span class="mn">2</span> <span class="mn">4</span> <span class="mn">1</span> <span class="mn">2</span>;
+     <span class="mn">1</span> <span class="mn">2</span> <span class="mn">1</span> <span class="mn">2</span> <span class="mn">1</span> <span class="mn">2</span><span class="mf">]</span>;
+
+<span class="mc">% Forma escalonada reducida</span>
+[R, pivots] = <span class="mk">rref</span>(D)
+
+<span class="mc">% pivots da los indices de columnas pivote</span>
+<span class="mk">fprintf</span>(<span class="ms">'Columnas pivote: '</span>)
+<span class="mk">disp</span>(pivots)
+
+<span class="mc">% Base de Col(D): columnas pivote de D original</span>
+base_Col = D(:, pivots)
+
+<span class="mc">% Dimension del espacio columna</span>
+r = <span class="mk">rank</span>(D);
+<span class="mk">fprintf</span>(<span class="ms">'Rango = dim(Col) = %d\n'</span>, r)
+<span class="mk">fprintf</span>(<span class="ms">'De 6 indicadores, solo %d son independientes\n'</span>, r)</pre>
+      </div>
+      <div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-terminal"></i> Resultado esperado</span>
+          <ul>
+            <li><code>pivots = [1, 3, 5]</code></li>
+            <li><code>rango = 3</code></li>
+            <li>Base de Col(D): columnas 1, 3 y 5 de \(D\)</li>
+          </ul>
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-info-circle"></i> Nota MATLAB</span>
+          <code>rref(D)</code> con dos salidas devuelve también el vector de índices de columnas pivote — muy útil para identificar variables clave.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: MATLAB NUL(A) -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Base de Nul(A) y Verificación</h2>
+    <pre><span class="mc">% Matriz de ejemplo</span>
+A = <span class="mf">[</span><span class="mn">1</span> <span class="mn">2</span> <span class="mn">0</span> <span class="mn">-1</span>;
+     <span class="mn">2</span> <span class="mn">4</span> <span class="mn">1</span>  <span class="mn">1</span>;
+     <span class="mn">1</span> <span class="mn">2</span> <span class="mn">1</span>  <span class="mn">2</span><span class="mf">]</span>;
+
+<span class="mc">% Base de Nul(A) en forma racional (fracciones)</span>
+[R, pivots] = <span class="mk">rref</span>(A);
+n = <span class="mf">size</span>(A,<span class="mn">2</span>);
+free_vars = <span class="mf">setdiff</span>(<span class="mn">1</span>:n, pivots);
+<span class="mk">fprintf</span>(<span class="ms">'Variables pivote: '</span>); <span class="mk">disp</span>(pivots)
+<span class="mk">fprintf</span>(<span class="ms">'Variables libres: '</span>); <span class="mk">disp</span>(free_vars)
+
+<span class="mc">% Base de Nul(A) numerica (ortonormal)</span>
+N = <span class="mk">null</span>(A)
+<span class="mk">fprintf</span>(<span class="ms">'dim(Nul(A)) = nulidad = %d\n'</span>, <span class="mf">size</span>(N,<span class="mn">2</span>))
+
+<span class="mc">% Verificacion Teorema Rango-Nulidad</span>
+r = <span class="mk">rank</span>(A);
+nulidad = <span class="mf">size</span>(<span class="mk">null</span>(A),<span class="mn">2</span>);
+<span class="mk">fprintf</span>(<span class="ms">'rango + nulidad = %d + %d = %d = n = %d\n'</span>, r, nulidad, r+nulidad, n)
+
+<span class="mc">% Verificar que los vectores de N satisfacen Ax=0</span>
+<span class="mk">fprintf</span>(<span class="ms">'Verificacion A*N (debe ser ~0):\n'</span>)
+<span class="mk">disp</span>(<span class="mf">norm</span>(A*N))</pre>
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+      <code>Variables pivote: 1 3</code> | <code>Variables libres: 2 4</code><br>
+      <code>rango + nulidad = 2 + 2 = 4 = n = 4</code>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: MATLAB APLICACIÓN COMPLETA -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Reducción de KPIs Logísticos</h2>
+    <p class="mb" style="font-size:0.9rem;">Salida esperada: KPIs clave 1, 3, 5 (Costo A, Tiempo A, Carga A); coordenadas del nuevo plan: <code>[6.0, 3.0, 9.0]</code>.</p>
+    <pre><span class="mc">% Datos historicos: 4 observaciones, 6 indicadores</span>
+D = <span class="mf">[</span><span class="mn">2</span> <span class="mn">4</span> <span class="mn">1</span> <span class="mn">2</span> <span class="mn">3</span> <span class="mn">6</span>;
+     <span class="mn">1</span> <span class="mn">2</span> <span class="mn">3</span> <span class="mn">6</span> <span class="mn">2</span> <span class="mn">4</span>;
+     <span class="mn">3</span> <span class="mn">6</span> <span class="mn">2</span> <span class="mn">4</span> <span class="mn">1</span> <span class="mn">2</span>;
+     <span class="mn">1</span> <span class="mn">2</span> <span class="mn">1</span> <span class="mn">2</span> <span class="mn">1</span> <span class="mn">2</span><span class="mf">]</span>;
+
+nombres = {<span class="ms">'Costo A'</span>,<span class="ms">'Costo B'</span>,<span class="ms">'Tiempo A'</span>,<span class="ms">'Tiempo B'</span>,<span class="ms">'Carga A'</span>,<span class="ms">'Carga B'</span>};
+
+<span class="mc">% Identificar indicadores independientes</span>
+[R, pivots] = <span class="mk">rref</span>(D);
+r = <span class="mk">rank</span>(D);
+
+<span class="mk">fprintf</span>(<span class="ms">'=== ANALISIS DE REDUNDANCIA DE KPIs ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'Total de indicadores: %d\n'</span>, <span class="mf">size</span>(D,<span class="mn">2</span>))
+<span class="mk">fprintf</span>(<span class="ms">'Indicadores independientes (rango): %d\n'</span>, r)
+<span class="mk">fprintf</span>(<span class="ms">'\nIndicadores CLAVE (base):\n'</span>)
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mf">length</span>(pivots)
+    <span class="mk">fprintf</span>(<span class="ms">'  KPI %d: %s\n'</span>, pivots(i), nombres{pivots(i)})
+<span class="mk">end</span>
+<span class="mk">fprintf</span>(<span class="ms">'\nIndicadores REDUNDANTES:\n'</span>)
+redundantes = <span class="mf">setdiff</span>(<span class="mn">1</span>:<span class="mf">size</span>(D,<span class="mn">2</span>), pivots);
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mf">length</span>(redundantes)
+    <span class="mk">fprintf</span>(<span class="ms">'  KPI %d: %s\n'</span>, redundantes(i), nombres{redundantes(i)})
+<span class="mk">end</span>
+
+<span class="mc">% Proyectar nuevos datos sobre base reducida</span>
+nuevo_plan = <span class="mf">[</span><span class="mn">6</span>; <span class="mn">12</span>; <span class="mn">3</span>; <span class="mn">6</span>; <span class="mn">9</span>; <span class="mn">18</span><span class="mf">]</span>;
+coords_reducidas = nuevo_plan(pivots);          <span class="mc">% valores de los 3 KPIs clave</span>
+<span class="mk">fprintf</span>(<span class="ms">'\nCoords en base reducida: [%.1f, %.1f, %.1f]\n'</span>, coords_reducidas)
+<span class="mc">% Verificar: los KPIs redundantes son el doble de los clave</span>
+<span class="mk">disp</span>(<span class="mf">isequal</span>(nuevo_plan(redundantes), <span class="mn">2</span>*coords_reducidas))   <span class="mc">% 1 = verdadero</span></pre>
+  </div>
+
+  <!-- SLIDE 18: EJERCICIO 1 -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1: Encontrar una Base</h2>
+    <p class="reveal"><strong>Dada la matriz \(A\), encontrar una base para Col(A) y Nul(A):</strong>
+    \[ A = \begin{pmatrix} 1 & 3 & 4 \\ 2 & 6 & 8 \\ 0 & 1 & 1 \end{pmatrix} \]</p>
+    
+    <div class="reveal mt"><span style="color:var(--navy); font-weight:600;">rref(A):</span>
+      \[ \begin{pmatrix} 1 & 0 & 1 \\ 0 & 1 & 1 \\ 0 & 0 & 0 \end{pmatrix} \]
+      Columnas pivote: 1 y 2. Variable libre: \(x_3 = t\).
+    </div>
+    
+    <div class="reveal mt">
+      \[ \text{Base de Col}(A) = \left\{ \begin{pmatrix}1\\2\\0\end{pmatrix},\; \begin{pmatrix}3\\6\\1\end{pmatrix} \right\} \qquad \text{Base de Nul}(A) = \left\{ \begin{pmatrix}-1\\-1\\1\end{pmatrix} \right\} \]
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> Verificación</span>
+      \(\dim(\text{Col}(A)) + \dim(\text{Nul}(A)) = 2 + 1 = 3 = n\) <span class="ok">✓</span><br>
+      \(A \cdot (-1,-1,1)^T = (0,0,0)^T\) <span class="ok">✓</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: EJERCICIO 2 -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2: Caso Logístico</h2>
+    <p class="reveal"><strong>Una red logística tiene 5 rutas y 3 nodos de balance. La matriz de incidencia es:</strong>
+    \[ B = \begin{pmatrix} 1 & 0 & -1 & 1 & 0 \\ 0 & 1 & 1 & 0 & 1 \\ -1 & -1 & 0 & -1 & -1 \end{pmatrix} \]</p>
+    
+    <div class="reveal mt"><strong>Preguntas:</strong>
+      <ol>
+        <li>¿Cuántas rutas son <strong>independientes</strong> (rango de \(B\))?</li>
+        <li>¿Cuántos <strong>grados de libertad</strong> hay en los flujos (nulidad)?</li>
+        <li>¿Qué rutas forman una base para Col(\(B\))?</li>
+      </ol>
+    </div>
+    
+    <div class="reveal mt"><strong>Respuestas</strong> (calcular con MATLAB en la práctica):
+      <ul>
+        <li>Rango = 2 (una fila es combinación de las otras dos)</li>
+        <li>Nulidad = \(5 - 2 = 3\) (tres grados de libertad de flujo)</li>
+        <li>Base de Col(\(B\)): columnas 1 y 2 (verificar con <code>rref</code>)</li>
+      </ul>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Conclusión práctica</span>
+      Con 5 rutas hay <strong>3 flujos libres</strong> (se pueden ajustar según la demanda del día) y los otros <strong>2 quedan determinados</strong> por las ecuaciones de balance.
+    </div>
+  </div>
+
+  <!-- SLIDE 20: EJERCICIO 3 -->
+  <div class="slide" data-slide="20">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3: ¿Son base?</h2>
+    <p class="reveal"><strong>Determina si cada conjunto es base de \(\mathbb{R}^3\):</strong></p>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><strong>(a)</strong>
+          \[ \mathcal{B}_1 = \left\{ \begin{pmatrix}1\\0\\0\end{pmatrix}, \begin{pmatrix}0\\1\\0\end{pmatrix}, \begin{pmatrix}0\\0\\1\end{pmatrix} \right\} \]
+        </div>
+        <div class="reveal mt"><strong>(b)</strong>
+          \[ \mathcal{B}_2 = \left\{ \begin{pmatrix}1\\0\\0\end{pmatrix}, \begin{pmatrix}1\\1\\0\end{pmatrix}, \begin{pmatrix}1\\1\\1\end{pmatrix}, \begin{pmatrix}0\\1\\0\end{pmatrix} \right\} \]
+        </div>
+      </div>
+      <div>
+        <div class="reveal mt" style="color:var(--green);"><strong>(a) Sí, es base.</strong><br>
+          <span style="font-size:0.9rem;">Base canónica de \(\mathbb{R}^3\). Independientes y generan \(\mathbb{R}^3\). <span class="ok">✓</span></span>
+        </div>
+        <div class="reveal mt" style="color:var(--red);"><strong>(b) No es base.</strong><br>
+          <span style="font-size:0.9rem;">Tiene 4 vectores en \(\mathbb{R}^3\). Toda base de \(\mathbb{R}^3\) tiene exactamente <strong>3</strong> vectores. (4 vectores en \(\mathbb{R}^3\) son dependientes.) <span class="bad">✗</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Regla práctica</span>
+      Una base de \(\mathbb{R}^n\) tiene <strong>exactamente</strong> \(n\) vectores.<br>
+      Ni uno más (sería dependiente), ni uno menos (no genera).
+    </div>
+  </div>
+
+  <!-- SLIDE 21: MAPA CONCEPTUAL -->
+  <div class="slide" data-slide="21">
+    <h2><i class="fas fa-diagram-project"></i> Mapa Conceptual de la Clase</h2>
+    <div class="reveal"><img class="fig" src="imagenes/mapa_conceptual.png" alt="Mapa conceptual de la clase"></div>
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-key"></i> Ideas clave</span>
+        <ul>
+          <li>Base = mínimo conjunto generador</li>
+          <li>Dimensión = número de vectores en la base</li>
+          <li>rref \(\to\) columnas pivote \(\to\) base de Col(\(A\))</li>
+          <li>Variables libres \(\to\) base de Nul(\(A\))</li>
+        </ul>
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-truck"></i> Conexión logística</span>
+        Rango = KPIs independientes.<br>
+        Nulidad = grados de libertad operativos.<br>
+        Reducir = simplificar sin perder control.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 22: PUNTO DE DECISIÓN -->
+  <div class="slide" data-slide="22">
+    <h2><i class="fas fa-chess"></i> Punto de Decisión</h2>
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Pregunta de Cierre</span><br><br>
+      <em>Tu sistema logístico tiene 8 rutas pero el rango de la matriz de datos es 3. Eso significa que solo 3 rutas son <strong>realmente independientes</strong>.</em><br><br>
+      <strong>¿Eliminarías las otras 5 rutas del modelo operativo, o las mantendrías? Justifica considerando eficiencia y riesgo operativo.</strong>
+    </div>
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-check-circle"></i> Argumento a favor de reducir</span>
+        Menos variables = modelo más rápido, más fácil de gestionar y de comunicar a la gerencia.
+      </div>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-times-circle"></i> Argumento en contra</span>
+        Las rutas "redundantes" pueden ser críticas ante fallas: <strong>redundancia operativa</strong>.
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-balance-scale"></i> Balance óptimo</span>
+        Reducir el <strong>modelo matemático</strong>, <strong>no</strong> necesariamente la infraestructura real.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 23: TAREA -->
+  <div class="slide" data-slide="23">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 20</h2>
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lecturas</span>
+      <ul>
+        <li class="reveal"><strong>Lay</strong>, Cap. 4.5: Base y dimensión (revisar ejemplos 3 y 4)</li>
+        <li class="reveal"><strong>Lay</strong>, Cap. 4.3: Bases y coordenadas linealmente independientes</li>
+      </ul>
+    </div>
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Ejercicio preparatorio</span>
+      Para la siguiente matriz de red logística:
+      \[ C = \begin{pmatrix} 1 & 2 & 3 & 4 \\ 2 & 4 & 6 & 8 \\ 1 & 0 & 1 & 0 \end{pmatrix} \]
+      <ol>
+        <li class="reveal">Calcular <code>rref(C)</code> y encontrar columnas pivote.</li>
+        <li class="reveal">Escribir la base de Col(\(C\)) y la base de Nul(\(C\)).</li>
+        <li class="reveal">Verificar el Teorema Rango-Nulidad en MATLAB.</li>
+        <li class="reveal">¿Cuántos KPIs independientes tiene esta red?</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Próxima clase 20</span>
+      <strong>Mini-caso 3:</strong> Reducción de variables logísticas (caso integrador con MATLAB)
+    </div>
+  </div>
+
+  <!-- SLIDE 24: REFERENCIAS -->
+  <div class="slide" data-slide="24">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Lay, D.C., Lay, S.R., McDonald, J.J.</strong> (2016). <em>Álgebra Lineal y sus Aplicaciones</em> (5a ed.). Pearson. <strong>Capítulo 4.5</strong> (Base y Dimensión), pp. 253–268.</li>
+      <li class="reveal"><strong>Lay</strong> (2016). Cap. 4.3: Subespacios del espacio de columnas y del espacio nulo.</li>
+      <li class="reveal"><strong>Poole, D.</strong> (2015). <em>Álgebra Lineal: Una introducción moderna</em> (4a ed.). Cengage Learning. Capítulo 6.2.</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>rref</code>, <code>null</code>, <code>rank</code>, <code>orth</code>. <a href="https://www.mathworks.com/help/matlab/" style="color:var(--navy);">https://www.mathworks.com/help/matlab/</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Guía de base y dimensión, Dataset KPIs, Script <code>clase19_base_dimension.m</code></li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--navy); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 19 | Base y Dimensión</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 25: CIERRE -->
+  <div class="slide" data-slide="25">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 20: Mini-caso 3 — Reducción de Variables Logísticas</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

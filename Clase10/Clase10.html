@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -142,11 +142,39 @@
     table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
     table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
     table.compact th { background: #f8fafc; font-weight: 600; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -171,7 +199,7 @@
       <li>De \(A\mathbf{x}=\mathbf{b}\) a \(AX=B\) (motivación y definición)</li>
       <li>Resolución manual y propiedades algebraicas</li>
       <li>Caso logístico: distribución multi-origen (3 fábricas)</li>
-      <li>Resolución en MATLAB (\texttt{A\textbackslash B})</li>
+      <li>Resolución en MATLAB (<code>A\B</code>)</li>
       <li>Análisis por fábrica: costo y viabilidad</li>
       <li>Variación de demanda y eficiencia computacional</li>
       <li>Relación con la inversa \(A^{-1}\)</li>
@@ -187,7 +215,7 @@
     <ul class="mt">
       <li class="reveal"><strong>Formular</strong> la ecuación matricial \(AX=B\) como extensión de \(A\mathbf{x}=\mathbf{b}\) a múltiples vectores simultáneos.</li>
       <li class="reveal"><strong>Interpretar</strong> las columnas de \(X\) como planes de despacho para distintas fábricas, y las columnas de \(B\) como sus demandas.</li>
-      <li class="reveal"><strong>Resolver</strong> \(AX=B\) usando el operador \texttt{A\textbackslash B} de MATLAB, entendiendo que resuelve cada columna independientemente.</li>
+      <li class="reveal"><strong>Resolver</strong> \(AX=B\) usando el operador <code>A\B</code> de MATLAB, entendiendo que resuelve cada columna independientemente.</li>
       <li class="reveal"><strong>Verificar</strong> la solución calculando el residuo matricial \(\|AX-B\|_F\).</li>
       <li class="reveal"><strong>Decidir</strong> cómo repartir carga entre fábricas dada la solución de \(AX=B\).</li>
     </ul>
@@ -201,14 +229,14 @@
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-industry"></i> Problema logístico</span>
         LogiSur tiene <strong>3 fábricas clientes</strong> con demandas distintas cada semana. La misma red \(A\) atiende a las tres.
         <ul>
-          <li><strong>Fabrica F1:</strong> \(\mathbf{b}_1=(300,200,150)^T\) ton</li>
-          <li><strong>Fabrica F2:</strong> \(\mathbf{b}_2=(450,100,250)^T\) ton</li>
-          <li><strong>Fabrica F3:</strong> \(\mathbf{b}_3=(200,350,100)^T\) ton</li>
+          <li><strong>Fabrica F1:</strong> \(\mathbf{b}_1=(230,210,160)^T\) ton</li>
+          <li><strong>Fabrica F2:</strong> \(\mathbf{b}_2=(370,270,260)^T\) ton</li>
+          <li><strong>Fabrica F3:</strong> \(\mathbf{b}_3=(265,315,220)^T\) ton</li>
         </ul>
       </div>
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-equals"></i> Ecuación matricial</span>
         Agrupar \(\mathbf{b}_j\) como columnas de \(B\):
-        $$ B = \begin{pmatrix}300&450&200\\200&100&350\\150&250&100\end{pmatrix} $$
+        $$ B = \begin{pmatrix}230&370&265\\210&270&315\\160&260&220\end{pmatrix} $$
         Resolver <strong>simultáneamente</strong>: \(AX = B\)<br>
         La solución \(X = [\mathbf{x}_1\;\mathbf{x}_2\;\mathbf{x}_3]\) contiene los tres planes de despacho.
       </div>
@@ -248,8 +276,8 @@
       \[ A=\begin{pmatrix}2&1\\1&3\end{pmatrix},\quad B=\begin{pmatrix}5&7\\4&2\end{pmatrix} \]
       \([A|B]=\left(\begin{array}{cc|cc}2&1&5&7\\1&3&4&2\end{array}\right)\)
       <span class="reveal mt">\(\xrightarrow{F_2-\frac{1}{2}F_1} \left(\begin{array}{cc|cc}2&1&5&7\\0&\frac{5}{2}&\frac{3}{2}&-\frac{3}{2}\end{array}\right)\)</span>
-      <span class="reveal mt">\(\xrightarrow{\text{Normalizar y atrás}} \left(\begin{array}{cc|cc}1&0&\frac{11}{5}&\frac{18}{5}\\0&1&\frac{3}{5}&-\frac{3}{5}\end{array}\right)\)</span>
-      <span class="reveal mt bold">\[ X=\begin{pmatrix}11/5&18/5\\3/5&-3/5\end{pmatrix} \]</span>
+      <span class="reveal mt">\(\xrightarrow{\text{Normalizar y atrás}} \left(\begin{array}{cc|cc}1&0&\frac{11}{5}&\frac{19}{5}\\0&1&\frac{3}{5}&-\frac{3}{5}\end{array}\right)\)</span>
+      <span class="reveal mt bold">\[ X=\begin{pmatrix}11/5&19/5\\3/5&-3/5\end{pmatrix} \]</span>
     </div>
   </div>
 
@@ -268,7 +296,7 @@
           </ol>
         </div>
         <div class="block mt reveal"><span class="b-title">Clasificación (columna a columna)</span>
-          <ul><li>\(\operatorname{rang}(A)=n\) y compatible: \(X\) única.</li><li>\(\operatorname{rang}(A)<n\) y compatible: columnas no únicas.</li><li>Alguna \(\mathbf{b}_j\) incompatible: sin solución exacta.</li></ul>
+          <ul><li>\(\operatorname{rang}(A)=n\) y compatible: \(X\) única.</li><li>\(\operatorname{rang}(A)&lt;n\) y compatible: columnas no únicas.</li><li>Alguna \(\mathbf{b}_j\) incompatible: sin solución exacta.</li></ul>
         </div>
       </div>
       <div>
@@ -290,36 +318,20 @@
       <div>
         <div class="example-block reveal"><span class="b-title">Datos</span>
           <strong>Red \(A\) (\(3\times3\)):</strong> \( A=\begin{pmatrix}0.5&0.3&0.2\\0.3&0.5&0.2\\0.2&0.2&0.6\end{pmatrix} \)
-          <strong>Demandas \(B\) (\(3\times3\)):</strong> \( B=\begin{pmatrix}300&450&200\\200&100&350\\150&250&100\end{pmatrix} \)
+          <strong>Demandas \(B\) (\(3\times3\)):</strong> \( B=\begin{pmatrix}230&370&265\\210&270&315\\160&260&220\end{pmatrix} \)
           Columnas de \(B\): demanda de F1, F2, F3.
         </div>
         <div class="block mt reveal"><span class="b-title">Sistema a resolver</span> \(AX=B\)<br>\(X\in\mathbb{R}^{3\times3}\): columna \(j\) = plan de despacho para Fábrica \(j\).</div>
       </div>
       <div>
-        <div class="network-diag reveal">
-          <div class="nd-col">
-            <div class="nd-node nd-fab">F1</div>
-            <div class="nd-node nd-fab">F2</div>
-            <div class="nd-node nd-fab">F3</div>
-          </div>
-          <div class="nd-arrows">
-            <div class="arrow-line"></div><div class="arrow-line"></div><div class="arrow-line"></div>
-            <div class="arrow-line"></div><div class="arrow-line"></div><div class="arrow-line"></div>
-            <div class="arrow-line"></div><div class="arrow-line"></div><div class="arrow-line"></div>
-          </div>
-          <div class="nd-col">
-            <div class="nd-node nd-cd">CD1</div>
-            <div class="nd-node nd-cd">CD2</div>
-            <div class="nd-node nd-cd">CD3</div>
-          </div>
-        </div>
+        <div class="reveal"><img class="fig" src="imagenes/red_A_plantas_cd.png" alt="Red de 3 plantas y 3 CD con coeficientes a_ij"><p class="fig-cap">La misma red atiende las tres demandas F1, F2, F3 (columnas de \(B\)).</p></div>
       </div>
     </div>
   </div>
 
   <!-- SLIDE 8: MATLAB AX=B -->
   <div class="slide" data-slide="8">
-    <h2><i class="fas fa-laptop-code"></i> Resolución en MATLAB — \texttt{A\textbackslash B}</h2>
+    <h2><i class="fas fa-laptop-code"></i> Resolución en MATLAB — <code>A\B</code></h2>
     <div class="col-layout">
       <div>
         <pre><span class="mc">% 1. Verificar compatibilidad</span>
@@ -344,10 +356,10 @@ c = <span class="mf">[</span><span class="mn">8</span> <span class="mn">12</span
       <div>
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
           <code>rang(A)=3  rang([A|B])=3</code><br>
-          <code>Residuo ||AX-B||_F = 0.00e+00</code><br>
-          <code>Fabrica F1: $7918</code><br>
-          <code>Fabrica F2: $9764</code><br>
-          <code>Fabrica F3: $10260</code>
+          <code>Plan X (cols=fabricas):</code><br><code>&nbsp;300 600 200 / 200 100 450 / 100 200 150</code><br><code>Residuo ||AX-B||_F ≈ 1e-13</code><br>
+          <code>Fabrica F1: $6300</code><br>
+          <code>Fabrica F2: $9000</code><br>
+          <code>Fabrica F3: $9250</code>
         </div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Interpretación</span> Cada columna de \(X\) es el plan óptimo para una fábrica. MATLAB los calcula todos en <strong>una sola operación</strong> gracias a la factorización única de \(A\).</div>
       </div>
@@ -359,16 +371,16 @@ c = <span class="mf">[</span><span class="mn">8</span> <span class="mn">12</span
     <h2><i class="fas fa-chart-pie"></i> Análisis por fábrica — costo y viabilidad</h2>
     <div class="col-layout">
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-table"></i> Tabla de planes y costos</span>
-        <table class="compact"><tr><th>Planta</th><th>F1</th><th>F2</th><th>F3</th></tr><tr><td>P1 (ton)</td><td>324</td><td>698</td><td>155</td></tr><tr><td>P2 (ton)</td><td>229</td><td>47</td><td>480</td></tr><tr><td>P3 (ton)</td><td>102</td><td>180</td><td>71</td></tr><tr style="font-weight:bold;"><td>Total</td><td>655</td><td>925</td><td>706</td></tr><tr style="font-weight:bold;"><td>Costo ($)</td><td>7918</td><td>9764</td><td>10260</td></tr></table>
+        <table class="compact"><tr><th>Planta</th><th>F1</th><th>F2</th><th>F3</th></tr><tr><td>P1 (ton)</td><td>300</td><td>600</td><td>200</td></tr><tr><td>P2 (ton)</td><td>200</td><td>100</td><td>450</td></tr><tr><td>P3 (ton)</td><td>100</td><td>200</td><td>150</td></tr><tr style="font-weight:bold;"><td>Total</td><td>600</td><td>900</td><td>800</td></tr><tr style="font-weight:bold;"><td>Costo ($)</td><td>6300</td><td>9000</td><td>9250</td></tr></table>
         <p style="font-size:0.85rem; margin-top:0.3rem;">Capacidades: P1=800, P2=600, P3=400 ton.</p>
       </div>
       <div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-shield-halved"></i> Viabilidad</span>
-          <ul><li>F1: todas dentro de capacidad. \checkmark</li><li>F2: P1 usa 87% capacidad. \checkmark</li><li>F3: P2 usa 80% capacidad. \checkmark</li></ul>
+          <ul><li>F1: todas dentro de capacidad. <span class="ok">✓</span></li><li>F2: P1 usa 75% de su capacidad (600/800). <span class="ok">✓</span></li><li>F3: P2 usa 75% de su capacidad (450/600). <span class="ok">✓</span></li></ul>
           <strong>Los tres planes son viables.</strong>
         </div>
-        <div class="block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Decisión</span> F2 es la más costosa ($9764). Para reducir costo:
-          <ul><li>Renegociar proporción \(a_{ij}\) a P1.</li><li>Si hay variables libres, usar lazo para transferir carga a P2/P3.</li></ul>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Decisión</span> F3 es la más costosa ($9250): depende mucho de P2 ($12/ton). Para reducir costo:
+          <ul><li>Renegociar proporciones \(a_{ij}\) de la red.</li><li>Si hay variables libres, usar lazo para transferir carga a P2/P3.</li></ul>
         </div>
       </div>
     </div>
@@ -381,15 +393,15 @@ c = <span class="mf">[</span><span class="mn">8</span> <span class="mn">12</span
     <div class="col-layout mt">
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-calendar-days"></i> Múltiples semanas en una operación</span>
         4 semanas de demanda para F1:
-        \[ B_{\text{F1}} = \begin{pmatrix}300&320&280&350\\200&190&220&180\\150&160&140&170\end{pmatrix} \]
+        \[ B_{\text{F1}} = \begin{pmatrix}230&239&224&253\\210&213&212&219\\160&168&154&178\end{pmatrix} \]
         Resolver \(A X_{\text{F1}} = B_{\text{F1}}\) \(\Rightarrow\) <code>X_F1 = A \ B_F1</code>.<br>
-        Resultado: \(X_{\text{F1}}\in\mathbb{R}^{3\times4}\). Columna \(t\) = plan semana \(t\).
+        Resultado: \(X_{\text{F1}}\in\mathbb{R}^{3\times4}\). Columna \(t\) = plan semana \(t\): \(X_{\text{F1}}=\begin{pmatrix}300&320&280&350\\200&190&220&180\\100&110&90&120\end{pmatrix}\).
       </div>
       <div>
         <div class="block reveal"><span class="b-title"><i class="fas fa-bolt"></i> Ventaja de \(AX=B\)</span> Factorización LU de \(A\) se hace <strong>una vez</strong>.
           <ul><li>Añadir nueva fábrica: agregar columna a \(B\).</li><li>Nueva semana: agregar columna a \(B\).</li><li>Cambio de demanda: actualizar columna.</li></ul>
         </div>
-        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Cuidado</span> Si alguna columna de \(B\) no es compatible, MATLAB da solución de mínimos cuadrados para esa columna. Verificar residuo por columna.</div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Cuidado</span> Si alguna columna de \(B\) no es compatible, el resultado de <code>A\B</code> no satisface esa demanda (si \(A\) es rectangular da mínimos cuadrados; si es cuadrada singular, emite <em>warning</em>). Verificar residuo por columna.</div>
       </div>
     </div>
   </div>
@@ -424,7 +436,7 @@ c = <span class="mf">[</span><span class="mn">8</span> <span class="mn">12</span
       <span class="reveal mt">\(\xrightarrow{F_1-2F_2} \left(\begin{array}{cc|cc}1&0&13&3\\0&1&-4&-1\end{array}\right)\)</span>
       <span class="reveal mt bold">\[ X=\begin{pmatrix}13&3\\-4&-1\end{pmatrix} \]</span>
     </div>
-    <p class="reveal mt italic">Verificación: \(AX=B\) \checkmark. Nota: la segunda columna es \((-1)\) veces la primera. Significa que demanda F2 es opuesta a F1... verificar sentido físico.</p>
+    <p class="reveal mt italic">Verificación: \(AX=B\) <span class="ok">✓</span>. Nota: aparecen entradas negativas (\(-4\), \(-1\)). En un modelo logístico eso indicaría despachos imposibles: siempre verificar el sentido físico de \(X\).</p>
   </div>
 
   <!-- SLIDE 13: EJERCICIO 2 -->
@@ -437,6 +449,7 @@ c = <span class="mf">[</span><span class="mn">8</span> <span class="mn">12</span
       <li>Resolver \(A\mathbf{x}_1=(4,8,3)^T\) (<code>x1 = A\b1</code>).</li>
       <li>Resolver \(A\mathbf{x}_2=(6,5,7)^T\) (<code>x2 = A\b2</code>).</li>
       <li>Resolver \(AX=B\) (<code>X = A\B</code>).</li>
+<li>Resultado: \(X=\begin{pmatrix}7/8&27/8\\9/4&-3/4\\3/8&31/8\end{pmatrix}\).</li>
       <li>Verificar: <code>norm(X - [x1, x2], 'fro')</code> debe ser \(\approx 0\).</li>
     </ol>
     <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Conclusión</span> \(AX=B\) es equivalente a resolver por separado. Ventaja: <strong>eficiencia</strong> (una sola factorización de \(A\)).</div>
@@ -446,7 +459,7 @@ c = <span class="mf">[</span><span class="mn">8</span> <span class="mn">12</span
   <div class="slide" data-slide="14">
     <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3 — Decisión: reparto de carga</h2>
     <div class="alert-block reveal"><span class="b-title"><i class="fas fa-chess"></i> Situación</span> Capacidades \((800,600,400)^T\). Costos \((8,12,15)^T\).
-      <ul><li>F1: costo $7918 | F2: $9764 | F3: $10260</li></ul>
+      <ul><li>F1: costo $6300 | F2: $9000 | F3: $9250</li></ul>
       F3 requiere mucha P2 ($12/ton) y tiene alto costo.
     </div>
     <div class="col-layout mt">
@@ -456,7 +469,7 @@ c = <span class="mf">[</span><span class="mn">8</span> <span class="mn">12</span
       </div>
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-flask"></i> Simulación en MATLAB</span>
         <ul><li><code>A_new = A; A_new(2,3) = 0.1;</code></li><li><code>X_new = A_new \ B;</code></li><li><code>[8 12 15]*X_new(:,3)</code></li></ul>
-        Si costo F3 baja, la renegociación conviene. \(AX=B\) simula <strong>rápidamente</strong> impacto de cambios en red.
+        <strong>Resultado:</strong> el costo de F3 sube a \$9500 (\(\mathbf{x}_3\approx(175,\ 496.4,\ 142.9)\)): esa renegociación <strong>no conviene</strong>. \(AX=B\) simula <strong>rápidamente</strong> impacto de cambios en red.
       </div>
     </div>
   </div>

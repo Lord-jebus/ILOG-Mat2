@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 18: Espacios Vectoriales y Subespacios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003a6b;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff3e0;
+      --red: #b41414;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--navy);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--navy);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block strong { color: var(--orange); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--navy); border-color: var(--navy); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    .network-diag { display: flex; justify-content: center; align-items: center; gap: 2rem; margin: 1rem 0; }
+    .nd-node { width: 40px; height: 40px; border-radius: 50%; background: rgba(0,82,147,0.15); border: 2px solid var(--navy); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; color: var(--navy); }
+    .nd-arrow { width: 60px; height: 2px; background: var(--navy); position: relative; }
+    .nd-arrow::after { content: ''; position: absolute; right: -6px; top: -4px; border-left: 6px solid var(--navy); border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+    .nd-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+    .subspace-viz { width: 280px; height: 180px; margin: 0 auto; position: relative; background: #f1f5f9; border-radius: 8px; border: 2px solid #cbd5e1; }
+    .sv-plane { position: absolute; top: 40px; left: 40px; width: 200px; height: 80px; background: rgba(0,82,147,0.15); border: 2px solid var(--navy); border-radius: 4px; }
+    .sv-line { position: absolute; top: 80px; left: 80px; width: 120px; height: 2px; background: var(--green); transform: rotate(-20deg); }
+    .sv-origin { position: absolute; top: 85px; left: 135px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; }
+    .sv-label { position: absolute; font-size: 0.75rem; font-weight: 600; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-cube fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>Espacios Vectoriales y Subespacios</h1>
+      <p class="sub">Matemáticas 2 — Módulo 4, Clase 18</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 18</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos</h2>
+    <ul>
+      <li class="reveal">Objetivos de Aprendizaje</li>
+      <li class="reveal">Por qué importa en Logística</li>
+      <li class="reveal">Vectores en \(\mathbb{R}^n\): Representación Logística</li>
+      <li class="reveal">Espacio Vectorial: Definición y Axiomas</li>
+      <li class="reveal">Subespacios: Definición y Verificación</li>
+      <li class="reveal">Espacio Nulo \(\text{Nul}(A)\) y Espacio Columna \(\text{Col}(A)\)</li>
+      <li class="reveal">Aplicación Logística: Restricciones como Subespacios</li>
+      <li class="reveal">MATLAB: null(), orth(), rank()</li>
+      <li class="reveal">Ejercicios Prácticos</li>
+      <li class="reveal">Resumen y Tarea</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de Aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Reconocer</strong> qué es un espacio vectorial y verificar sus axiomas.</li>
+      <li class="reveal"><strong>Identificar</strong> subespacios y verificar las 3 condiciones.</li>
+      <li class="reveal"><strong>Calcular</strong> \(\text{Nul}(A)\) y \(\text{Col}(A)\) e interpretarlos.</li>
+      <li class="reveal"><strong>Relacionar</strong> restricciones logísticas con subespacios.</li>
+      <li class="reveal"><strong>Aplicar</strong> <code>null()</code>, <code>orth()</code>, <code>rank()</code> en MATLAB.</li>
+      <li class="reveal"><strong>Decidir</strong> qué restricciones agregar y justificar el tradeoff.</li>
+    </ol>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Conexión con Clase 17</span>
+      Clase 17: combinación lineal e independencia.<br>
+      Clase 18: <em>¿dónde viven</em> esas combinaciones \(\to\) <strong>espacios vectoriales</strong>.
+    </div>
+  </div>
+
+  <!-- SLIDE 3: CONTEXTO LOGÍSTICO -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-truck-loading"></i> ¿Por qué importa en Logística?</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-industry"></i> Situación real</span>
+          Una empresa de distribución opera con restricciones:
+          <ul>
+            <li class="reveal">Capacidad máxima de camiones</li>
+            <li class="reveal">Balance de inventario (entrada = salida)</li>
+            <li class="reveal">Restricciones de peso y volumen</li>
+            <li class="reveal">Regulaciones de rutas</li>
+          </ul>
+        </div>
+        <p class="reveal mt" style="color:var(--red); font-style:italic;">
+          El conjunto de todos los planes válidos forma un <strong>subespacio</strong> del espacio de todos los planes posibles.
+        </p>
+      </div>
+      <div>
+        <div class="alert-block mt reveal">
+          <span class="b-title"><i class="fas fa-lightbulb"></i> Intuición clave</span>
+          Cada <strong>plan de distribución</strong> válido es un vector.<br>
+          Entender la estructura del conjunto de planes nos permite <strong>optimizar</strong> y <strong>agregar restricciones</strong> de forma sistemática.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: VECTORES EN R^n -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-vector-square"></i> Vectores en \(\mathbb{R}^n\): Representación Logística</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal">
+          Un vector \(\mathbf{x}\in\mathbb{R}^n\) representa \(n\) variables simultáneas:
+          \[ \mathbf{q}=\begin{pmatrix}120\\85\\60\\200\end{pmatrix} \leftarrow \begin{array}{l} \text{Ruta A-B}\\ \text{Ruta A-C}\\ \text{Ruta B-D}\\ \text{Ruta C-D} \end{array} \]
+          <span class="italic">(toneladas enviadas por ruta)</span>
+        </div>
+        <p class="reveal mt">Cada plan de distribución es un <strong>punto en \(\mathbb{R}^4\)</strong>.<br>
+        <span style="color:var(--red);">¿Cuáles de esos puntos son factibles?</span></p>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/red_ABCD.png" alt="Red de distribución A-B-C-D" style="max-width:420px"><p class="fig-cap">Red de distribución: cada arco es una componente del vector \(\mathbf{q}\in\mathbb{R}^4\)</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: DEFINICIÓN ESPACIO VECTORIAL -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-book-open"></i> Espacio Vectorial: Definición y Axiomas</h2>
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      Un <strong>espacio vectorial</strong> \(V\) es un conjunto con suma y multiplicación escalar que satisfacen <strong>10 axiomas</strong>.
+    </div>
+    <div class="col-layout mt">
+      <div>
+        <div class="reveal"><span class="b-title">Axiomas de la suma (A1–A5)</span>
+          <ol style="font-size:0.9rem;">
+            <li>\(\mathbf{u}+\mathbf{v}=\mathbf{v}+\mathbf{u}\)</li>
+            <li>\((\mathbf{u}+\mathbf{v})+\mathbf{w}=\mathbf{u}+(\mathbf{v}+\mathbf{w})\)</li>
+            <li>Existe \(\mathbf{0}\): \(\mathbf{u}+\mathbf{0}=\mathbf{u}\)</li>
+            <li>Existe \(-\mathbf{u}\): \(\mathbf{u}+(-\mathbf{u})=\mathbf{0}\)</li>
+            <li>\(\mathbf{u}+\mathbf{v}\in V\) (clausura)</li>
+          </ol>
+        </div>
+      </div>
+      <div>
+        <div class="reveal mt"><span class="b-title">Axiomas escalares (A6–A10)</span>
+          <ol style="font-size:0.9rem;">
+            <li>\(c\mathbf{u}\in V\) (clausura)</li>
+            <li>\(c(\mathbf{u}+\mathbf{v})=c\mathbf{u}+c\mathbf{v}\)</li>
+            <li>\((c+d)\mathbf{u}=c\mathbf{u}+d\mathbf{u}\)</li>
+            <li>\(c(d\mathbf{u})=(cd)\mathbf{u}\)</li>
+            <li>\(1\cdot\mathbf{u}=\mathbf{u}\)</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> El espacio de referencia</span>
+      \(\mathbb{R}^n\) con suma y producto escalar habituales satisface los 10 axiomas.<br>
+      Es <strong>el</strong> espacio vectorial del curso.
+    </div>
+  </div>
+
+  <!-- SLIDE 6: PARA QUÉ SIRVEN LOS AXIOMAS -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-question-circle"></i> ¿Para qué sirven los Axiomas?</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-cogs"></i> Consistencia algebraica</span>
+          Los axiomas garantizan:
+          <ul>
+            <li class="reveal">Puedo sumar planes y obtener otro plan <em>válido matemáticamente</em>.</li>
+            <li class="reveal">Existe un plan <strong>nulo</strong> (\(\mathbf{0}\)): no enviar nada.</li>
+            <li class="reveal">Existe un plan <strong>inverso</strong>: "deshacer" envíos.</li>
+          </ul>
+        </div>
+        <p class="reveal mt" style="color:var(--red); font-weight:600;">
+          <i class="fas fa-exclamation-triangle"></i> Advertencia logística:<br>
+          En la práctica, los envíos son \(\geq 0\). Eso <strong>no</strong> es un espacio vectorial (falla A4).
+        </p>
+      </div>
+      <div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-lightbulb"></i> Entonces ¿para qué?</span>
+          <ul>
+            <li class="reveal">Modelamos <strong>variaciones</strong> respecto a un plan base.</li>
+            <li class="reveal">Los desvíos (positivos y negativos) <em>sí</em> forman un espacio vectorial.</li>
+            <li class="reveal">Nos permite analizar <strong>flexibilidad</strong> y <strong>restricciones</strong>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: SUBESPACIOS DEFINICIÓN -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-layer-group"></i> Subespacios: Definición</h2>
+    <div class="block reveal">
+      <span class="b-title">Definición (Subespacio)</span>
+      Un subconjunto \(H\subseteq V\) es <strong>subespacio vectorial</strong> si:
+      <ol>
+        <li><strong>S1:</strong> \(\mathbf{0}\in H\)</li>
+        <li><strong>S2:</strong> Si \(\mathbf{u},\mathbf{v}\in H\), entonces \(\mathbf{u}+\mathbf{v}\in H\)</li>
+        <li><strong>S3:</strong> Si \(\mathbf{u}\in H\) y \(c\in\mathbb{R}\), entonces \(c\mathbf{u}\in H\)</li>
+      </ol>
+    </div>
+    <div class="col-layout mt">
+      <div class="example-block reveal">
+        <span class="b-title">Ejemplo: plano en \(\mathbb{R}^3\)</span>
+        \[ H=\left\{\begin{pmatrix}x\\y\\0\end{pmatrix}:x,y\in\mathbb{R}\right\} \]
+        <span class="reveal mt" style="font-size:0.9rem;">
+          S1: \((0,0,0)^T\in H\) <span class="ok">✓</span><br>
+          S2: \((x_1+x_2,y_1+y_2,0)^T\in H\) <span class="ok">✓</span><br>
+          S3: \((cx,cy,0)^T\in H\) <span class="ok">✓</span>
+        </span>
+      </div>
+      <div>
+        <div class="alert-block mt reveal">
+          <span class="b-title"><i class="fas fa-times-circle"></i> NO es subespacio</span>
+          \[ P=\left\{\begin{pmatrix}x\\y\\1\end{pmatrix}:x,y\in\mathbb{R}\right\} \]
+          <span class="reveal mt" style="font-size:0.9rem;">
+            S1 falla: \((0,0,0)^T\notin P\) <span class="bad">✗</span>
+          </span>
+        </div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">Todo subespacio <strong>debe pasar por el origen</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: VERIFICACIÓN PASO A PASO -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-clipboard-check"></i> Verificación Paso a Paso</h2>
+    <p class="reveal"><strong>Ejercicio:</strong> ¿Es \(H=\{\mathbf{x}\in\mathbb{R}^3:x_1+2x_2-x_3=0\}\) un subespacio?</p>
+    
+    <div class="reveal mt">
+      <span style="color:var(--navy); font-weight:600;">S1 — Vector cero:</span>
+      \[ 0+2(0)-0=0 \quad\checkmark \]
+    </div>
+    
+    <div class="reveal mt">
+      <span style="color:var(--navy); font-weight:600;">S2 — Clausura bajo suma:</span>
+      Sean \(\mathbf{u},\mathbf{v}\in H\), es decir \(u_1+2u_2-u_3=0\) y \(v_1+2v_2-v_3=0\):
+      \[ (u_1+v_1)+2(u_2+v_2)-(u_3+v_3)=(u_1+2u_2-u_3)+(v_1+2v_2-v_3)=0 \quad\checkmark \]
+    </div>
+    
+    <div class="reveal mt">
+      <span style="color:var(--navy); font-weight:600;">S3 — Clausura escalar:</span>
+      \(c(u_1+2u_2-u_3)=c\cdot 0=0\)  <span class="ok">✓</span>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> Conclusión</span>
+      \(H\) <strong>es un subespacio</strong> de \(\mathbb{R}^3\).<br>
+      Geométricamente es un <strong>plano</strong> que pasa por el origen.
+    </div>
+  </div>
+
+  <!-- SLIDE 9: TIPOS DE SUBESPACIOS -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-diagram-project"></i> Tipos de Subespacios en \(\mathbb{R}^n\)</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title">Subespacios básicos</span>
+          <ul>
+            <li class="reveal">\(\{\mathbf{0}\}\): subespacio trivial</li>
+            <li class="reveal">Recta por el origen</li>
+            <li class="reveal">Plano por el origen</li>
+            <li class="reveal">Todo \(\mathbb{R}^n\)</li>
+          </ul>
+        </div>
+        <div class="reveal mt"><span class="b-title">Subespacios de una matriz \(A\)</span>
+          <ul>
+            <li class="reveal">\(\text{Nul}(A)=\{\mathbf{x}:A\mathbf{x}=\mathbf{0}\}\subseteq\mathbb{R}^n\)</li>
+            <li class="reveal">\(\text{Col}(A)=\{A\mathbf{x}:\mathbf{x}\in\mathbb{R}^n\}\subseteq\mathbb{R}^m\)</li>
+            <li class="reveal">Espacio fila de \(A\)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/subespacios_R3.png" alt="Plano y recta por el origen en R3" style="max-width:340px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">Todo subespacio pasa por \(\mathbf{0}\).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: ESPACIO NULO -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-box-open"></i> Espacio Nulo: \(\text{Nul}(A)\)</h2>
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      \[ \text{Nul}(A)=\{\mathbf{x}\in\mathbb{R}^n:A\mathbf{x}=\mathbf{0}\} \]
+      Es un subespacio de \(\mathbb{R}^n\).
+    </div>
+    <p class="reveal mt"><strong>Conexión logística:</strong> si \(A\) representa restricciones de balance de flujo, entonces \(\text{Nul}(A)\) = conjunto de <strong>flujos que no desequilibran la red</strong>.</p>
+    <div class="example-block mt reveal">
+      <span class="b-title">Ejemplo</span>
+      \(A=\begin{pmatrix}1&2&-1\\2&4&-2\end{pmatrix} \xrightarrow{\text{rref}} x_1+2x_2-x_3=0\)<br>
+      Variables libres \(x_2=s\), \(x_3=t\):
+      \[ \mathbf{x}=s\begin{pmatrix}-2\\1\\0\end{pmatrix}+t\begin{pmatrix}1\\0\\1\end{pmatrix}, \quad s,t\in\mathbb{R} \]
+      \(\text{Nul}(A)\) es un <strong>plano</strong> en \(\mathbb{R}^3\). <strong>Nulidad</strong> = 2.
+    </div>
+  </div>
+
+  <!-- SLIDE 11: ESPACIO COLUMNA -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-columns"></i> Espacio Columna: \(\text{Col}(A)\)</h2>
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      \[ \text{Col}(A)=\text{Gen}\{\mathbf{a}_1,\mathbf{a}_2,\ldots,\mathbf{a}_n\}\subseteq\mathbb{R}^m \]
+      Es un subespacio de \(\mathbb{R}^m\).
+    </div>
+    <p class="reveal mt"><strong>Interpretación:</strong> \(\text{Col}(A)\) = conjunto de todos los \(\mathbf{b}\) para los que \(A\mathbf{x}=\mathbf{b}\) tiene solución.<br>
+    <em>En logística: <strong>demandas alcanzables</strong> dadas las capacidades del sistema.</em></p>
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Regla de consistencia</span>
+      \(A\mathbf{x}=\mathbf{b}\) tiene solución <strong>si y solo si</strong> \(\mathbf{b}\in\text{Col}(A)\).<br>
+      Si la demanda \(\mathbf{b}\) no está en \(\text{Col}(A)\), <strong>el sistema no puede atenderla</strong>.
+    </div>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-balance-scale"></i> Teorema Rango-Nulidad</span>
+      \[ \text{rango}(A)+\text{nulidad}(A)=n \]
+      Rango = \(\dim(\text{Col}(A))\). Nulidad = \(\dim(\text{Nul}(A))\) = grados de libertad.
+    </div>
+  </div>
+
+  <!-- SLIDE 12: IMAGEN DE SUBESPACIOS -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-image"></i> Imagen de los Subespacios</h2>
+    <div class="reveal"><img class="fig" src="imagenes/nul_col.png" alt="Nul(A) y Col(A)" style="max-width:560px"><p class="fig-cap">Nul\((A)\subseteq\mathbb{R}^n\) se envía a \(\mathbf{0}\); Col\((A)\subseteq\mathbb{R}^m\) son las demandas alcanzables</p></div>
+    <table class="compact reveal">
+      <tr><th>Subespacio</th><th>Contenido en</th><th>Dimensión</th><th>Relación con \(A\)</th></tr>
+      <tr><td>\(\text{Nul}(A)\)</td><td>\(\mathbb{R}^n\)</td><td>\(n-r\)</td><td>soluciones de \(A\mathbf{x}=\mathbf{0}\)</td></tr>
+      <tr><td>\(\text{Col}(A)\)</td><td>\(\mathbb{R}^m\)</td><td>\(r\)</td><td>combinaciones de columnas</td></tr>
+      <tr><td colspan="4" style="text-align:right; font-size:0.8rem; color:#64748b;">\(r=\text{rango}(A)\)</td></tr>
+    </table>
+  </div>
+
+  <!-- SLIDE 13: CASO LOGÍSTICO -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-project-diagram"></i> Caso: Restricciones como Subespacios</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title">Red bipartita 2×2</span>
+          \[ A=\begin{pmatrix}1&1&0&0\\0&0&1&1\\-1&0&-1&0\\0&-1&0&-1\end{pmatrix} \]
+          <span class="italic" style="font-size:0.9rem;">Filas = nodos. Columnas = arcos \(x_1,x_2,x_3,x_4\).</span>
+        </div>
+        <div class="reveal mt"><span class="b-title">Cálculo</span>
+          <ul>
+            <li>\(\text{rango}(A)=3\)</li>
+            <li>\(\text{nulidad}=4-3=1\)</li>
+            <li>1 grado de libertad en flujos</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/red_bipartita.png" alt="Red bipartita 2x2" style="max-width:380px"><p class="fig-cap">Red bipartita 2×2: orígenes O₁, O₂ y destinos D₁, D₂</p></div>
+        <p class="reveal mt" style="font-size:0.9rem;"><strong>Restricción adicional</strong> (\(x_3=0\)):<br>
+        aumenta el rango \(\to\) reduce la nulidad a 0 \(\to\) <strong>solución única</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: INTERPRETACIÓN -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-lightbulb"></i> Interpretación: Restricciones Reducen el Subespacio</h2>
+    <div class="reveal"><img class="fig" src="imagenes/restricciones_anidadas.png" alt="Conjuntos anidados" style="max-width:500px"><p class="fig-cap">Cada restricción adicional reduce el conjunto de planes posibles</p></div>
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-key"></i> Idea central</span>
+      Cada restricción lineal homogénea <strong>define un subespacio</strong>.<br>
+      La intersección de subespacios <strong>es un subespacio</strong>.<br>
+      Más restricciones \(\Rightarrow\) subespacio más pequeño \(\Rightarrow\) menos flexibilidad.
+    </div>
+  </div>
+
+  <!-- SLIDE 15: EJEMPLO NUMÉRICO -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-calculator"></i> Ejemplo Numérico: Solución General</h2>
+    <p class="reveal"><strong>Red con 3 rutas, 2 restricciones de balance:</strong></p>
+    \[ A=\begin{pmatrix}1&1&-1\\-1&0&1\end{pmatrix}, \quad \mathbf{b}=\begin{pmatrix}10\\-4\end{pmatrix} \]
+    
+    <div class="reveal mt"><span style="color:var(--navy); font-weight:600;">Paso 1 — Consistencia</span> (\(\mathbf{b}\in\text{Col}(A)\)?):
+      \[ [A|\mathbf{b}]=\begin{pmatrix}1&1&-1&10\\-1&0&1&-4\end{pmatrix} \xrightarrow{F_2+F_1} \begin{pmatrix}1&1&-1&10\\0&1&0&6\end{pmatrix} \]
+      Sin fila inconsistente \(\Rightarrow\) <strong>tiene solución</strong>.
+    </div>
+    
+    <div class="reveal mt"><span style="color:var(--navy); font-weight:600;">Paso 2 — Solución general:</span>
+      \(x_3=t\) libre, \(x_2=6\), \(x_1=4+t\):
+      \[ \mathbf{x}=\underbrace{\begin{pmatrix}4\\6\\0\end{pmatrix}}_{\text{plan base}} +t\underbrace{\begin{pmatrix}1\\0\\1\end{pmatrix}}_{\text{Nul}(A)} \]
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación</span>
+      <strong>Plan base</strong>: 4 ton ruta 1, 6 ton ruta 2.<br>
+      <strong>Grado de libertad</strong> \(t\): ajustar rutas 1 y 3 en la misma cantidad sin alterar el balance.
+    </div>
+  </div>
+
+  <!-- SLIDE 16: MATLAB -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: null(), orth(), rank()</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Funciones basicas</span>
+A = <span class="mf">[</span><span class="mn">1</span>  <span class="mn">1</span> <span class="mn">-1</span>;
+    <span class="mn">-1</span>  <span class="mn">0</span>  <span class="mn">1</span><span class="mf">]</span>;
+
+<span class="mc">% Espacio nulo (base ortonormal)</span>
+N = <span class="mk">null</span>(A)
+
+<span class="mc">% Espacio columna (base ortonormal)</span>
+C = <span class="mk">orth</span>(A)
+
+<span class="mc">% Rango</span>
+r = <span class="mk">rank</span>(A)
+
+<span class="mc">% Teorema rango-nulidad</span>
+n_col = <span class="mf">size</span>(A,<span class="mn">2</span>);
+<span class="mk">fprintf</span>(<span class="ms">'%d + %d = %d\n'</span>,...
+  <span class="mk">rank</span>(A), <span class="mf">size</span>(<span class="mk">null</span>(A),<span class="mn">2</span>), n_col)</pre>
+      </div>
+      <div>
+        <div class="block mt reveal"><span class="b-title"><i class="fas fa-tools"></i> Funciones clave</span>
+          <ul>
+            <li><code>null(A)</code> \(\to\) base de \(\text{Nul}(A)\)</li>
+            <li><code>orth(A)</code> \(\to\) base de \(\text{Col}(A)\)</li>
+            <li><code>rank(A)</code> \(\to\) dimensión de \(\text{Col}(A)\)</li>
+            <li><code>rref(A)</code> \(\to\) forma escalonada</li>
+          </ul>
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-check-circle"></i> Verificación</span>
+          \[ r + \text{nulidad} = n \]<br>
+          Comprobar siempre en MATLAB.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: EJERCICIO SUBESPACIO -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-pencil-alt"></i> Ejercicio: ¿Subespacio o No?</h2>
+    <p class="reveal"><strong>Determina para cada conjunto si es subespacio de \(\mathbb{R}^3\):</strong></p>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><strong>(a)</strong> \(H_1=\{(x,y,z)^T: x+y+z=0\}\)</div>
+        <div class="reveal mt"><strong>(b)</strong> \(H_2=\{(x,y,z)^T: x+y+z=5\}\)</div>
+        <div class="reveal mt"><strong>(c)</strong> \(H_3=\{(x,y,z)^T: xy=0\}\)</div>
+      </div>
+      <div>
+        <div class="reveal mt" style="color:var(--green);"><strong>(a) Sí es subespacio.</strong><br>
+          <span style="font-size:0.9rem;">Ecuación homogénea \(\Rightarrow\) plano por el origen. S1, S2, S3 verificados. <span class="ok">✓</span></span>
+        </div>
+        <div class="reveal mt" style="color:var(--red);"><strong>(b) No es subespacio.</strong><br>
+          <span style="font-size:0.9rem;">\(\mathbf{0}\): \(0+0+0=0\neq 5\) \(\Rightarrow\) S1 falla. <span class="bad">✗</span></span>
+        </div>
+        <div class="reveal mt" style="color:var(--red);"><strong>(c) No es subespacio.</strong><br>
+          <span style="font-size:0.9rem;">\((1,0,0)^T,(0,1,0)^T\in H_3\) pero \((1,1,0)^T\notin H_3\). S2 falla. <span class="bad">✗</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: NULIDAD Y GRADOS DE LIBERTAD -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-sliders"></i> Nulidad y Grados de Libertad en Redes</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title">Red de 5 arcos, 4 nodos</span>
+          <ul>
+            <li class="reveal">Matriz de incidencia \(A\in\mathbb{R}^{4\times5}\)</li>
+            <li class="reveal">\(\text{rango}(A)=3\)</li>
+            <li class="reveal">\(\text{nulidad}=5-3=2\)</li>
+            <li class="reveal"><strong>2 grados de libertad</strong> de flujo</li>
+          </ul>
+        </div>
+        <div class="reveal mt"><span class="b-title">Significado práctico</span>
+          <ul>
+            <li>2 flujos se pueden variar libremente</li>
+            <li>Los otros 3 quedan determinados</li>
+            <li>\(\Rightarrow\) <strong>flexibilidad operativa</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/red_4nodos_5arcos.png" alt="Red 4 nodos 5 arcos" style="max-width:380px"><p class="fig-cap">5 arcos, 4 nodos: rango = 3, nulidad = 2</p></div>
+        <p class="reveal mt" style="color:var(--red); font-size:0.9rem;">
+          <i class="fas fa-arrow-down"></i> Cada restricción adicional independiente reduce la nulidad en 1.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: RESUMEN -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-flag-checkered"></i> Resumen de Conceptos Clave</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-cube"></i> Espacio Vectorial</span>
+          Conjunto cerrado bajo suma y producto escalar (10 axiomas). El de referencia: \(\mathbb{R}^n\).
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-layer-group"></i> Subespacio</span>
+          \(H\subseteq V\) con \(\mathbf{0}\in H\), cerrado bajo \(+\) y bajo \(\cdot\).<br>
+          Solo 3 condiciones a verificar.
+        </div>
+      </div>
+      <div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-boxes"></i> \(\text{Nul}(A)\) y \(\text{Col}(A)\)</span>
+          Subespacios fundamentales. Conectan álgebra lineal con geometría y logística.
+        </div>
+        <div class="alert-block mt reveal">
+          <span class="b-title"><i class="fas fa-truck"></i> Conexión logística</span>
+          Restricciones lineales = subespacios.<br>
+          Más restricciones \(\Rightarrow\) subespacio menor.<br>
+          Nulidad = grados de libertad operativos.
+        </div>
+      </div>
+    </div>
+    <div class="center mt reveal" style="background:#f1f5f9; padding:0.5rem; border-radius:6px;">
+      <span style="font-size:0.9rem;"><i class="fas fa-sitemap"></i> \(\mathbb{R}^n\) \(\supset\) Subespacio \(H\) \(\supset\) \(\text{Nul}(A)\), \(\text{Col}(A)\)</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: PUNTO DE DECISIÓN -->
+  <div class="slide" data-slide="20">
+    <h2><i class="fas fa-chess"></i> Punto de Decisión</h2>
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Pregunta de Cierre</span><br><br>
+      <em>Tu empresa opera una red logística con 6 arcos y 4 nodos. La matriz de incidencia tiene rango 3.</em><br><br>
+      <strong>¿Cuántas restricciones adicionales agregarías para obtener solución única? ¿Es eso deseable?</strong>
+    </div>
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-lightbulb"></i> Pista</span>
+        Nulidad \(= 6-3 = 3\).<br>
+        3 grados de libertad.
+      </div>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-bullseye"></i> Solución única</span>
+        Necesitas 3 restricciones independientes adicionales para nulidad=0.
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-balance-scale"></i> Tradeoff</span>
+        Más restricciones = menos flexibilidad ante demanda variable.<br>
+        ¿Vale la pena?
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 21: TAREA -->
+  <div class="slide" data-slide="21">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 19</h2>
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lecturas</span>
+      <ul>
+        <li class="reveal"><strong>Lay</strong>, Cap. 4.1: Espacios vectoriales y subespacios</li>
+        <li class="reveal"><strong>Lay</strong>, Cap. 4.5: Base y dimensión (avance)</li>
+      </ul>
+    </div>
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Ejercicio preparatorio</span>
+      Dado \(A=\begin{pmatrix}2&4&-2\\-1&-2&1\end{pmatrix}\):
+      <ol>
+        <li class="reveal">Calcula \(\text{Nul}(A)\) manualmente con rref.</li>
+        <li class="reveal">Verifica con <code>null(A)</code> en MATLAB.</li>
+        <li class="reveal">Interpreta la nulidad: si las filas son nodos de balance, ¿qué significa tener nulidad 2?</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Próxima clase 19</span>
+      <strong>Base y Dimensión</strong> — Reducción de variables en sistemas logísticos
+    </div>
+  </div>
+
+  <!-- SLIDE 22: REFERENCIAS -->
+  <div class="slide" data-slide="22">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Lay, D.C., Lay, S.R., McDonald, J.J.</strong> (2016). <em>Álgebra Lineal y sus Aplicaciones</em> (5a ed.). Pearson. <strong>Capítulo 4.1</strong>, pp. 219–235.</li>
+      <li class="reveal"><strong>Poole, D.</strong> (2015). <em>Álgebra Lineal: Una introducción moderna</em> (4a ed.). Cengage Learning. Capítulo 6.</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>null</code>, <code>orth</code>, <code>rank</code>, <code>rref</code>. <a href="https://www.mathworks.com/help/matlab/" style="color:var(--navy);">https://www.mathworks.com/help/matlab/</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Guía de subespacios, Dataset red logística, Script <code>clase18_subespacio.m</code></li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--navy); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 18 | Espacios Vectoriales</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 23: CIERRE -->
+  <div class="slide" data-slide="23">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 19: Base y Dimensión</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

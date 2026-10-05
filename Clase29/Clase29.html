@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 29: Matrices de Adyacencia y Redes Logísticas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --orange: #c85000;
+      --orange-dark: #a04000;
+      --navy: #005293;
+      --navy-light: #0066b8;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --red: #b41414;
+      --red-light: #ffe0e0;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--orange);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--orange);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--red-light); border-left-color: var(--red); }
+    .alert-block strong { color: var(--red); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--orange); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--orange); border-color: var(--orange); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    /* Network graph visualization */
+    .network-graph { width: 300px; height: 220px; margin: 0.5rem auto; position: relative; }
+    .ng-node { position: absolute; width: 32px; height: 32px; border-radius: 50%; background: rgba(0,82,147,0.15); border: 2px solid var(--navy); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: var(--navy); z-index: 2; }
+    .ng-node.critical { border-color: var(--red); background: rgba(180,20,20,0.15); color: var(--red); }
+    .ng-edge { position: absolute; height: 2px; background: var(--navy); transform-origin: left center; }
+    .ng-label { position: absolute; font-size: 0.7rem; color: var(--text-muted); background: white; padding: 0 4px; z-index: 1; }
+
+    /* Adjacency matrix visualization */
+    .adj-matrix { display: inline-grid; gap: 2px; margin: 0.5rem auto; font-family: var(--font-code); font-size: 0.8rem; }
+    .adj-cell { padding: 4px 8px; text-align: center; background: #f1f5f9; border-radius: 2px; }
+    .adj-cell.one { background: var(--green-light); color: var(--green); font-weight: 600; }
+    .adj-cell.zero { background: #f1f5f9; color: #94a3b8; }
+    .adj-bracket { font-size: 1.5rem; color: var(--navy); }
+
+    /* Degree table */
+    .degree-table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.9rem; }
+    .degree-table th, .degree-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: center; }
+    .degree-table th { background: #f8fafc; font-weight: 600; }
+    .degree-table .critical { color: var(--red); font-weight: 600; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .decision-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+    .dc-card { padding: 0.8rem; border-radius: 8px; text-align: center; border: 2px solid; font-size: 0.85rem; }
+    .dc-card.a { border-color: var(--red); background: rgba(180,20,20,0.05); }
+    .dc-card.b { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .dc-card.c { border-color: var(--orange); background: var(--orange-light); }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--orange); margin: 0.5rem 0; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-project-diagram fa-3x" style="color:var(--orange); margin-bottom:1rem;"></i>
+      <h1>Matrices de Adyacencia y Redes Logísticas</h1>
+      <p class="sub">Identificación de Nodos Críticos</p>
+      <p class="sub" style="color:var(--orange); font-weight:600;">Módulo 6 — Herramientas de Ingeniería</p>
+      <p class="sub">Matemáticas 2 — Clase 29</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 29</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Objetivos de Aprendizaje</li>
+      <li class="reveal">¿Por qué Modelar Redes con Matrices?</li>
+      <li class="reveal">Conceptos Básicos de Grafos</li>
+      <li class="reveal">Matriz de Adyacencia: Definición</li>
+      <li class="reveal">Matriz de Pesos: Distancias y Costos</li>
+      <li class="reveal">Potencias de la Matriz de Adyacencia</li>
+      <li class="reveal">Nodo Crítico: Definición y Medidas</li>
+      <li class="reveal">Caso: Red de Distribución de 6 Nodos</li>
+      <li class="reveal">Imagen del Libro: Grafos y Matrices</li>
+      <li class="reveal">MATLAB: Construir y Visualizar Grafos</li>
+      <li class="reveal">MATLAB: Potencias de la Matriz y Caminos</li>
+      <li class="reveal">MATLAB: Análisis de Vulnerabilidad</li>
+      <li class="reveal">Caso: Red de Distribución Nacional</li>
+      <li class="reveal">Resumen: Herramientas de Análisis de Redes</li>
+      <li class="reveal">Punto de Decisión</li>
+      <li class="reveal">Tarea para la Clase 30</li>
+      <li class="reveal">Referencias</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de Aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Representar</strong> una red logística como grafo y construir su matriz de adyacencia.</li>
+      <li class="reveal"><strong>Interpretar</strong> las entradas de la matriz de adyacencia y la matriz de pesos.</li>
+      <li class="reveal"><strong>Calcular</strong> el grado de cada nodo y usarlo para identificar nodos críticos.</li>
+      <li class="reveal"><strong>Usar</strong> <code>graph</code> y <code>digraph</code> en MATLAB para modelar y visualizar redes.</li>
+      <li class="reveal"><strong>Aplicar</strong> potencias de la matriz de adyacencia para contar caminos.</li>
+      <li class="reveal"><strong>Decidir</strong> qué nodo es crítico y proponer estrategias de redundancia.</li>
+    </ol>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Conexión con el curso</span>
+      Módulos 1-2: matrices como sistemas de ecuaciones.<br>
+      Clase 29: matrices como <strong>representación de redes</strong>.<br>
+      La misma herramienta algebraica, una nueva interpretación.
+    </div>
+  </div>
+
+  <!-- SLIDE 3: ¿POR QUÉ MODELAR REDES? -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-question-circle"></i> ¿Por qué Modelar Redes con Matrices?</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-industry"></i> Pregunta práctica</span>
+          Una empresa tiene 6 depósitos interconectados.<br>
+          ¿Qué ocurre si el depósito central falla?<br>
+          ¿Hay caminos alternativos? ¿Cuántos pasos toma llegar de A a D?
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-list-check"></i> Responder estas preguntas requiere</span>
+          <ul>
+            <li class="reveal">Representar la red de forma matemática</li>
+            <li class="reveal">Operar algebraicamente sobre esa representación</li>
+            <li class="reveal">Extraer información estructural (nodos críticos, caminos, conectividad)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/red_5_nodos.png" alt="Red de 5 depósitos" style="max-width:340px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">La matriz de adyacencia captura toda la estructura de la red.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: CONCEPTOS BÁSICOS -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-sitemap"></i> Conceptos Básicos de Grafos</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-book"></i> Definiciones</span>
+          Un <strong>grafo</strong> \(G=(V,E)\) consta de:
+          <ul>
+            <li class="reveal">\(V\): conjunto de <strong>vértices</strong> (nodos)</li>
+            <li class="reveal">\(E\): conjunto de <strong>aristas</strong> (arcos/conexiones)</li>
+          </ul>
+          <strong>Grafo no dirigido</strong>: las aristas no tienen sentido.<br>
+          <strong>Digrafo</strong>: las aristas tienen dirección (arco).<br>
+          <strong>Grafo ponderado</strong>: cada arista tiene un peso.
+        </div>
+      </div>
+      <div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-truck"></i> En logística</span>
+          <ul>
+            <li>Vértices = depósitos, plantas, clientes</li>
+            <li>Aristas = rutas de transporte</li>
+            <li>Pesos = distancia, tiempo, costo, capacidad</li>
+            <li>Dirección = sentido del flujo (arco)</li>
+          </ul>
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-chart-network"></i> Ejemplo: red de 4 depósitos</span>
+          <img class="fig" src="imagenes/red_4_depositos.png" alt="Red de 4 depósitos con distancias" style="max-width:300px">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: MATRIZ DE ADYACENCIA -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-table"></i> Matriz de Adyacencia: Definición</h2>
+    
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      Para un grafo con \(n\) vértices, la <strong>matriz de adyacencia</strong> \(A \in \mathbb{R}^{n\times n}\) es:
+      \[ A_{ij} = \begin{cases} 1 & \text{si existe arista del nodo } i \text{ al nodo } j \\ 0 & \text{en caso contrario} \end{cases} \]
+      Para grafos no dirigidos: \(A\) es <strong>simétrica</strong> (\(A_{ij} = A_{ji}\)).<br>
+      Para digrafos: \(A_{ij} = 1\) significa arco de \(i\) hacia \(j\).
+    </div>
+    
+    <p class="reveal mt"><strong>Para el grafo de 4 depósitos:</strong>
+      \[ A = \begin{pmatrix} 0 & 1 & 1 & 0 \\ 1 & 0 & 1 & 1 \\ 1 & 1 & 0 & 1 \\ 0 & 1 & 1 & 0 \end{pmatrix} \quad \begin{array}{l} \text{Nodo 1 conecta con 2, 3} \\ \text{Nodo 2 conecta con 1, 3, 4} \\ \text{Nodo 3 conecta con 1, 2, 4} \\ \text{Nodo 4 conecta con 2, 3} \end{array} \]
+    </p>
+    
+    <p class="reveal mt"><strong>Grado de un nodo:</strong> número de conexiones.<br>
+    \(\text{grado}(i) = \sum_j A_{ij}\) (suma de la fila \(i\)).<br>
+    Nodo 2 y 3 tienen grado 3 (los más conectados).</p>
+  </div>
+
+  <!-- SLIDE 6: MATRIZ DE PESOS -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-weight-hanging"></i> Matriz de Pesos: Distancias y Costos</h2>
+    
+    <div class="formula-card reveal">
+      <span class="b-title">Matriz de pesos (o costos)</span>
+      \[ W_{ij} = \begin{cases} w_{ij} & \text{si existe arista de } i \text{ a } j \text{ con peso } w_{ij} \\ 0 \text{ o } \infty & \text{si no hay conexión directa} \end{cases} \]
+    </div>
+    
+    <p class="reveal mt"><strong>Para la red de 4 depósitos (distancias en km):</strong>
+      \[ W = \begin{pmatrix} 0 & 50 & 80 & \infty \\ 50 & 0 & 70 & 60 \\ 80 & 70 & 0 & 40 \\ \infty & 60 & 40 & 0 \end{pmatrix} \]
+    </p>
+    
+    <div class="example-block reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación</span>
+      \(W_{13} = 80\) km: la ruta directa del depósito 1 al 3 tiene 80 km.<br>
+      \(W_{14} = \infty\): no hay ruta directa de 1 a 4 (se debe pasar por 2 o 3).<br>
+      La diagonal es 0 (distancia de un nodo a sí mismo).
+    </div>
+  </div>
+
+  <!-- SLIDE 7: POTENCIAS DE LA MATRIZ -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-calculator"></i> Potencias de la Matriz de Adyacencia</h2>
+    
+    <div class="block reveal">
+      <span class="b-title">Propiedad fundamental</span>
+      \((A^k)_{ij}\) = número de caminos de longitud exactamente \(k\) del nodo \(i\) al nodo \(j\).
+    </div>
+    
+    <p class="reveal mt"><strong>Para el grafo de 4 depósitos:</strong>
+      \[ A^2 = A \cdot A = \begin{pmatrix} 2 & 1 & 1 & 2 \\ 1 & 3 & 2 & 1 \\ 1 & 2 & 3 & 1 \\ 2 & 1 & 1 & 2 \end{pmatrix} \]
+    </p>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-info-circle"></i> Interpretaciones</span>
+      <ul>
+        <li>\((A^2)_{14} = 2\): hay <strong>2 caminos de longitud 2</strong> del nodo 1 al 4. (1→2→4 y 1→3→4.)</li>
+        <li>\((A^2)_{22} = 3\): hay <strong>3 caminos de longitud 2</strong> del nodo 2 a sí mismo. (Ciclos de longitud 2.)</li>
+        <li>La diagonal de \(A^2\) da el <strong>grado</strong> de cada nodo.</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Uso en logística</span>
+      \(A^k\) permite identificar cuántas rutas alternativas existen entre dos depósitos con exactamente \(k\) transbordes. Útil para planificar rutas de contingencia.
+    </div>
+  </div>
+
+  <!-- SLIDE 8: NODO CRÍTICO -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-exclamation-triangle"></i> Nodo Crítico: Definición y Medidas</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-bullseye"></i> Un nodo es "crítico" si su eliminación</span>
+          <ul>
+            <li class="reveal">Desconecta partes de la red</li>
+            <li class="reveal">Reduce significativamente la conectividad</li>
+            <li class="reveal">Aumenta las distancias mínimas entre nodos</li>
+            <li class="reveal">Tiene muchas conexiones (hub)</li>
+          </ul>
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-chart-line"></i> Medidas de centralidad</span>
+          <ul>
+            <li><strong>Grado</strong>: número de conexiones directas.</li>
+            <li><strong>Intermediación</strong>: cuántos caminos mínimos pasan por ese nodo.</li>
+            <li><strong>Cercanía</strong>: qué tan rápido llega a todos los demás.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/nodo_critico.png" alt="Nodo crítico de una red" style="max-width:330px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">El nodo 3 es el único puente entre {1, 2} y {4, 5}: si falla, la red se divide en dos componentes.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: CASO 6 NODOS -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-network-wired"></i> Caso: Red de Distribución de 6 Nodos</h2>
+    
+    <p class="reveal"><strong>Red con 6 depósitos (no dirigida):</strong>
+      \[ A = \begin{pmatrix} 0&1&1&0&0&0\\ 1&0&1&1&0&0\\ 1&1&0&1&1&0\\ 0&1&1&0&1&1\\ 0&0&1&1&0&1\\ 0&0&0&1&1&0 \end{pmatrix} \]
+    </p>
+    
+    <table class="degree-table reveal mt">
+      <tr><th>Nodo</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td></tr>
+      <tr><th>Grado</th><td>2</td><td>3</td><td class="critical">4</td><td class="critical">4</td><td>3</td><td>2</td></tr>
+    </table>
+    
+    <p class="reveal mt"><strong>Nodos 3 y 4 tienen grado 4</strong>: son los más conectados.<br>
+    Si uno de ellos falla, la red pierde 4 conexiones directas.</p>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-shield-alt"></i> Verificación con eliminación</span>
+      Si se elimina el nodo 3 (y sus aristas), el nodo 1 queda con grado 1 (solo conectado a 2). La red se vuelve más vulnerable.<br>
+      Recomendar redundancia en los nodos 3 y 4.
+    </div>
+  </div>
+
+  <!-- SLIDE 10: IMAGEN LIBRO -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-image"></i> Grafos y Matrices: red de 6 depósitos</h2>
+    
+    <div class="reveal"><img class="fig" src="imagenes/grafo_y_matrices.png" alt="Grafo de 6 depósitos con su matriz A y A al cubo"><p class="fig-cap">\((A^3)_{16}=3\): hay 3 caminos de longitud 3 del nodo 1 al 6 (1→2→4→6, 1→3→4→6, 1→3→5→6)</p></div>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Generar la imagen con MATLAB</span>
+      Ejecutar la Sección 2 del script <code>clase29_redes.m</code> para generar la visualización de la red con <code>graph(A)</code> y exportar como PNG.
+    </div>
+  </div>
+
+  <!-- SLIDE 11: MATLAB GRAPH() -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Construir y Visualizar Grafos</h2>
+    
+    <pre><span class="mc">% Matriz de adyacencia (red de 6 depositos)</span>
+A = <span class="mf">[</span><span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span> <span class="mn">0</span> <span class="mn">0</span>;
+     <span class="mn">1</span> <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span> <span class="mn">0</span>;
+     <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span>;
+     <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span>;
+     <span class="mn">0</span> <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span> <span class="mn">1</span>;
+     <span class="mn">0</span> <span class="mn">0</span> <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span><span class="mf">]</span>;
+
+<span class="mc">% Crear el grafo</span>
+G = <span class="mk">graph</span>(A);
+
+<span class="mc">% Grado de cada nodo</span>
+grados = <span class="mk">degree</span>(G);
+<span class="mk">fprintf</span>(<span class="ms">'Grados de los nodos:\n'</span>)
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mn">6</span>
+    <span class="mk">fprintf</span>(<span class="ms">'  Nodo %d: grado %d\n'</span>, i, grados(i))
+<span class="mk">end</span>
+[max_g, nodo_critico] = <span class="mk">max</span>(grados);
+<span class="mk">fprintf</span>(<span class="ms">'Nodo mas critico: Nodo %d (grado %d)\n'</span>, nodo_critico, max_g)
+
+<span class="mc">% Visualizacion</span>
+<span class="mk">figure</span>(<span class="ms">'Position'</span>,<span class="mf">[</span><span class="mn">50</span> <span class="mn">50</span> <span class="mn">700</span> <span class="mn">500</span><span class="mf">]</span>);
+h = <span class="mk">plot</span>(G, <span class="ms">'Layout'</span>,<span class="ms">'force'</span>, <span class="ms">'NodeLabel'</span>, <span class="mn">1</span>:<span class="mn">6</span>,...
+    <span class="ms">'NodeFontSize'</span>, <span class="mn">12</span>, <span class="ms">'MarkerSize'</span>, <span class="mn">10</span>,...
+    <span class="ms">'NodeColor'</span>, <span class="mf">[</span><span class="mn">0</span> <span class="mn">0.45</span> <span class="mn">0.74</span><span class="mf">]</span>, <span class="ms">'EdgeColor'</span>, <span class="mf">[</span><span class="mn">0.5</span> <span class="mn">0.5</span> <span class="mn">0.5</span><span class="mf">]</span>);
+<span class="mc">% Resaltar nodo critico en rojo</span>
+<span class="mk">highlight</span>(h, nodo_critico, <span class="ms">'NodeColor'</span>, <span class="ms">'r'</span>, <span class="ms">'MarkerSize'</span>, <span class="mn">14</span>)
+<span class="mk">title</span>(<span class="ms">'Red Logistica: Nodo Critico en Rojo'</span>)</pre>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>Grados: <code>2 3 4 4 3 2</code> · <code>Nodo mas critico: Nodo 3 (grado 4)</code> (empata con el nodo 4; <code>max</code> devuelve el primero).</div>
+  </div>
+
+  <!-- SLIDE 12: MATLAB POTENCIAS -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Potencias de la Matriz y Caminos</h2>
+    <p class="mb" style="font-size:0.85rem;"><strong>Salida esperada:</strong> caminos de longitud 2 de 1 a 6: <code>0</code>; de longitud 3: <code>3</code>. Distancias promedio (incluye el propio nodo): <code>1.50 1.17 1.00 1.00 1.17 1.50</code> ⇒ nodo más central: <strong>Nodo 3</strong> (empata con el 4).</p>
+    
+    <pre><span class="mc">% Potencias de la matriz de adyacencia</span>
+A2 = A^<span class="mn">2</span>;
+A3 = A^<span class="mn">3</span>;
+
+<span class="mk">fprintf</span>(<span class="ms">'Caminos de longitud 2 (A^2):\n'</span>)
+<span class="mk">disp</span>(A2)
+<span class="mk">fprintf</span>(<span class="ms">'Caminos de longitud 3 (A^3):\n'</span>)
+<span class="mk">disp</span>(A3)
+
+<span class="mc">% Caminos entre nodo 1 y nodo 6</span>
+<span class="mk">fprintf</span>(<span class="ms">'Caminos de longitud 2 de nodo 1 a nodo 6: %d\n'</span>, A2(<span class="mn">1</span>,<span class="mn">6</span>))
+<span class="mk">fprintf</span>(<span class="ms">'Caminos de longitud 3 de nodo 1 a nodo 6: %d\n'</span>, A3(<span class="mn">1</span>,<span class="mn">6</span>))
+
+<span class="mc">% Distancias minimas entre todos los pares de nodos</span>
+D = <span class="mk">distances</span>(G);
+<span class="mk">fprintf</span>(<span class="ms">'\nMatriz de distancias minimas (saltos):\n'</span>)
+<span class="mk">disp</span>(D)
+
+<span class="mc">% Nodo con menor distancia promedio a todos (mas central)</span>
+dist_media = <span class="mk">mean</span>(D, <span class="mn">2</span>);
+[~, nodo_central] = <span class="mk">min</span>(dist_media);
+<span class="mk">fprintf</span>(<span class="ms">'Nodo mas central (menor distancia promedio): Nodo %d\n'</span>, nodo_central)
+<span class="mk">fprintf</span>(<span class="ms">'Distancias promedio por nodo:\n'</span>)
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mn">6</span>
+    <span class="mk">fprintf</span>(<span class="ms">'  Nodo %d: %.2f saltos promedio\n'</span>, i, dist_media(i))
+<span class="mk">end</span></pre>
+  </div>
+
+  <!-- SLIDE 13: MATLAB VULNERABILIDAD -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Análisis de Vulnerabilidad</h2>
+    <p class="mb" style="font-size:0.85rem;"><strong>Salida esperada:</strong> al eliminar cualquier nodo la red queda con <code>1</code> componente (ningún nodo la desconecta); aristas perdidas = grado: <code>2 3 4 4 3 2</code>. Los nodos 3 y 4 son los que más rutas eliminan.</p>
+    
+    <pre><span class="mc">% Analisis de vulnerabilidad: eliminar cada nodo y medir impacto</span>
+<span class="mk">fprintf</span>(<span class="ms">'=== ANALISIS DE VULNERABILIDAD ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%-10s %-18s %-18s\n'</span>,<span class="ms">'Nodo'</span>,<span class="ms">'Componentes'</span>,<span class="ms">'Aristas perdidas'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%s\n'</span>, <span class="mk">repmat</span>(<span class="ms">'-'</span>,<span class="mn">46</span>,<span class="mn">1</span>))
+
+<span class="mk">for</span> nodo_falla = <span class="mn">1</span>:<span class="mn">6</span>
+    <span class="mc">% Eliminar nodo y sus aristas</span>
+    nodos_rest = <span class="mk">setdiff</span>(<span class="mn">1</span>:<span class="mn">6</span>, nodo_falla);
+    A_red = A(nodos_rest, nodos_rest);
+    G_red = <span class="mk">graph</span>(A_red);
+
+    <span class="mc">% Contar componentes conectados</span>
+    comp = <span class="mk">conncomp</span>(G_red);
+    n_comp = <span class="mk">max</span>(comp);
+
+    <span class="mc">% Aristas perdidas</span>
+    aristas_perdidas = <span class="mk">sum</span>(A(nodo_falla,:));
+
+    critico = <span class="ms">''</span>;
+<span class="mk">if</span> n_comp > <span class="mn">1</span>, critico = <span class="ms">'RED DESCONECTADA'</span>; <span class="mk">end</span>
+    <span class="mk">fprintf</span>(<span class="ms">'%-10d %-18d %-18d %s\n'</span>, ...
+        nodo_falla, n_comp, aristas_perdidas, critico);
+<span class="mk">end</span>
+
+<span class="mc">% Grafo dirigido (digrafo): red de suministro unidireccional</span>
+s_arc = <span class="mf">[</span><span class="mn">1</span> <span class="mn">1</span> <span class="mn">2</span> <span class="mn">2</span> <span class="mn">3</span> <span class="mn">4</span><span class="mf">]</span>;   <span class="mc">% nodo origen</span>
+t_arc = <span class="mf">[</span><span class="mn">2</span> <span class="mn">3</span> <span class="mn">3</span> <span class="mn">4</span> <span class="mn">5</span> <span class="mn">5</span><span class="mf">]</span>;   <span class="mc">% nodo destino</span>
+pesos = <span class="mf">[</span><span class="mn">50</span> <span class="mn">80</span> <span class="mn">70</span> <span class="mn">60</span> <span class="mn">40</span> <span class="mn">90</span><span class="mf">]</span>;  <span class="mc">% km</span>
+
+DG = <span class="mk">digraph</span>(s_arc, t_arc, pesos);
+<span class="mk">figure</span>(<span class="ms">'Position'</span>,<span class="mf">[</span><span class="mn">50</span> <span class="mn">50</span> <span class="mn">600</span> <span class="mn">420</span><span class="mf">]</span>)
+<span class="mk">plot</span>(DG,<span class="ms">'Layout'</span>,<span class="ms">'layered'</span>,<span class="ms">'EdgeLabel'</span>,pesos,...
+    <span class="ms">'NodeColor'</span>,<span class="mf">[</span><span class="mn">0</span> <span class="mn">0.69</span> <span class="mn">0.31</span><span class="mf">]</span>,<span class="ms">'ArrowSize'</span>,<span class="mn">12</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>)
+<span class="mk">title</span>(<span class="ms">'Red de Suministro Dirigida'</span>)</pre>
+  </div>
+
+  <!-- SLIDE 14: CASO NACIONAL -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-globe-americas"></i> Caso: Red de Distribución Nacional</h2>
+    
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-warehouse"></i> Una empresa tiene 7 centros de distribución conectados</span>
+          <ul>
+            <li class="reveal">CD1 (capital): conectado a CD2, CD3, CD4</li>
+            <li class="reveal">CD2 (norte): conectado a CD1, CD3, CD5</li>
+            <li class="reveal">CD3 (centro): conectado a CD1, CD2, CD4, CD5, CD6</li>
+            <li class="reveal">CD4 (sur): conectado a CD1, CD3, CD6</li>
+            <li class="reveal">CD5 (este): conectado a CD2, CD3, CD7</li>
+            <li class="reveal">CD6 (oeste): conectado a CD3, CD4, CD7</li>
+            <li class="reveal">CD7 (remoto): conectado a CD5, CD6</li>
+          </ul>
+        </div>
+        <div class="reveal"><img class="fig" src="imagenes/red_nacional_7cd.png" alt="Red nacional de 7 CD" style="max-width:300px"><p class="fig-cap">Línea verde discontinua: ruta de contingencia propuesta CD5–CD6</p></div>
+      </div>
+      <div>
+        <table class="degree-table reveal mt" style="font-size:0.8rem;">
+          <tr><th>Nodo</th><th>Grado</th></tr>
+          <tr><td>CD1</td><td>3</td></tr>
+          <tr><td>CD2</td><td>3</td></tr>
+          <tr><td class="critical">CD3</td><td class="critical">5</td></tr>
+          <tr><td>CD4</td><td>3</td></tr>
+          <tr><td>CD5</td><td>3</td></tr>
+          <tr><td>CD6</td><td>3</td></tr>
+          <tr><td>CD7</td><td>2</td></tr>
+        </table>
+        <p class="reveal mt" style="color:var(--red); font-weight:600;">CD3 es el nodo crítico (grado 5).</p>
+      </div>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Decisión: ¿Qué hacer con el nodo crítico?</span>
+      Si CD3 falla, la red <strong>sigue conectada</strong> (CD7 se abastece por CD5–CD2 o CD6–CD4), pero se pierden 5 de las 11 rutas y la distancia media entre centros sube de 1.52 a 1.80 saltos (+18%).<br>
+      Recomendación: agregar la conexión directa CD5–CD6 como ruta de contingencia: con CD3 caído, la distancia media baja a 1.60 saltos. Además, CD7 (grado 2) quedaría aislado solo si fallaran a la vez CD5 y CD6.
+    </div>
+  </div>
+
+  <!-- SLIDE 15: RESUMEN -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-flag-checkered"></i> Resumen: Herramientas de Análisis de Redes</h2>
+    
+    <table class="compact reveal" style="font-size:0.85rem;">
+      <tr><th>Herramienta</th><th>Fórmula/Función</th><th>Información obtenida</th><th>MATLAB</th></tr>
+      <tr><td>Matriz adyacencia</td><td>\(A_{ij}\in\{0,1\}\)</td><td>Conexiones directas</td><td><code>graph(A)</code></td></tr>
+      <tr><td>Grado del nodo</td><td>\(\sum_j A_{ij}\)</td><td>Conectividad local</td><td><code>degree(G)</code></td></tr>
+      <tr><td>Potencias \(A^k\)</td><td>Multiplicación</td><td>Caminos de longitud \(k\)</td><td><code>A^k</code></td></tr>
+      <tr><td>Distancias mín.</td><td>Floyd-Warshall</td><td>Camino más corto</td><td><code>distances(G)</code></td></tr>
+      <tr><td>Componentes</td><td>Búsqueda DFS</td><td>Partes conectadas</td><td><code>conncomp(G)</code></td></tr>
+      <tr><td>Centralidad</td><td>Suma de distancias</td><td>Nodo más central</td><td><code>centrality(G)</code></td></tr>
+    </table>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-gavel"></i> Nodo crítico: cómo identificarlo</span>
+      <ol>
+        <li class="reveal">Mayor grado (más conexiones directas).</li>
+        <li class="reveal">Al eliminarlo, la red se desconecta (componentes > 1).</li>
+        <li class="reveal">Menor distancia promedio a todos los demás (centralidad).</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: PUNTO DE DECISIÓN -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-gavel"></i> Punto de Decisión</h2>
+    
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Pregunta de Cierre</span><br><br>
+      <em>Tu red de distribución tiene 7 centros. El análisis muestra que CD3 tiene grado 5 y que su caída elimina 5 de las 11 rutas y aumenta un 18% la distancia media (la red sigue conectada, pero más frágil). El costo de agregar una ruta de contingencia CD5-CD6 es $50.000.</em><br><br>
+      <strong>¿Intervendrías el sistema agregando la ruta de contingencia, o lo mantendrías como está? ¿Qué información adicional pedirías antes de decidir?</strong>
+    </div>
+    
+    <div class="decision-cards mt">
+      <div class="dc-card a reveal">
+        <strong>A favor de intervenir</strong><br><br>
+        Sin CD3, todo el flujo este–oeste depende de CD7 y de rutas más largas; una segunda falla (CD5 o CD6) dejaría a CD7 con una única ruta. Si el costo de esas demoras/rupturas supera $50.000/año, conviene intervenir.
+      </div>
+      <div class="dc-card b reveal">
+        <strong>Información adicional</strong><br><br>
+        Volumen de CD7, frecuencia de fallas de CD3, costo de operación de la ruta CD5-CD6.
+      </div>
+      <div class="dc-card c reveal">
+        <strong>Alternativa</strong><br><br>
+        Agregar inventario de seguridad en CD7 para sobrevivir 2 semanas sin suministro vs costo de la ruta.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: TAREA -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 30</h2>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lecturas</span>
+      <ul>
+        <li class="reveal"><strong>Lay</strong>, Cap. 5.1-5.2: Eigenvalores y eigenvectores</li>
+        <li class="reveal">Pensar: si la matriz de adyacencia tiene eigenvalores, ¿qué significan?</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Ejercicio preparatorio</span>
+      Con el script <code>clase29_redes.m</code>:
+      <ol>
+        <li class="reveal">Construir la red de 7 centros de distribución del caso.</li>
+        <li class="reveal">Calcular el grado de cada nodo y el nodo más crítico.</li>
+        <li class="reveal">Simular la falla de CD3: verificar con <code>conncomp</code> que la red sigue conectada y medir el aumento de la distancia media.</li>
+        <li class="reveal">Agregar la arista CD5-CD6 y re-verificar la conectividad.</li>
+        <li class="reveal">Calcular las distancias mínimas entre todos los pares antes y después.</li>
+      </ol>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Próxima clase 30</span>
+      <strong>Eigenvalores (conceptual)</strong> — relación con la estabilidad de sistemas logísticos
+    </div>
+  </div>
+
+  <!-- SLIDE 18: REFERENCIAS -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Lay, D.C., Lay, S.R., McDonald, J.J.</strong> (2016). <em>Álgebra Lineal y sus Aplicaciones</em> (5a ed.). Pearson. Cap. 10 (Aplicaciones a grafos — si disponible) o material propio.</li>
+      <li class="reveal"><strong>Diestel, R.</strong> (2017). <em>Graph Theory</em> (5th ed.). Springer. Cap. 1 (The Basics).</li>
+      <li class="reveal"><strong>Newman, M.E.J.</strong> (2010). <em>Networks: An Introduction</em>. Oxford University Press. Cap. 6 (Matrix Methods).</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>graph</code>, <code>digraph</code>, <code>degree</code>, <code>distances</code>, <code>conncomp</code>, <code>centrality</code>. <a href="https://www.mathworks.com/help/matlab/graph-and-network-algorithms.html" style="color:var(--orange);">https://www.mathworks.com/help/matlab/graph-and-network-algorithms.html</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Script <code>clase29_redes.m</code>.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--orange); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 29 | Matrices de Adyacencia y Redes</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: CIERRE -->
+  <div class="slide" data-slide="19">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--orange); margin-bottom:1rem;"></i>
+      <h1>¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 30: Eigenvalores y Estabilidad de Sistemas</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

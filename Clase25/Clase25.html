@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 25: Regresión Cuadrática</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003a6b;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff3e0;
+      --red: #b41414;
+      --purple: #640096;
+      --purple-light: #f3e6f7;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--navy);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--navy);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block strong { color: var(--orange); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--purple); border-color: var(--purple); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    /* Quadratic curve visualization */
+    .quad-plot { width: 280px; height: 200px; margin: 0.5rem auto; position: relative; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; }
+    .qp-axis { position: absolute; font-size: 0.7rem; color: #64748b; }
+    .qp-x { bottom: -15px; right: 5px; } .qp-y { top: 5px; left: -25px; }
+    .qp-point { position: absolute; width: 6px; height: 6px; background: var(--navy); border-radius: 50%; transform: translate(-50%, -50%); }
+    .qp-line { position: absolute; height: 2px; background: var(--red); border-style: dashed; }
+    .qp-curve { position: absolute; background: none; border: 2px solid var(--green); border-radius: 50% 50% 0 0; transform-origin: bottom center; }
+    .qp-label { position: absolute; font-size: 0.7rem; font-weight: 600; }
+    
+    /* Parabola shapes */
+    .parabola { position: absolute; width: 200px; height: 120px; margin: 0.5rem auto; }
+    .para-u { border: 3px solid var(--navy); border-radius: 0 0 100px 100px; border-top: none; }
+    .para-arc { border: 3px solid var(--red); border-radius: 100px 100px 0 0; border-bottom: none; }
+    .para-label { position: absolute; font-size: 0.75rem; font-weight: 600; }
+
+    /* Model comparison table */
+    .model-table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.9rem; }
+    .model-table th, .model-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    .model-table th { background: #f8fafc; font-weight: 600; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .decision-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+    .dc-card { padding: 0.8rem; border-radius: 8px; text-align: center; border: 2px solid; font-size: 0.85rem; }
+    .dc-card.a { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .dc-card.b { border-color: var(--orange); background: var(--orange-light); }
+    .dc-card.c { border-color: #94a3b8; background: #f1f5f9; }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--navy); margin: 0.5rem 0; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-chart-area fa-3x" style="color:var(--purple); margin-bottom:1rem;"></i>
+      <h1>Regresión Cuadrática y Modelos No Lineales</h1>
+      <p class="sub">Identificar Comportamientos No Lineales en Logística</p>
+      <p class="sub" style="color:var(--purple); font-weight:600;">Módulo 5 — Regresión y Análisis de Datos</p>
+      <p class="sub">Matemáticas 2 — Clase 25</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 25</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Objetivos de Aprendizaje</li>
+      <li class="reveal">Fenómenos No Lineales en Logística</li>
+      <li class="reveal">Modelo Cuadrático: Definición</li>
+      <li class="reveal">Interpretación de los Coeficientes Cuadráticos</li>
+      <li class="reveal">Cuándo Cambiar de Lineal a Cuadrático</li>
+      <li class="reveal">Datos: Demanda Estacional de Envíos</li>
+      <li class="reveal">Ajuste Cuadrático: Cálculo Paso a Paso</li>
+      <li class="reveal">Comparación: Lineal vs Cuadrático</li>
+      <li class="reveal">Imagen: Ajuste Cuadrático sobre los Datos</li>
+      <li class="reveal">MATLAB: Ajuste Polinomial de Grado 2</li>
+      <li class="reveal">MATLAB: Comparar y Visualizar</li>
+      <li class="reveal">MATLAB: Predicción y Punto Óptimo</li>
+      <li class="reveal">Grado 3 y Superior: Cuándo y Cómo</li>
+      <li class="reveal">El Peligro del Sobreajuste Polinomial</li>
+      <li class="reveal">Caso: Costo de Almacenamiento vs Nivel de Inventario</li>
+      <li class="reveal">MATLAB: Encontrar el Nivel Máximo de Inventario</li>
+      <li class="reveal">Resumen: Lineal vs Cuadrático</li>
+      <li class="reveal">Punto de Decisión</li>
+      <li class="reveal">Tarea para la Clase 26</li>
+      <li class="reveal">Referencias</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de Aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Identificar</strong> cuándo un modelo lineal es insuficiente usando el gráfico de residuos.</li>
+      <li class="reveal"><strong>Formular</strong> el modelo de regresión cuadrática \(\hat y = \beta_0 + \beta_1 x + \beta_2 x^2\).</li>
+      <li class="reveal"><strong>Ajustar</strong> modelos de grado 1 y 2 con <code>polyfit(x,y,2)</code> en MATLAB.</li>
+      <li class="reveal"><strong>Visualizar</strong> y comparar curvas ajustadas con los datos reales.</li>
+      <li class="reveal"><strong>Decidir</strong> cuándo cambiar de modelo lineal a cuadrático (o superior).</li>
+    </ol>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Conexión con Clase 24</span>
+      Clase 24: en el gráfico de residuos, patrón curvo en U = modelo lineal insuficiente.<br>
+      Clase 25: <strong>cómo resolver ese problema</strong> con regresión cuadrática.
+    </div>
+  </div>
+
+  <!-- SLIDE 3: FENÓMENOS NO LINEALES -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-wave-square"></i> Fenómenos No Lineales en Logística</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-list-check"></i> La realidad logística tiene muchos comportamientos curvos</span>
+          <ul>
+            <li class="reveal">Demanda estacional (picos de Navidad, verano)</li>
+            <li class="reveal">Costo de almacenamiento: sube lento al inicio, muy rápido al llenarse</li>
+            <li class="reveal">Curva de aprendizaje: primeras unidades son lentas, luego se acelera</li>
+            <li class="reveal">Consumo de combustible vs velocidad: mínimo a velocidad óptima</li>
+            <li class="reveal">Costo de ruptura de stock: cero cuando hay inventario, catastrófico cuando se agota</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/lineal_vs_cuadratico_concepto.png" alt="Ajuste lineal vs cuadrático" style="max-width:400px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">La recta no captura la curvatura. Necesitamos un modelo de grado 2.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: MODELO CUADRÁTICO -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-square"></i> Modelo Cuadrático: Definición</h2>
+    <div class="block reveal">
+      <span class="b-title">Modelo polinomial de grado 2</span>
+      \[ \hat y = \beta_0 + \beta_1 x + \beta_2 x^2 \]
+      Tres coeficientes: intercepto, término lineal y término cuadrático.
+    </div>
+    
+    <p class="reveal mt"><strong>Es un caso especial de regresión múltiple.</strong><br>
+    Definiendo \(x_1 = x\) y \(x_2 = x^2\):
+      \[ \hat y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 \]
+    </p>
+    
+    <div class="formula-card reveal">
+      La matriz de diseño es:
+      \[ \mathbf{X} = \begin{pmatrix} 1 & x_1 & x_1^2 \\ 1 & x_2 & x_2^2 \\ \vdots & \vdots & \vdots \\ 1 & x_n & x_n^2 \end{pmatrix} \]
+      Y se resuelve con las mismas ecuaciones normales \(\hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}\).
+    </div>
+  </div>
+
+  <!-- SLIDE 5: INTERPRETACIÓN COEFICIENTES -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-info-circle"></i> Interpretación de los Coeficientes Cuadráticos</h2>
+    
+    <div class="formula-card reveal">
+      \[ \hat y = \hat\beta_0 + \hat\beta_1 x + \hat\beta_2 x^2 \]
+    </div>
+    
+    <div class="col-layout mt">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-calculator"></i> Coeficientes</span>
+          <ul>
+            <li class="reveal"><strong>\(\hat\beta_0\)</strong> (intercepto): valor de \(\hat y\) cuando \(x=0\).</li>
+            <li class="reveal"><strong>\(\hat\beta_1\)</strong> (término lineal): tasa de cambio inicial.</li>
+            <li class="reveal"><strong>\(\hat\beta_2\)</strong> (término cuadrático): curvatura de la función.
+              <ul>
+                <li>\(\hat\beta_2 > 0\): curva en U (mínimo en algún punto)</li>
+                <li>\(\hat\beta_2 &lt; 0\): curva en arco (máximo en algún punto)</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/parabolas_signo_beta2.png" alt="Forma de la parábola según el signo de beta2" style="max-width:420px"></div>
+      </div>
+    </div>
+    
+    <p class="reveal mt"><strong>Punto óptimo:</strong> El máximo/mínimo se alcanza en \(x^* = -\hat\beta_1 / (2\hat\beta_2)\).</p>
+  </div>
+
+  <!-- SLIDE 6: CUÁNDO CAMBIAR -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-exchange-alt"></i> Cuándo Cambiar de Lineal a Cuadrático</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-signs-post"></i> Señales de que el modelo lineal es insuficiente</span>
+          <ol>
+            <li class="reveal">Gráfico de residuos muestra patrón en U o arco</li>
+            <li class="reveal">Los datos tienen forma visualmente curva</li>
+            <li class="reveal">El RMSE del modelo cuadrático es mucho menor</li>
+            <li class="reveal">\(R^2_\text{adj}\) sube al agregar \(x^2\)</li>
+            <li class="reveal">El conocimiento del proceso indica no linealidad</li>
+          </ol>
+        </div>
+      </div>
+      <div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-truck"></i> Ejemplos logísticos típicos</span>
+          <ul>
+            <li><span style="color:var(--red);">Costo almacén vs ocupación</span>: crece lento al inicio, muy rápido al saturar</li>
+            <li><span style="color:var(--navy);">Demanda vs precio</span>: cae rápido con precios altos</li>
+            <li><span style="color:var(--green);">Tiempo entrega vs carga</span>: sube lento al inicio, rápido cerca del límite</li>
+            <li><span style="color:var(--orange);">Combustible vs velocidad</span>: mínimo a velocidad óptima (≈80 km/h)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Regla práctica</span>
+      Si el \(R^2_\text{adj}\) del modelo cuadrático supera en más de <strong>0.02</strong> al del lineal, el término cuadrático aporta información real.<br>
+      Si la mejora es menor, la curvatura puede deberse al azar.
+    </div>
+  </div>
+
+  <!-- SLIDE 7: DATOS DEMANDA -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-calendar-alt"></i> Datos: Demanda Estacional de Envíos</h2>
+    
+    <p class="reveal"><strong>Una empresa registra la demanda mensual durante 12 meses:</strong></p>
+    
+    <table class="compact reveal" style="font-size:0.8rem;">
+      <tr><th>Mes</th><th>\(x\)</th><th>\(y\) (ton)</th><th>Mes</th><th>\(x\)</th><th>\(y\) (ton)</th></tr>
+      <tr><td>Enero</td><td>1</td><td>42</td><td>Julio</td><td>7</td><td>95</td></tr>
+      <tr><td>Feb</td><td>2</td><td>48</td><td>Agosto</td><td>8</td><td>88</td></tr>
+      <tr><td>Marzo</td><td>3</td><td>58</td><td>Sep</td><td>9</td><td>76</td></tr>
+      <tr><td>Abril</td><td>4</td><td>70</td><td>Octubre</td><td>10</td><td>62</td></tr>
+      <tr><td>Mayo</td><td>5</td><td>82</td><td>Noviembre</td><td>11</td><td>51</td></tr>
+      <tr><td>Junio</td><td>6</td><td>91</td><td>Diciembre</td><td>12</td><td>45</td></tr>
+    </table>
+    
+    <p class="reveal mt"><strong>Patrón:</strong> la demanda sube de enero a junio/julio y luego baja.<br>
+    Es un comportamiento <strong>cuadrático</strong> (arco invertido).</p>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Modelo lineal: insuficiente</span>
+      El modelo lineal \(\hat y = \beta_0 + \beta_1 x\) no puede capturar este patrón de ida y vuelta.<br>
+      Necesitamos el modelo cuadrático.
+    </div>
+  </div>
+
+  <!-- SLIDE 8: AJUSTE CUADRÁTICO -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-calculator"></i> Ajuste Cuadrático: Cálculo Paso a Paso</h2>
+    
+    <p class="reveal"><strong>Datos:</strong> \(n=12\), \(x = 1,\ldots,12\), valores de \(y\) dados.<br>
+    <strong>Herramienta:</strong> <code>polyfit(x, y, 2)</code> en MATLAB.</p>
+    
+    <div class="reveal mt"><strong>Resultado del ajuste cuadrático:</strong>
+      \[ \hat y = 14.59 + 21.73\,x - 1.634\,x^2 \]
+    </div>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-info-circle"></i> Interpretación</span>
+      <ul>
+        <li>\(\hat\beta_0 = 14.59\): demanda base (extrapolación a \(x=0\))</li>
+        <li>\(\hat\beta_1 = 21.73\): tasa inicial de crecimiento mensual</li>
+        <li>\(\hat\beta_2 = -1.634\): curvatura negativa (la demanda sube y luego baja)</li>
+      </ul>
+    </div>
+    
+    <div class="reveal mt"><strong>Punto máximo:</strong>
+      \[ x^* = -\frac{\hat\beta_1}{2\hat\beta_2} = -\frac{21.73}{2\times(-1.634)} \approx 6.65 \;\Rightarrow\; \text{entre junio y julio} \]
+      Demanda máxima estimada: \(\hat y(6.65)\approx 86.8\) ton. Coincide con los datos: el pico es en mes 6–7. <span class="ok">✓</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: COMPARACIÓN MODELOS -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-balance-scale"></i> Comparación: Lineal vs Cuadrático</h2>
+    
+    <table class="model-table reveal">
+      <tr><th>Modelo</th><th>\(R^2\)</th><th>\(R^2_\text{adj}\)</th><th>RMSE</th><th>MAPE</th></tr>
+      <tr><td>Lineal (grado 1)</td><td>0.009</td><td>−0.090</td><td>18.1 ton</td><td>26.5%</td></tr>
+      <tr><td>Cuadrático (grado 2)</td><td>0.911</td><td>0.892</td><td>5.4 ton</td><td>8.1%</td></tr>
+    </table>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-eye"></i> Lectura</span>
+      <ul>
+        <li>El modelo lineal es casi inútil (\(R^2 \approx 0\)): los datos no tienen tendencia lineal.</li>
+        <li>El cuadrático explica el 91.1% de la variabilidad con RMSE de 5.4 ton.</li>
+        <li>La mejora en \(R^2_\text{adj}\) es de −0.09 (≈ 0) a 0.892: el término \(x^2\) aporta muchísimo.</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> Conclusión</span>
+      <strong>El modelo cuadrático es claramente superior.</strong><br>
+      Un MAPE del 8.1% es muy bueno (&lt;10%) para planificación de producción.
+    </div>
+  </div>
+
+  <!-- SLIDE 10: IMAGEN AJUSTE -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-image"></i> Ajuste Cuadrático sobre los Datos</h2>
+    
+    <div class="reveal"><img class="fig" src="imagenes/clase25_ajuste_cuadratico.png" alt="Ajuste cuadrático sobre los datos de demanda"><p class="fig-cap">Datos (azul), recta lineal (rojo discontinuo) y parábola ajustada (verde)</p></div>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-eye"></i> Qué buscar en el gráfico</span>
+      La curva cuadrática debe pasar cerca de todos los puntos.<br>
+      La recta lineal tiene residuos sistemáticos: negativos en los extremos, positivos en el centro.<br>
+      Esto confirma que el patrón es cuadrático.
+    </div>
+  </div>
+
+  <!-- SLIDE 11: MATLAB POLYFIT -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Ajuste Polinomial de Grado 2</h2>
+    
+    <pre><span class="mc">% Datos: mes (1-12) y demanda (ton)</span>
+x = (<span class="mn">1</span>:<span class="mn">12</span>)';
+y = <span class="mf">[</span><span class="mn">42</span>;<span class="mn">48</span>;<span class="mn">58</span>;<span class="mn">70</span>;<span class="mn">82</span>;<span class="mn">91</span>;<span class="mn">95</span>;<span class="mn">88</span>;<span class="mn">76</span>;<span class="mn">62</span>;<span class="mn">51</span>;<span class="mn">45</span><span class="mf">]</span>;
+
+<span class="mc">% Ajuste lineal (grado 1)</span>
+p1 = <span class="mk">polyfit</span>(x, y, <span class="mn">1</span>);
+y_hat1 = <span class="mk">polyval</span>(p1, x);
+
+<span class="mc">% Ajuste cuadratico (grado 2)</span>
+p2 = <span class="mk">polyfit</span>(x, y, <span class="mn">2</span>);
+y_hat2 = <span class="mk">polyval</span>(p2, x);
+
+<span class="mk">fprintf</span>(<span class="ms">'=== MODELO LINEAL ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'y_hat = %.4f + %.4f*x\n'</span>, p1(<span class="mn">2</span>), p1(<span class="mn">1</span>))
+
+<span class="mk">fprintf</span>(<span class="ms">'\n=== MODELO CUADRATICO ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'y_hat = %.4f + %.4f*x + %.4f*x^2\n'</span>, p2(<span class="mn">3</span>), p2(<span class="mn">2</span>), p2(<span class="mn">1</span>))
+
+<span class="mc">% Punto optimo (maximo o minimo)</span>
+x_opt = -p2(<span class="mn">2</span>) / (<span class="mn">2</span>*p2(<span class="mn">1</span>));
+y_opt = <span class="mk">polyval</span>(p2, x_opt);
+<span class="mk">fprintf</span>(<span class="ms">'Punto optimo: x* = %.2f (mes %.0f), y* = %.2f ton\n'</span>,...
+    x_opt, x_opt, y_opt)</pre>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-terminal"></i> Resultado esperado</span>
+      <code>Lineal: y_hat = 64.1515 + 0.4895*x</code><br>
+      <code>Cuadrático: y_hat = 14.5909 + 21.7298*x + -1.6339*x^2</code><br>
+      <code>Punto optimo: x* = 6.65 (mes 7), y* = 86.84 ton</code>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: MATLAB COMPARAR -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Comparar y Visualizar</h2>
+    
+    <pre><span class="mc">% Calcular metricas para cada modelo</span>
+calcR2 = @(yr,yp) <span class="mn">1</span> - <span class="mk">sum</span>((yr-yp).^<span class="mn">2</span>)/<span class="mk">sum</span>((yr-<span class="mk">mean</span>(yr)).^<span class="mn">2</span>);
+calcRMSE = @(yr,yp) <span class="mf">sqrt</span>(<span class="mk">mean</span>((yr-yp).^<span class="mn">2</span>));
+n = <span class="mf">length</span>(x); k1=<span class="mn">1</span>; k2=<span class="mn">2</span>;
+
+R2_1 = calcR2(y, y_hat1);
+R2_2 = calcR2(y, y_hat2);
+R2adj_1 = <span class="mn">1</span>-(<span class="mn">1</span>-R2_1)*(n-<span class="mn">1</span>)/(n-k1-<span class="mn">1</span>);
+R2adj_2 = <span class="mn">1</span>-(<span class="mn">1</span>-R2_2)*(n-<span class="mn">1</span>)/(n-k2-<span class="mn">1</span>);
+
+<span class="mk">fprintf</span>(<span class="ms">'%-20s %-8s %-10s %-8s\n'</span>,<span class="ms">'Modelo'</span>,<span class="ms">'R^2'</span>,<span class="ms">'R^2_adj'</span>,<span class="ms">'RMSE'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%-20s %-8.4f %-10.4f %-8.4f\n'</span>,<span class="ms">'Lineal'</span>,R2_1,R2adj_1,calcRMSE(y,y_hat1))
+<span class="mk">fprintf</span>(<span class="ms">'%-20s %-8.4f %-10.4f %-8.4f\n'</span>,<span class="ms">'Cuadratico'</span>,R2_2,R2adj_2,calcRMSE(y,y_hat2))
+
+<span class="mc">% Visualizacion</span>
+<span class="mk">figure</span>(<span class="ms">'Position'</span>,<span class="mf">[</span><span class="mn">50</span> <span class="mn">50</span> <span class="mn">950</span> <span class="mn">420</span><span class="mf">]</span>);
+x_fine = <span class="mk">linspace</span>(<span class="mn">0.5</span>, <span class="mn">12.5</span>, <span class="mn">200</span>)';
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">2</span>,<span class="mn">1</span>)
+<span class="mk">scatter</span>(x, y, <span class="mn">80</span>, <span class="mf">[</span><span class="mn">0</span> <span class="mn">0.45</span> <span class="mn">0.74</span><span class="mf">]</span>, <span class="ms">'filled'</span>); <span class="mk">hold on</span>
+<span class="mk">plot</span>(x_fine, <span class="mk">polyval</span>(p1,x_fine), <span class="ms">'r--'</span>, <span class="ms">'LineWidth'</span>,<span class="mn">2</span>,<span class="ms">'DisplayName'</span>,<span class="ms">'Lineal'</span>)
+<span class="mk">plot</span>(x_fine, <span class="mk">polyval</span>(p2,x_fine), <span class="ms">'g-'</span>,  <span class="ms">'LineWidth'</span>,<span class="mn">2</span>,<span class="ms">'DisplayName'</span>,<span class="ms">'Cuadratico'</span>)
+<span class="mk">xline</span>(x_opt,<span class="ms">'k:'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>)
+<span class="mk">legend</span>(<span class="ms">'Datos'</span>,<span class="ms">'Lineal'</span>,<span class="ms">'Cuadratico'</span>,<span class="ms">'Location'</span>,<span class="ms">'south'</span>); <span class="mk">grid on</span>
+<span class="mk">xlabel</span>(<span class="ms">'Mes'</span>); <span class="mk">ylabel</span>(<span class="ms">'Demanda (ton)'</span>); <span class="mk">title</span>(<span class="ms">'Ajuste lineal vs cuadratico'</span>)
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">2</span>,<span class="mn">2</span>)
+<span class="mk">scatter</span>(y_hat2, y-y_hat2, <span class="mn">70</span>, <span class="mf">[</span><span class="mn">0.85</span> <span class="mn">0.33</span> <span class="mn">0.10</span><span class="mf">]</span>, <span class="ms">'filled'</span>)
+<span class="mk">yline</span>(<span class="mn">0</span>,<span class="ms">'k--'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>)
+<span class="mk">xlabel</span>(<span class="ms">'Valores ajustados'</span>); <span class="mk">ylabel</span>(<span class="ms">'Residuos'</span>)
+<span class="mk">title</span>(<span class="ms">'Residuos del modelo cuadratico'</span>); <span class="mk">grid on</span></pre>
+  </div>
+
+  <!-- SLIDE 13: MATLAB PREDICCIÓN -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Predicción y Punto Óptimo</h2>
+    <p class="mb" style="font-size:0.9rem;"><strong>Salida esperada:</strong> mes 13 → 20.95 ton; mes 14 → −1.43; mes 15 → −27.1; … ; <code>polyval(p2,20) = -204.36</code>. La parábola cruza el cero en \(x\approx13.9\): <span class="bad">fuera del rango el modelo no es válido</span>.</p>
+    
+    <pre><span class="mc">% Predicciones para meses futuros</span>
+meses_pred = <span class="mf">[</span><span class="mn">13</span>; <span class="mn">14</span>; <span class="mn">15</span>; <span class="mn">16</span>; <span class="mn">17</span>; <span class="mn">18</span><span class="mf">]</span>;
+nombres_mes = <span class="mf">{</span><span class="ms">'Ene(y2)'</span>,<span class="ms">'Feb(y2)'</span>,<span class="ms">'Mar(y2)'</span>,<span class="ms">'Abr(y2)'</span>,<span class="ms">'May(y2)'</span>,<span class="ms">'Jun(y2)'</span><span class="mf">}</span>;
+y_pred_fut  = <span class="mk">polyval</span>(p2, meses_pred);
+
+<span class="mk">fprintf</span>(<span class="ms">'=== PRONOSTICO AÑO SIGUIENTE ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%-12s %-8s %-18s\n'</span>,<span class="ms">'Mes'</span>,<span class="ms">'x'</span>,<span class="ms">'Demanda pred (ton)'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%s\n'</span>, <span class="mk">repmat</span>(<span class="ms">'-'</span>,<span class="mn">38</span>,<span class="mn">1</span>))
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mf">length</span>(meses_pred)
+    <span class="mk">fprintf</span>(<span class="ms">'%-12s %-8d %-18.2f\n'</span>, nombres_mes<span class="mf">{</span>i<span class="mf">}</span>, meses_pred(i), y_pred_fut(i))
+<span class="mk">end</span>
+
+<span class="mc">% Advertencia de extrapolacion</span>
+<span class="mk">fprintf</span>(<span class="ms">'\nATENCION: meses 13-18 estan fuera del rango de datos.\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'El modelo cuadratico puede dar valores negativos para x muy grande.\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'Verificar: polyval(p2, 20) = %.2f ton\n'</span>, <span class="mk">polyval</span>(p2,<span class="mn">20</span>))
+<span class="mk">fprintf</span>(<span class="ms">'(Si es negativo, el modelo no es valido para esos meses)\n\n'</span>)
+
+<span class="mc">% Mes de maxima demanda (util para planificacion de inventario)</span>
+<span class="mk">fprintf</span>(<span class="ms">'Mes de maxima demanda: %.1f (entre mes %d y %d)\n'</span>,...
+    x_opt, <span class="mf">floor</span>(x_opt), <span class="mf">ceil</span>(x_opt))
+<span class="mk">fprintf</span>(<span class="ms">'Demanda esperada en el pico: %.2f ton\n'</span>, y_opt)
+<span class="mk">fprintf</span>(<span class="ms">'Recomendacion: aumentar inventario entre los meses %d y %d\n'</span>,...
+    <span class="mf">max</span>(<span class="mn">1</span>,<span class="mf">floor</span>(x_opt)-<span class="mn">1</span>), <span class="mf">min</span>(<span class="mn">12</span>,<span class="mf">ceil</span>(x_opt)+<span class="mn">1</span>))</pre>
+  </div>
+
+  <!-- SLIDE 14: GRADO 3 Y SUPERIOR -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-cube"></i> Grado 3 y Superior: Cuándo y Cómo</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-calculator"></i> Modelo cúbico (grado 3)</span>
+          \[ \hat y = \beta_0 + \beta_1 x + \beta_2 x^2 + \beta_3 x^3 \]
+          Puede capturar dos cambios de dirección (S-curva).<br>
+          Útil para curvas de aprendizaje y curvas logísticas de crecimiento.
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-gavel"></i> Regla general para elegir el grado</span>
+          <ul>
+            <li class="reveal">Usar el grado <strong>mínimo</strong> que da un buen ajuste</li>
+            <li class="reveal">\(R^2_\text{adj}\) debe mejorar al subir el grado</li>
+            <li class="reveal">RMSE en datos de prueba debe bajar</li>
+            <li class="reveal">El modelo debe tener sentido físico</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/cubico_curva_S.png" alt="Ajuste cúbico de una curva en S" style="max-width:380px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">Cuando el cuadrático no es suficiente, el cúbico puede capturar la S.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: SOBREAJUSTE -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-exclamation-triangle"></i> El Peligro del Sobreajuste Polinomial</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-triangle-exclamation"></i> Sobreajuste</span>
+          un polinomio de grado muy alto puede pasar exactamente por todos los puntos de entrenamiento pero predecir muy mal datos nuevos.
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-calculator"></i> Ejemplo</span>
+          con \(n=12\) puntos, un polinomio de grado 11 pasa por todos exactamente (\(R^2=1\)), pero es completamente inútil para predecir.
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-shield-alt"></i> Criterios para evitar sobreajuste</span>
+          <ul>
+            <li>Usar \(R^2_\text{adj}\) (penaliza por grado)</li>
+            <li>Calcular RMSE en datos de prueba (test)</li>
+            <li>Regla práctica: grado \(\leq n/5\) como máximo</li>
+            <li>Validar con datos del periodo siguiente</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/sobreajuste_polinomial.png" alt="Sobreajuste polinomial" style="max-width:380px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">El polinomio de grado alto oscila entre los puntos.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: CASO ALMACENAMIENTO -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-warehouse"></i> Caso: Costo de Almacenamiento vs Nivel de Inventario</h2>
+    
+    <p class="reveal"><strong>Datos:</strong> nivel de inventario (% de capacidad) y costo diario de almacenamiento:</p>
+    
+    <table class="compact reveal" style="font-size:0.8rem;">
+      <tr><th>\(x\) (%)</th><td>10</td><td>20</td><td>30</td><td>40</td><td>50</td><td>60</td><td>70</td><td>80</td><td>90</td></tr>
+      <tr><th>\(y\) ($)</th><td>85</td><td>95</td><td>110</td><td>130</td><td>160</td><td>210</td><td>290</td><td>410</td><td>620</td></tr>
+    </table>
+    
+    <p class="reveal mt"><strong>Patrón:</strong> el costo crece lentamente al inicio y se dispara cuando el almacén está casi lleno.<br>
+    Claramente no lineal.</p>
+    
+    <table class="model-table reveal mt">
+      <tr><th>Modelo</th><th>Ecuación</th><th>\(R^2\)</th><th>RMSE</th></tr>
+      <tr><td>Lineal</td><td>\(\hat y = -59.3 + 5.875\,x\)</td><td>0.806</td><td>$74.4</td></tr>
+      <tr><td>Cuadrático</td><td>\(\hat y = 160.8 - 6.133\,x + 0.1201\,x^2\)</td><td>0.979</td><td>$24.4</td></tr>
+    </table>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Decisión operativa</span>
+      Con el modelo cuadrático, la empresa puede estimar el costo de almacenamiento con precisión de ±$24.4 (RMSE). Si el presupuesto diario es $300, el nivel máximo de inventario se obtiene resolviendo \(0.1201\,x^2 - 6.133\,x + 160.8 = 300\;\Rightarrow\; x \approx 68.1\%\) de la capacidad.
+    </div>
+  </div>
+
+  <!-- SLIDE 17: MATLAB NIVEL MÁXIMO -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Encontrar el Nivel Máximo de Inventario</h2>
+    
+    <pre><span class="mc">% Datos de costo de almacenamiento</span>
+x_inv = <span class="mf">[</span><span class="mn">10</span>;<span class="mn">20</span>;<span class="mn">30</span>;<span class="mn">40</span>;<span class="mn">50</span>;<span class="mn">60</span>;<span class="mn">70</span>;<span class="mn">80</span>;<span class="mn">90</span><span class="mf">]</span>;
+y_cost = <span class="mf">[</span><span class="mn">85</span>;<span class="mn">95</span>;<span class="mn">110</span>;<span class="mn">130</span>;<span class="mn">160</span>;<span class="mn">210</span>;<span class="mn">290</span>;<span class="mn">410</span>;<span class="mn">620</span><span class="mf">]</span>;
+
+<span class="mc">% Ajuste cuadratico</span>
+p_cost = <span class="mk">polyfit</span>(x_inv, y_cost, <span class="mn">2</span>);
+<span class="mk">fprintf</span>(<span class="ms">'Modelo: y = %.4f + %.4f*x + %.4f*x^2\n'</span>,...
+    p_cost(<span class="mn">3</span>), p_cost(<span class="mn">2</span>), p_cost(<span class="mn">1</span>))
+
+<span class="mc">% R^2 y RMSE</span>
+y_hat_cost = <span class="mk">polyval</span>(p_cost, x_inv);
+R2_cost = <span class="mn">1</span> - <span class="mk">sum</span>((y_cost-y_hat_cost).^<span class="mn">2</span>)/<span class="mk">sum</span>((y_cost-<span class="mk">mean</span>(y_cost)).^<span class="mn">2</span>);
+RMSE_cost = <span class="mf">sqrt</span>(<span class="mk">mean</span>((y_cost-y_hat_cost).^<span class="mn">2</span>));
+<span class="mk">fprintf</span>(<span class="ms">'R^2=%.4f, RMSE=$%.4f\n\n'</span>, R2_cost, RMSE_cost)
+
+<span class="mc">% Nivel maximo para presupuesto de $300/dia</span>
+presupuesto = <span class="mn">300</span>;
+<span class="mc">% Resolver: p_cost(1)*x^2 + p_cost(2)*x + (p_cost(3)-presupuesto) = 0</span>
+coefs = <span class="mf">[</span>p_cost(<span class="mn">1</span>), p_cost(<span class="mn">2</span>), p_cost(<span class="mn">3</span>)-presupuesto<span class="mf">]</span>;
+raices = <span class="mk">roots</span>(coefs);
+x_max = raices(raices > <span class="mn">0</span> & raices < <span class="mn">100</span>);  <span class="mc">% raiz en rango valido</span>
+<span class="mk">fprintf</span>(<span class="ms">'Nivel maximo de inventario para presupuesto $%d/dia:\n'</span>, presupuesto)
+<span class="mk">fprintf</span>(<span class="ms">'  x_max = %.2f%% de capacidad\n'</span>, x_max)
+<span class="mk">fprintf</span>(<span class="ms">'  Recomendacion: no superar el %d%% de ocupacion\n'</span>, <span class="mf">floor</span>(x_max))</pre>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span><code>Modelo: y = 160.8333 + -6.1326*x + 0.1201*x^2</code> · <code>R^2=0.9791, RMSE=$24.4278</code> · <code>x_max = 68.09% de capacidad</code> · <code>no superar el 68% de ocupacion</code></div>
+  </div>
+
+  <!-- SLIDE 18: RESUMEN -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-flag-checkered"></i> Resumen: Lineal vs Cuadrático</h2>
+    
+    <table class="compact reveal" style="font-size:0.8rem;">
+      <tr><th>Aspecto</th><th>Lineal</th><th>Cuadrático</th></tr>
+      <tr><td>Modelo</td><td>\(\hat y = \beta_0 + \beta_1 x\)</td><td>\(\hat y = \beta_0 + \beta_1 x + \beta_2 x^2\)</td></tr>
+      <tr><td>MATLAB</td><td><code>polyfit(x,y,1)</code></td><td><code>polyfit(x,y,2)</code></td></tr>
+      <tr><td>Coeficientes</td><td>2</td><td>3</td></tr>
+      <tr><td>Geometría</td><td>Recta</td><td>Parábola</td></tr>
+      <tr><td>Punto óptimo</td><td>No aplica</td><td>\(x^* = -\beta_1/(2\beta_2)\)</td></tr>
+      <tr><td>Cuándo usar</td><td>Tendencia monótona</td><td>Patrón con máximo o mínimo</td></tr>
+      <tr><td>Riesgo</td><td>Sesgo si hay curvatura</td><td>Sobreajuste con grado alto</td></tr>
+    </table>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-tasks"></i> Flujo de decisión para elegir el modelo</span>
+      <ol>
+        <li class="reveal">Graficar los datos. ¿Se ve lineal o curvo?</li>
+        <li class="reveal">Ajustar el modelo lineal. Revisar residuos: ¿hay patrón en U?</li>
+        <li class="reveal">Si hay curvatura: ajustar cuadrático y calcular \(R^2_\text{adj}\) y RMSE.</li>
+        <li class="reveal">Si \(R^2_\text{adj}\) mejora > 0.02: usar cuadrático.</li>
+        <li class="reveal">Validar en datos de prueba. Si RMSE test ≈ RMSE train: OK.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: PUNTO DE DECISIÓN -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-gavel"></i> Punto de Decisión</h2>
+    
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Pregunta de Cierre</span><br><br>
+      <em>El modelo cuadrático de demanda da el punto óptimo en el mes 6.5. Para el año siguiente, el modelo predice ≈21 ton en el mes 13 y demanda <strong>negativa</strong> a partir del mes 14.</em><br><br>
+      <strong>¿Usarías el modelo cuadrático para planificar el año 2? ¿Cuándo cambias de modelo y por qué?</strong>
+    </div>
+    
+    <div class="decision-cards mt">
+      <div class="dc-card a reveal">
+        <strong>Usar cuadrático</strong><br><br>
+      Solo dentro del rango ajustado (meses 1–12). Ya en el mes 13 la predicción (21 ton vs 42 ton del enero anterior) no es creíble.
+      </div>
+      <div class="dc-card b reveal">
+        <strong>Cambiar de modelo</strong><br><br>
+        Para el año 2 completo, usar un modelo con estacionalidad explícita (seno/coseno) o un modelo de series de tiempo.
+      </div>
+      <div class="dc-card c reveal">
+        <strong>Regla práctica</strong><br><br>
+        Evitar extrapolar fuera del rango observado: una parábola siempre termina en \(\pm\infty\). El cuadrático es válido dentro del rango ajustado.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: TAREA -->
+  <div class="slide" data-slide="20">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 26</h2>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lecturas</span>
+      <ul>
+        <li class="reveal"><strong>Montgomery</strong>, Cap. 5: Regresión polinomial — validación y selección</li>
+        <li class="reveal"><strong>Montgomery</strong>, Cap. 3.3: Criterios de selección de modelos</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Ejercicio preparatorio</span>
+      Con los datos de demanda del script <code>clase25_regresion_cuadratica.m</code>:
+      <ol>
+        <li class="reveal">Ajustar modelos de grado 1, 2 y 3.</li>
+        <li class="reveal">Para cada modelo calcular \(R^2_\text{adj}\) y RMSE en datos de prueba (meses 10-12).</li>
+        <li class="reveal">Graficar los tres ajustes sobre los datos.</li>
+        <li class="reveal">¿El modelo de grado 3 mejora significativamente al de grado 2?</li>
+        <li class="reveal">Predecir la demanda para los meses 13 y 14. ¿Son razonables?</li>
+      </ol>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Próxima clase 26</span>
+      <strong>Comparación de modelos (lineal vs cuadrático)</strong> — validación cruzada y selección definitiva
+    </div>
+  </div>
+
+  <!-- SLIDE 21: REFERENCIAS -->
+  <div class="slide" data-slide="21">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Montgomery, D.C., Peck, E.A. & Vining, G.G.</strong> (2012). <em>Introduction to Linear Regression Analysis</em> (5th ed.). Wiley. <strong>Cap. 5</strong> (Regresión polinomial), pp. 205–250.</li>
+      <li class="reveal"><strong>Lay, D.C., Lay, S.R., McDonald, J.J.</strong> (2016). <em>Álgebra Lineal y sus Aplicaciones</em> (5a ed.). Pearson. Cap. 6.5 (Mínimos cuadrados y modelos polinomiales).</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>polyfit</code>, <code>polyval</code>, <code>roots</code>. <a href="https://www.mathworks.com/help/matlab/ref/polyfit.html" style="color:var(--navy);">https://www.mathworks.com/help/matlab/ref/polyfit.html</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Dataset demanda estacional, Script <code>clase25_regresion_cuadratica.m</code>.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--navy); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 25 | Regresión Cuadrática</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 22: CIERRE -->
+  <div class="slide" data-slide="22">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 26: Comparación de Modelos — Validación Cruzada</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

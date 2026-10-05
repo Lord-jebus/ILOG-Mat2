@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -143,11 +143,39 @@
     table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
     table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
     table.compact th { background: #f8fafc; font-weight: 600; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -234,16 +262,7 @@
     </div>
     <div class="col-layout mt">
       <div class="reveal center">
-        <div class="vector-plot">
-          <div class="vp-axis vp-x">u</div>
-          <div class="vp-axis vp-y">v</div>
-          <div class="vp-arrow" style="width: 160px; transform: rotate(-5deg);"></div>
-          <div class="vp-arrow green" style="width: 120px; transform: rotate(-55deg);"></div>
-          <div class="vp-arrow orange" style="width: 100px; transform: rotate(-15deg); opacity:0.7; border-top:2px dashed var(--orange); background:transparent; height:2px;"></div>
-          <div class="vp-angle"></div>
-          <div class="vp-label" style="top: 30px; right: 5px; color:var(--navy);">u</div>
-          <div class="vp-label" style="top: 5px; right: 80px; color:var(--green);">v</div>
-        </div>
+        <div><img class="fig" src="imagenes/producto_escalar_angulo.png" alt="Ángulo entre u y v y proyección de u sobre v" style="max-width:92%"></div>
       </div>
       <div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-star"></i> Casos especiales</span>
@@ -275,7 +294,7 @@
         Fábrica B: \(\mathbf{d}_B=(600,500,400,300)^T=2\mathbf{d}_A\)<br>
         Fábrica C: \(\mathbf{d}_C=(100,300,200,400)^T\)
         \[ \cos(\mathbf{d}_A,\mathbf{d}_B) = 1.000 \quad \text{(idénticos)} \]
-        \[ \cos(\mathbf{d}_A,\mathbf{d}_C) \approx 0.892 \quad \text{(similares)} \]
+        \[ \cos(\mathbf{d}_A,\mathbf{d}_C) \approx 0.807 \quad \text{(parecidos)} \]
         <span class="reveal mt italic">B tiene exactamente el doble de A: misma dirección, distinto volumen. La similitud es perfecta.</span>
       </div>
       <div class="block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación logística</span>
@@ -393,11 +412,11 @@ resid = dA - proj;
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
           <code>Costo total: $10550</code><br>
           <code>cos(dA,dB) = 1.0000</code><br>
-          <code>cos(dA,dC) = 0.8919</code><br><br>
+          <code>cos(dA,dC) = 0.8072</code><br><br>
           <code>Precio medio: $99231</code><br>
-          <code>Proyeccion: [175.44 ...]</code><br>
-          <code>Residuo:    [124.56 ...]</code><br>
-          <code>Verificar: 0.00e+00</code>
+          <code>Proyeccion: [68.33 205.00 136.67 273.33]</code><br>
+          <code>Residuo:    [231.67 45.00 63.33 -123.33]</code><br>
+          <code>Verificar ortogonalidad: ≈ 1e-11</code> (cero numérico)
         </div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-tools"></i> Funciones útiles</span>
           <ul>
@@ -431,15 +450,15 @@ resid = dA - proj;
   <div class="slide" data-slide="11">
     <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Similitud entre semanas de demanda</h2>
     <p class="reveal"><strong>Enunciado:</strong> Calcular el coseno de similitud entre S1 y S4:
-      \(\mathbf{d}_1=(300,250,200,180)^T\), \(\mathbf{d}_4=(310,260,205,175)^T\)
+      \(\mathbf{d}_1=(300,250,200,180)^T\), \(\mathbf{d}_4=(310,245,195,190)^T\)
     </p>
     <div class="example-block mt reveal"><span class="b-title">Solución</span>
-      \[ \mathbf{d}_1\cdot\mathbf{d}_4 = 300(310)+250(260)+200(205)+180(175) = 230500 \]
-      \[ \|\mathbf{d}_1\|_2 = \sqrt{194400} \approx 440.9, \quad \|\mathbf{d}_4\|_2 = \sqrt{209050} \approx 457.2 \]
-      \[ \cos(\mathbf{d}_1,\mathbf{d}_4) = \frac{230500}{440.9 \times 457.2} \approx \mathbf{0.9997} \]
+      \[ \mathbf{d}_1\cdot\mathbf{d}_4 = 300(310)+250(245)+200(195)+180(190) = 227450 \]
+      \[ \|\mathbf{d}_1\|_2 = \sqrt{224900} \approx 474.2, \quad \|\mathbf{d}_4\|_2 = \sqrt{230250} \approx 479.8 \]
+      \[ \cos(\mathbf{d}_1,\mathbf{d}_4) = \frac{227450}{474.2 \times 479.8} \approx \mathbf{0.9995} \]
     </div>
     <div class="block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación</span>
-      \(\cos\approx1\): S1 y S4 tienen patrones de demanda casi idénticos. El plan de S1 puede reutilizarse para S4 con ajuste mínimo (\(d_2=14.1\) ton, Clase 14).
+      \(\cos\approx1\): S1 y S4 tienen patrones de demanda casi idénticos. El plan de S1 puede reutilizarse para S4 con ajuste mínimo (\(d_2=15.8\) ton, Clase 14).
     </div>
   </div>
 

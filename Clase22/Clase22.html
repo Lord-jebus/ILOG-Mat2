@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 22: Interpretación de Coeficientes y Bondad del Modelo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003a6b;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff3e0;
+      --red: #b41414;
+      --purple: #640096;
+      --purple-light: #f3e6f7;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--navy);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--navy);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block strong { color: var(--orange); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--purple); border-color: var(--purple); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    /* Scatter & residual plots CSS */
+    .scatter-plot { width: 260px; height: 180px; margin: 0.5rem auto; position: relative; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; }
+    .sp-axis { position: absolute; font-size: 0.7rem; color: #64748b; }
+    .sp-x { bottom: -15px; right: 5px; } .sp-y { top: 5px; left: -25px; }
+    .sp-point { position: absolute; width: 6px; height: 6px; background: var(--navy); border-radius: 50%; transform: translate(-50%, -50%); }
+    .sp-line { position: absolute; height: 2px; background: var(--red); transform-origin: left center; }
+    .sp-resid { position: absolute; width: 2px; background: var(--green); border-style: dashed; }
+    .sp-label { position: absolute; font-size: 0.7rem; font-weight: 600; }
+
+    /* Residual diagnostic plots */
+    .resid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+    .resid-plot { width: 220px; height: 150px; margin: 0 auto; position: relative; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; }
+    .rp-zero { position: absolute; bottom: 50%; left: 0; right: 0; height: 1px; background: #94a3b8; border-style: dashed; }
+    .rp-point { position: absolute; width: 5px; height: 5px; border-radius: 50%; transform: translate(-50%, -50%); }
+    .rp-point.good { background: var(--green); }
+    .rp-point.curved { background: var(--orange); }
+    .rp-point.hetero { background: var(--purple); }
+    .rp-point.outlier { background: var(--red); }
+    .rp-label { position: absolute; font-size: 0.65rem; color: #64748b; }
+    .rp-title { position: absolute; top: 5px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; font-weight: 600; }
+
+    /* Variance decomposition bar */
+    .var-bar { display: flex; height: 40px; border-radius: 6px; overflow: hidden; margin: 0.5rem 0; }
+    .var-scm { background: var(--green); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: 600; }
+    .var-scr { background: var(--red); display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: 600; }
+
+    /* Anscombe quartet placeholder */
+    .anscombe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin: 1rem 0; }
+    .anscombe-plot { width: 120px; height: 100px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; position: relative; }
+    .anscombe-point { position: absolute; width: 4px; height: 4px; background: var(--navy); border-radius: 50%; transform: translate(-50%, -50%); }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .decision-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+    .dc-card { padding: 0.8rem; border-radius: 8px; text-align: center; border: 2px solid; font-size: 0.85rem; }
+    .dc-card.a { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .dc-card.b { border-color: var(--orange); background: var(--orange-light); }
+    .dc-card.c { border-color: #94a3b8; background: #f1f5f9; }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--navy); margin: 0.5rem 0; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-chart-line fa-3x" style="color:var(--purple); margin-bottom:1rem;"></i>
+      <h1>Interpretación de Coeficientes<br>Bondad del Modelo (R²) y Análisis de Residuos</h1>
+      <p class="sub">Módulo 5 — Regresión y Análisis de Datos</p>
+      <p class="sub">Matemáticas 2 — Clase 22</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 22</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Objetivos de Aprendizaje</li>
+      <li class="reveal">Repaso Rápido: Clase 21</li>
+      <li class="reveal">La Pendiente \(\hat\beta_1\): Efecto Marginal</li>
+      <li class="reveal">El Intercepto \(\hat\beta_0\): Costo Fijo</li>
+      <li class="reveal">Comparar Coeficientes entre Modelos</li>
+      <li class="reveal">Descomposición de la Variabilidad</li>
+      <li class="reveal">Interpretación Práctica de \(R^2\)</li>
+      <li class="reveal">Error Estándar del Modelo (\(s_e\))</li>
+      <li class="reveal">Cuando \(R^2\) Nos Engaña: Cuarteto de Anscombe</li>
+      <li class="reveal">El Gráfico de Residuos: Herramienta Diagnóstica</li>
+      <li class="reveal">Diagnóstico: Qué Hacer ante Cada Patrón</li>
+      <li class="reveal">MATLAB: Análisis Completo de Residuos</li>
+      <li class="reveal">Tres Variables, Tres Modelos: ¿Cuál Priorizar?</li>
+      <li class="reveal">MATLAB: Comparar Tres Modelos</li>
+      <li class="reveal">Caso: Empresa de Courier — Priorizar Acciones</li>
+      <li class="reveal">Resumen: Cómo Leer un Modelo de Regresión</li>
+      <li class="reveal">Punto de Decisión</li>
+      <li class="reveal">Tarea para la Clase 23</li>
+      <li class="reveal">Referencias</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de Aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Interpretar</strong> la pendiente y el intercepto de una recta de regresión en contexto logístico concreto.</li>
+      <li class="reveal"><strong>Distinguir</strong> entre significado estadístico y significado práctico de los coeficientes.</li>
+      <li class="reveal"><strong>Calcular e interpretar</strong> \(R^2\), \(R^2\) ajustado y el error estándar del modelo.</li>
+      <li class="reveal"><strong>Analizar</strong> gráficos de residuos para detectar problemas del modelo.</li>
+      <li class="reveal"><strong>Decidir</strong> qué variable priorizar en base a los coeficientes e indicadores de bondad del ajuste.</li>
+    </ol>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Conexión con Clase 21</span>
+      Clase 21: construir el modelo \(\hat{y}=\hat\beta_0+\hat\beta_1 x\) con <code>polyfit</code>.<br>
+      Clase 22: <strong>entender qué nos dice</strong> ese modelo y si podemos confiar en él.
+    </div>
+  </div>
+
+  <!-- SLIDE 3: REPASO CLASE 21 -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-rotate-right"></i> Repaso Rápido: Clase 21</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-chart-line"></i> Modelo de regresión lineal simple</span>
+          \[ \hat{y} = \hat\beta_0 + \hat\beta_1\,x \]
+          <ul>
+            <li class="reveal">\(\hat\beta_1\): pendiente (cambio en \(y\) por unidad de \(x\))</li>
+            <li class="reveal">\(\hat\beta_0\): intercepto (valor de \(y\) cuando \(x=0\))</li>
+            <li class="reveal">Ajustado minimizando \(\text{SCR}=\sum e_i^2\)</li>
+          </ul>
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-database"></i> Dataset: distancia vs costo de envío</span>
+          \[ \hat{y} = 143.1 + 2.273\,x \]
+      \(R^2 = 0.9992\)
+        </div>
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-question-circle"></i> Hoy profundizamos en:</span>
+        <ul>
+          <li>¿Qué exactamente significa \(\hat\beta_1=2.273\)?</li>
+          <li>¿El intercepto tiene sentido físico?</li>
+          <li>¿Cómo leer el \(R^2\)?</li>
+          <li>¿Cuándo el \(R^2\) nos engaña?</li>
+          <li>¿Cómo detectar problemas con los residuos?</li>
+          <li>¿Qué variable "actuar" primero?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: PENDIENTE -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-arrow-up"></i> La Pendiente \(\hat\beta_1\): Efecto Marginal</h2>
+    <div class="block reveal">
+      <span class="b-title">Definición operativa</span>
+      \(\hat\beta_1\) es el <strong>cambio esperado en \(y\)</strong> por cada unidad adicional de \(x\), manteniendo constante todo lo demás.
+    </div>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-truck"></i> Ejemplo 1 — Costo vs distancia</span>
+      \[ \hat y = 143.1 + \underbrace{2.273}_{\hat\beta_1}\,x \]
+      <ul>
+        <li class="reveal">Cada km adicional agrega en promedio <strong>$2.27</strong> al costo total.</li>
+        <li class="reveal">Si una ruta se alarga 50 km, se espera un aumento de \(50\times2.273 \approx \$114\).</li>
+        <li class="reveal">Esta es la <strong>tasa marginal de costo por distancia</strong>.</li>
+      </ul>
+    </div>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-stopwatch"></i> Ejemplo 2 — Tiempo vs paradas</span>
+      \(\hat y = 1.5 + 0.8\,x\)
+      <ul>
+        <li>Cada parada adicional agrega 0.8 horas (48 min) al tiempo total.</li>
+        <li>Para optimizar el tiempo: <span style="color:var(--red); font-weight:600;">reducir el número de paradas</span>.</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Uso en decisión</span>
+      La pendiente indica <strong>dónde actuar</strong>: si \(\hat\beta_1\) es alto, pequeñas reducciones en \(x\) generan grandes ahorros en \(y\).
+    </div>
+  </div>
+
+  <!-- SLIDE 5: INTERCEPTO -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-home"></i> El Intercepto \(\hat\beta_0\): Costo Fijo</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-calculator"></i> Definición</span>
+          Valor de \(\hat y\) cuando \(x = 0\).
+          \[ \hat y(0) = \hat\beta_0 \]
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-truck-loading"></i> En logística</span>
+          El intercepto captura todos los <strong>costos fijos</strong> que no dependen de \(x\):
+          <ul>
+            <li class="reveal">Carga y descarga</li>
+            <li class="reveal">Peajes fijos</li>
+            <li class="reveal">Documentación</li>
+            <li class="reveal">Salario del conductor (parte fija)</li>
+            <li class="reveal">Amortización del vehículo</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="alert-block reveal">
+          <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Cuidado con el intercepto</span>
+          El intercepto puede no tener interpretación física directa si:
+          <ul>
+            <li>\(x=0\) no existe en la práctica (distancia 0 = no hay envío)</li>
+            <li>El rango de datos no incluye valores cercanos a 0</li>
+            <li>El intercepto resulta negativo</li>
+          </ul>
+          En esos casos, es un <strong>parámetro de ajuste</strong>, no un costo real medible.
+        </div>
+        <div class="example-block mt reveal">
+          <span class="b-title"><i class="fas fa-check-circle"></i> Nuestro ejemplo</span>
+          \(\hat\beta_0 = \$143.1\): costo fijo de cada envío, independiente de la distancia.<br>
+          Con datos de 50 a 550 km, este valor es razonablemente interpretable.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: COMPARAR COEFICIENTES -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-balance-scale"></i> Comparar Coeficientes entre Modelos</h2>
+    <p class="reveal">Una empresa analiza el costo de envío de <strong>12 envíos</strong> (datos del script de la diapositiva 16) en función de tres variables por separado:</p>
+    
+    <table class="compact reveal">
+      <tr><th>Variable \(x\)</th><th>Unidad</th><th>\(\hat\beta_0\)</th><th>\(\hat\beta_1\)</th><th>\(R^2\)</th></tr>
+      <tr><td>Distancia</td><td>km</td><td>133.9</td><td>2.29</td><td>0.997</td></tr>
+      <tr><td>Peso de carga</td><td>toneladas</td><td>89.3</td><td>161.8</td><td>0.991</td></tr>
+      <tr><td>Núm. de paradas</td><td>cantidad</td><td>−26.3</td><td>126.3</td><td>0.975</td></tr>
+    </table>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-arrow-right"></i> Lectura de las pendientes</span>
+      <ul>
+        <li>+1 km de distancia → +$2.29 en costo</li>
+        <li>+1 tonelada de peso → +$161.8 en costo</li>
+        <li>+1 parada adicional → +$126.3 en costo</li>
+      </ul>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Las pendientes no son directamente comparables</span>
+      \(\hat\beta_1 = 126.3\) (paradas) vs \(\hat\beta_1 = 2.29\) (km) no significa que las paradas sean 55 veces más "importantes". Las unidades son distintas.<br>
+      Para comparar impactos, se deben <strong>estandarizar</strong> las variables o analizar el <strong>efecto de una desviación estándar</strong>.
+    </div>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Decisión práctica</span>
+      Reducir 1 parada ahorra $126. Reducir 55 km ahorra \(55\times2.29\approx\$126\).<br>
+      <strong>El efecto de ambas acciones es similar en magnitud monetaria.</strong>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: DESCOMPOSICIÓN VARIABILIDAD -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-chart-pie"></i> Descomposición de la Variabilidad</h2>
+    <div class="formula-card reveal">
+      \[ \underbrace{\sum(y_i-\bar y)^2}_{\text{SCT (total)}} = \underbrace{\sum(\hat y_i-\bar y)^2}_{\text{SCM (modelo)}} + \underbrace{\sum(y_i-\hat y_i)^2}_{\text{SCR (residual)}} \]
+    </div>
+    
+    <div class="reveal mt">
+      <img class="fig" src="imagenes/descomposicion_sct.png" alt="Descomposición SCT = SCM + SCR" style="max-width:720px"><p class="fig-cap">SCT = variabilidad total de y (ejemplo ilustrativo con \(R^2=0.70\))</p>
+    </div>
+    
+    <div class="formula-card reveal">
+      \[ R^2 = \frac{\text{SCM}}{\text{SCT}} = 1 - \frac{\text{SCR}}{\text{SCT}} \]
+      Proporción de la variabilidad <strong>explicada</strong> por el modelo.<br>
+      \(R^2 \in [0,1]\). Cuanto más cerca de 1, mejor el ajuste.
+    </div>
+  </div>
+
+  <!-- SLIDE 8: INTERPRETACIÓN R² -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-percentage"></i> Interpretación Práctica de \(R^2\)</h2>
+    
+    <table class="compact reveal">
+      <tr><th>Valor de \(R^2\)</th><th>Interpretación</th><th>Uso en logística</th></tr>
+      <tr><td>\(\geq 0.95\)</td><td>Ajuste excelente</td><td>Presupuestación financiera, contratos</td></tr>
+      <tr><td>0.90 – 0.95</td><td>Muy bueno</td><td>Planificación táctica, cotizaciones</td></tr>
+      <tr><td>0.80 – 0.90</td><td>Bueno</td><td>Estimaciones operativas, tendencias</td></tr>
+      <tr><td>0.60 – 0.80</td><td>Moderado</td><td>Análisis exploratorio, hipótesis</td></tr>
+      <tr><td>\(&lt; 0.60\)</td><td>Débil</td><td>No apto para decisión; revisar modelo</td></tr>
+    </table>
+    
+    <div class="col-layout mt">
+      <div class="example-block reveal">
+        <span class="b-title"><i class="fas fa-check-circle"></i> Nuestro ejemplo</span>
+        \(R^2 = 0.9992\)<br>
+      El modelo explica el 99.9% de la variación en costos de envío.<br>
+        \(\Rightarrow\) <strong>Apto para presupuestación.</strong>
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Trampa común</span>
+        Un \(R^2\) alto <strong>no garantiza</strong> que el modelo sea bueno.<br>
+        Puede haber sobreajuste, outliers influyentes o relaciones no lineales enmascaradas.<br>
+        <strong>Siempre revisar los residuos.</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: ERROR ESTÁNDAR -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-ruler-combined"></i> Error Estándar del Modelo (\(s_e\))</h2>
+    
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      \[ s_e = \sqrt{\frac{\text{SCR}}{n-2}} = \sqrt{\frac{\sum e_i^2}{n-2}} \]
+      Estimación de la desviación típica de los errores \(\varepsilon_i\).<br>
+      Se mide <strong>en las mismas unidades que \(y\)</strong>.
+    </div>
+    
+    <p class="reveal mt"><strong>Interpretación:</strong> el modelo se equivoca en promedio \(\pm s_e\) unidades de \(y\).</p>
+    
+    <div class="reveal mt"><strong>Para nuestro ejemplo:</strong>
+      \[ s_e = \sqrt{\frac{1154.1}{10-2}} = \sqrt{144.3} \approx \$12.0 \]
+      El modelo predice el costo con un error típico de \(\pm\)$12.0 por envío.
+    </div>
+    
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-chart-area"></i> Intervalo de predicción aprox.</span>
+        Para un envío de distancia \(x^*\):
+        \[ \hat y(x^*) \pm 2\,s_e \quad (\approx 95\%) \]
+      </div>
+      <div class="example-block reveal">
+        <span class="b-title"><i class="fas fa-lightbulb"></i> Decisión con \(s_e\)</span>
+        Presupuesto para \(x=300\) km:<br>
+        \(\hat y = 143.1+2.273(300) \approx \$825\) con margen \(\pm 2s_e\approx\pm\)$24.<br>
+      Rango: [$801, $849].
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: CUARTETO DE ANSCOMBE -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-exclamation-triangle"></i> Cuando \(R^2\) Nos Engaña: Cuarteto de Anscombe</h2>
+    
+    <div class="reveal"><img class="fig" src="imagenes/anscombe_cuarteto.png" alt="Cuarteto de Anscombe"><p class="fig-cap">Mismas medias, misma recta \(\hat y\approx 3.00+0.500x\) y mismo \(R^2\approx0.67\), pero patrones muy distintos</p></div>
+    
+    <div class="alert-block reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> La lección del cuarteto de Anscombe (1973)</span>
+      Cuatro datasets distintos tienen <strong>exactamente</strong> el mismo \(\bar x\), \(\bar y\), \(\hat\beta_0\), \(\hat\beta_1\) y \(R^2 \approx 0.67\).<br>
+      Sin embargo, <strong>solo el primero</strong> tiene una relación lineal adecuada.<br>
+      Los otros tres tienen: patrón curvo, outlier influyente y palanca extrema.<br><br>
+      <strong>Conclusión: SIEMPRE graficar los datos y los residuos.</strong>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: GRÁFICO DE RESIDUOS -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-chart-scatter"></i> El Gráfico de Residuos: Herramienta Diagnóstica</h2>
+    <p class="reveal">El gráfico de residuos \(e_i\) vs \(\hat y_i\) (o vs \(x_i\)) revela si el modelo lineal es adecuado.</p>
+    
+    <div class="reveal mt"><img class="fig" src="imagenes/patrones_residuos.png" alt="Cuatro patrones típicos de residuos"></div>
+  </div>
+
+  <!-- SLIDE 12: DIAGNÓSTICO -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-stethoscope"></i> Diagnóstico: Qué Hacer ante Cada Patrón</h2>
+    
+    <table class="compact reveal" style="font-size:0.85rem;">
+      <tr><th>Patrón en residuos</th><th>Diagnóstico</th><th>Acción recomendada</th></tr>
+      <tr><td>Sin patrón, aleatorio</td><td>Modelo adecuado</td><td>Usar el modelo con confianza</td></tr>
+      <tr><td>Curva (U o arco)</td><td>Relación no lineal</td><td>Agregar término cuadrático (\(x^2\)), Clase 25</td></tr>
+      <tr><td>Embudo (varianza crece)</td><td>Heteroscedasticidad</td><td>Transformar \(y\) (log, raíz) o usar WLS</td></tr>
+      <tr><td>Punto muy alejado</td><td>Outlier</td><td>Investigar: error de datos o caso atípico real</td></tr>
+      <tr><td>Tendencia ascendente</td><td>Variable omitida</td><td>Agregar más predictores, Clase 23</td></tr>
+    </table>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-gold"></i> Regla de oro</span>
+      Un buen modelo lineal tiene residuos que parecen <strong>ruido blanco</strong>: aleatorios, centrados en cero, sin patrón, de varianza aproximadamente constante.
+    </div>
+  </div>
+
+  <!-- SLIDE 13: MATLAB RESIDUOS -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Análisis Completo de Residuos</h2>
+    <pre><span class="mc">% Datos y modelo (de Clase 21)</span>
+x = <span class="mf">[</span><span class="mn">50</span> <span class="mn">80</span> <span class="mn">120</span> <span class="mn">180</span> <span class="mn">250</span> <span class="mn">300</span> <span class="mn">350</span> <span class="mn">420</span> <span class="mn">480</span> <span class="mn">550</span><span class="mf">]</span>';
+y = <span class="mf">[</span><span class="mn">260</span> <span class="mn">310</span> <span class="mn">420</span> <span class="mn">560</span> <span class="mn">710</span> <span class="mn">820</span> <span class="mn">960</span> <span class="mn">1080</span> <span class="mn">1240</span> <span class="mn">1390</span><span class="mf">]</span>';
+p = <span class="mk">polyfit</span>(x, y, <span class="mn">1</span>);
+y_hat = <span class="mk">polyval</span>(p, x);
+e = y - y_hat;
+n = <span class="mf">length</span>(x);
+
+<span class="mc">% Error estandar</span>
+se = <span class="mf">sqrt</span>(<span class="mk">sum</span>(e.^<span class="mn">2</span>) / (n-<span class="mn">2</span>));
+<span class="mk">fprintf</span>(<span class="ms">'Error estandar se = $%.4f\n'</span>, se)
+
+<span class="mc">% Residuos estandarizados (para detectar outliers)</span>
+e_std = e / se;
+<span class="mk">fprintf</span>(<span class="ms">'Residuos estandarizados:\n'</span>)
+<span class="mk">for</span> i = <span class="mn">1</span>:n
+    alerta = <span class="ms">''</span>;
+    <span class="mk">if</span> <span class="mf">abs</span>(e_std(i)) > <span class="mn">2</span>, alerta = <span class="ms">' <-- POSIBLE OUTLIER'</span>; <span class="mk">end</span>
+    <span class="mk">fprintf</span>(<span class="ms">'  e%d_std = %6.3f%s\n'</span>, i, e_std(i), alerta)
+<span class="mk">end</span>
+
+<span class="mc">% Grafico diagnostico completo</span>
+<span class="mk">figure</span>(<span class="ms">'Position'</span>,<span class="mf">[</span><span class="mn">50</span> <span class="mn">50</span> <span class="mn">950</span> <span class="mn">420</span><span class="mf">]</span>);
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">2</span>,<span class="mn">1</span>)
+<span class="mk">scatter</span>(y_hat, e, <span class="mn">60</span>, <span class="mf">[</span><span class="mn">0</span> <span class="mn">0.45</span> <span class="mn">0.74</span><span class="mf">]</span>, <span class="ms">'filled'</span>)
+<span class="mk">yline</span>(<span class="mn">0</span>,<span class="ms">'k--'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>)
+<span class="mk">yline</span>(<span class="mn">2</span>*se,<span class="ms">'r--'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1</span>); <span class="mk">yline</span>(-<span class="mn">2</span>*se,<span class="ms">'r--'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1</span>)
+<span class="mk">xlabel</span>(<span class="ms">'Valores ajustados'</span>); <span class="mk">ylabel</span>(<span class="ms">'Residuos ($)'</span>)
+<span class="mk">title</span>(<span class="ms">'Residuos vs Ajustados'</span>); <span class="mk">grid on</span>
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">2</span>,<span class="mn">2</span>)
+<span class="mk">qqplot</span>(e)  <span class="mc">% grafico Q-Q para normalidad</span>
+<span class="mk">title</span>(<span class="ms">'Q-Q plot de residuos (normalidad)'</span>)</pre>
+  </div>
+
+  <!-- SLIDE 14: TRES MODELOS -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-diagram-project"></i> Tres Variables, Tres Modelos: ¿Cuál Priorizar?</h2>
+    
+    <p class="reveal">Se ajustan tres modelos separados para el costo de distribución (12 envíos, script de la diapositiva siguiente):</p>
+    
+    <table class="compact reveal" style="font-size:0.8rem;">
+      <tr><th>Modelo</th><th>Variable \(x\)</th><th>\(\hat\beta_0\)</th><th>\(\hat\beta_1\)</th><th>\(R^2\)</th><th>\(s_e\)($)</th><th>Acción unitaria</th></tr>
+      <tr><td>M1</td><td>Distancia (km)</td><td>133.9</td><td>2.29</td><td>0.997</td><td>20.3</td><td>Reducir ruta</td></tr>
+      <tr><td>M2</td><td>Peso carga (ton)</td><td>89.3</td><td>161.8</td><td>0.991</td><td>37.0</td><td>Optimizar carga</td></tr>
+      <tr><td>M3</td><td>Paradas (#)</td><td>−26.3</td><td>126.3</td><td>0.975</td><td>59.6</td><td>Consolidar paradas</td></tr>
+    </table>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-calculator"></i> Análisis de impacto por acción factible</span>
+      <ul>
+        <li>Reducir 20 km la ruta: ahorro \(20\times2.29 = \$45.8\)</li>
+        <li>Reducir 0.5 ton de carga: ahorro \(0.5\times161.8 = \$80.9\)</li>
+        <li>Eliminar 1 parada: ahorro \(1\times126.3 = \$126.3\)</li>
+      </ul>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-gavel"></i> Decisión: ¿qué variable priorizar?</span>
+      La pendiente más alta ($126.3/parada) indica que <strong>eliminar una parada</strong> tiene el mayor impacto unitario. Pero hay que evaluar: ¿es factible eliminar paradas sin perder clientes?<br>
+      La decisión combina matemática y operación.
+    </div>
+  </div>
+
+  <!-- SLIDE 15: MATLAB COMPARAR -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Comparar Tres Modelos</h2>
+    <pre><span class="mc">% Datos de 12 envios (distancia, peso, paradas, costo)</span>
+dist    = <span class="mf">[</span><span class="mn">50</span> <span class="mn">80</span> <span class="mn">120</span> <span class="mn">180</span> <span class="mn">250</span> <span class="mn">300</span> <span class="mn">350</span> <span class="mn">420</span> <span class="mn">480</span> <span class="mn">550</span> <span class="mn">200</span> <span class="mn">320</span><span class="mf">]</span>';
+peso    = <span class="mf">[</span><span class="mn">1</span>  <span class="mn">1.5</span> <span class="mn">2</span>  <span class="mn">3</span>  <span class="mn">4</span>   <span class="mn">5</span>   <span class="mn">5.5</span> <span class="mn">6</span>  <span class="mn">7</span>   <span class="mn">8</span>   <span class="mn">2.5</span> <span class="mn">4.5</span><span class="mf">]</span>';
+paradas = <span class="mf">[</span><span class="mn">2</span>  <span class="mn">3</span>   <span class="mn">4</span>  <span class="mn">5</span>  <span class="mn">6</span>   <span class="mn">7</span>   <span class="mn">8</span>   <span class="mn">9</span>  <span class="mn">10</span>  <span class="mn">11</span>  <span class="mn">4</span>   <span class="mn">6</span>  <span class="mf">]</span>';
+costo   = <span class="mf">[</span><span class="mn">260</span> <span class="mn">310</span> <span class="mn">420</span> <span class="mn">560</span> <span class="mn">710</span> <span class="mn">820</span> <span class="mn">960</span> <span class="mn">1080</span> <span class="mn">1240</span> <span class="mn">1390</span> <span class="mn">540</span> <span class="mn">870</span><span class="mf">]</span>';
+
+vars   = <span class="mf">{</span>dist, peso, paradas<span class="mf">}</span>;
+etiq   = <span class="mf">{</span><span class="ms">'Distancia (km)'</span>, <span class="ms">'Peso (ton)'</span>, <span class="ms">'Paradas (#)'</span><span class="mf">}</span>;
+modelos = <span class="mf">cell</span>(<span class="mn">3</span>,<span class="mn">1</span>);
+
+<span class="mk">fprintf</span>(<span class="ms">'%-18s %-8s %-8s %-8s %-8s\n'</span>,...
+    <span class="ms">'Variable'</span>,<span class="ms">'b0'</span>,<span class="ms">'b1'</span>,<span class="ms">'R2'</span>,<span class="ms">'se($)'</span>);
+<span class="mk">fprintf</span>(<span class="ms">'%s\n'</span>, <span class="mk">repmat</span>(<span class="ms">'-'</span>,<span class="mn">52</span>,<span class="mn">1</span>))
+
+<span class="mk">for</span> k = <span class="mn">1</span>:<span class="mn">3</span>
+    p_k = <span class="mk">polyfit</span>(vars<span class="mf">{</span>k<span class="mf">}</span>, costo, <span class="mn">1</span>);
+    y_k = <span class="mk">polyval</span>(p_k, vars<span class="mf">{</span>k<span class="mf">}</span>);
+    e_k = costo - y_k;
+    R2_k = <span class="mn">1</span> - <span class="mk">sum</span>(e_k.^<span class="mn">2</span>)/<span class="mk">sum</span>((costo-<span class="mk">mean</span>(costo)).^<span class="mn">2</span>);
+    se_k = <span class="mf">sqrt</span>(<span class="mk">sum</span>(e_k.^<span class="mn">2</span>)/(<span class="mf">length</span>(costo)-<span class="mn">2</span>));
+    modelos<span class="mf">{</span>k<span class="mf">}</span> = p_k;
+    <span class="mk">fprintf</span>(<span class="ms">'%-18s %-8.1f %-8.2f %-8.4f %-8.2f\n'</span>,...
+        etiq<span class="mf">{</span>k<span class="mf">}</span>, p_k(<span class="mn">2</span>), p_k(<span class="mn">1</span>), R2_k, se_k)
+<span class="mk">end</span></pre>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
+      <code>Distancia (km)  133.9  2.29  0.9971  20.31</code><br><code>Peso (ton)       89.3  161.77 0.9905  36.98</code><br><code>Paradas (#)     -26.3  126.35 0.9754  59.60</code>
+    </div>
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación del output</span>
+      El modelo con mayor \(R^2\) y menor \(s_e\) describe mejor la variación del costo.<br>
+      Pero el modelo con la pendiente más alta revela qué variable mover para mayor impacto.
+    </div>
+  </div>
+
+  <!-- SLIDE 16: CASO COURIER -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-box-open"></i> Caso: Empresa de Courier — Priorizar Acciones</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-industry"></i> Situación</span>
+          una empresa de courier tiene costos elevados. El gerente tiene presupuesto para mejorar <strong>una sola cosa</strong>.
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-list-check"></i> Opciones</span>
+          <ol>
+            <li>Optimizar rutas: reducir distancia promedio 30 km</li>
+            <li>Mejor empaque: reducir peso promedio 0.8 ton</li>
+            <li>Consolidar pedidos: eliminar 2 paradas promedio</li>
+          </ol>
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-chart-bar"></i> Modelos disponibles (ajustados)</span>
+          <ul>
+            <li>M1: \(\hat y = 133.9 + 2.29\,x_{\text{dist}}\), \(R^2=0.997\)</li>
+            <li>M2: \(\hat y = 89.3 + 161.8\,x_{\text{peso}}\), \(R^2=0.991\)</li>
+            <li>M3: \(\hat y = -26.3 + 126.3\,x_{\text{par}}\), \(R^2=0.975\)</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-calculator"></i> Cálculo de ahorro esperado</span>
+          <ul>
+            <li>Opción 1: \(30\times2.29 = \$68.7\) por envío</li>
+            <li>Opción 2: \(0.8\times161.8 = \$129.4\) por envío</li>
+            <li>Opción 3: \(2\times126.3 = \$252.7\) por envío</li>
+          </ul>
+        </div>
+        <div class="example-block mt reveal">
+          <span class="b-title"><i class="fas fa-check-circle"></i> Recomendación matemática</span>
+          <strong>Opción 3</strong> (consolidar paradas): mayor ahorro por envío ($252.7).<br>
+          Con 500 envíos/mes: ahorro potencial ≈ $126.350/mes.
+        </div>
+        <div class="alert-block mt reveal">
+          <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Consideración operativa</span>
+          M3 tiene el menor \(R^2\) (0.975) y el mayor \(s_e\) ($59.6): menor confianza.<br>
+          Validar con más datos antes de comprometerse.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: RESUMEN -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-flag-checkered"></i> Resumen: Cómo Leer un Modelo de Regresión</h2>
+    
+    <p class="reveal"><strong>Checklist de interpretación:</strong></p>
+    <ol class="mt">
+      <li class="reveal"><strong>Graficar primero</strong>: dispersión de datos. ¿Se ve lineal?</li>
+      <li class="reveal"><strong>Leer \(\hat\beta_1\)</strong>: efecto marginal. Por cada unidad de \(x\), \(y\) cambia en \(\hat\beta_1\) unidades.</li>
+      <li class="reveal"><strong>Leer \(\hat\beta_0\)</strong>: valor base. ¿Tiene sentido para \(x=0\)?</li>
+      <li class="reveal"><strong>Evaluar \(R^2\)</strong>: ¿qué porcentaje de la variabilidad explica el modelo?</li>
+      <li class="reveal"><strong>Calcular \(s_e\)</strong>: error típico de predicción en unidades reales.</li>
+      <li class="reveal"><strong>Revisar residuos</strong>: gráfico diagnóstico. ¿Hay patrones?</li>
+      <li class="reveal"><strong>Comparar modelos</strong>: si hay varias variables, ¿cuál tiene mayor \(R^2\) y menor \(s_e\)?</li>
+      <li class="reveal"><strong>Tomar decisión</strong>: ¿qué variable actuar primero según las pendientes?</li>
+    </ol>
+  </div>
+
+  <!-- SLIDE 18: PUNTO DE DECISIÓN -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-gavel"></i> Punto de Decisión</h2>
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Pregunta de Cierre</span><br><br>
+      <em>Tienes tres modelos de regresión para el costo de distribución. El modelo de "paradas" tiene \(\hat\beta_1=126.3\) (mayor ahorro unitario) pero \(R^2=0.975\) (peor ajuste). El modelo de "distancia" tiene \(\hat\beta_1=2.29\) pero \(R^2=0.997\).</em><br><br>
+      <strong>¿Qué variable priorizarías para reducir costos? ¿El \(R^2\) más alto siempre indica la variable más importante?</strong>
+    </div>
+    
+    <div class="decision-cards mt">
+      <div class="dc-card a reveal">
+        <strong>El \(R^2\) mide ajuste</strong><br><br>
+        \(R^2\) alto = el modelo describe bien la variación histórica. No mide impacto.
+      </div>
+      <div class="dc-card b reveal">
+        <strong>La pendiente mide palanca</strong><br><br>
+        \(\hat\beta_1\) alto = cada unidad de acción genera más cambio en costo.
+      </div>
+      <div class="dc-card c reveal">
+        <strong>La decisión integra ambos</strong><br><br>
+        Alta pendiente + alto \(R^2\) = variable ideal. Si no coinciden, evaluar factibilidad operativa.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: TAREA -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 23</h2>
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lecturas</span>
+      <ul>
+        <li class="reveal"><strong>Montgomery</strong>, Cap. 3: Regresión lineal múltiple — formulación y estimación</li>
+        <li class="reveal"><strong>Montgomery</strong>, Cap. 2.4: Análisis de residuos (complementar hoy)</li>
+      </ul>
+    </div>
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Ejercicio preparatorio</span>
+      Con el dataset de la Clase 21 (distancia vs costo) más los datos de peso y paradas del script de hoy:
+      <ol>
+        <li class="reveal">Ajustar los tres modelos M1, M2, M3 con <code>polyfit</code>.</li>
+        <li class="reveal">Para cada modelo: calcular \(R^2\), \(s_e\) y graficar residuos.</li>
+        <li class="reveal">Construir la tabla comparativa y concluir qué variable priorizar.</li>
+        <li class="reveal">Calcular el ahorro mensual esperado de cada opción asumiendo 300 envíos/mes y las mejoras del caso de courier.</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Próxima clase 23</span>
+      <strong>Regresión Lineal Múltiple</strong> — modelar costos con múltiples factores simultáneamente
+    </div>
+  </div>
+
+  <!-- SLIDE 20: REFERENCIAS -->
+  <div class="slide" data-slide="20">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Montgomery, D.C., Peck, E.A. & Vining, G.G.</strong> (2012). <em>Introduction to Linear Regression Analysis</em> (5th ed.). Wiley. <strong>Cap. 2</strong> (Regresión simple e interpretación), <strong>Cap. 3.2</strong> (Diagnóstico).</li>
+      <li class="reveal"><strong>Anscombe, F.J.</strong> (1973). Graphs in Statistical Analysis. <em>The American Statistician</em>, 27(1), 17–21. (Artículo original del cuarteto de Anscombe.)</li>
+      <li class="reveal"><strong>Lay, D.C.</strong> (2016). <em>Álgebra Lineal</em> (5a ed.). Pearson. Cap. 6.5 (Mínimos cuadrados y proyección ortogonal).</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>polyfit</code>, <code>qqplot</code>, <code>fitlm</code>. <a href="https://www.mathworks.com/help/matlab/" style="color:var(--navy);">https://www.mathworks.com/help/matlab/</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Dataset courier, Script <code>clase22_interpretacion.m</code>.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--navy); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 22 | Interpretación y \(R^2\)</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 21: CIERRE -->
+  <div class="slide" data-slide="21">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 23: Regresión Lineal Múltiple</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

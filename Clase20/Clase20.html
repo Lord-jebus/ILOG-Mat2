@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 20: Mini-caso 3 — Reducción de Variables Logísticas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003a6b;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff3e0;
+      --red: #b41414;
+      --red-light: #ffe0e0;
+      --yellow: #e6a800;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--navy);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--navy);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block strong { color: var(--orange); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--red); border-color: var(--red); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    .network-diag { display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin: 1rem 0; flex-wrap: wrap; }
+    .nd-node { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.75rem; }
+    .nd-cd { background: rgba(0,82,147,0.15); border: 2px solid var(--navy); color: var(--navy); }
+    .nd-reg { background: rgba(0,130,80,0.15); border: 2px solid var(--green); color: var(--green); }
+    .nd-arrow { width: 50px; height: 2px; background: var(--navy); position: relative; }
+    .nd-arrow::after { content: ''; position: absolute; right: -6px; top: -4px; border-left: 6px solid var(--navy); border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+    .nd-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.3rem; }
+
+    .bar-chart { display: flex; align-items: center; gap: 1rem; margin: 1rem 0; }
+    .bar { height: 30px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 0.8rem; }
+    .bar-red { background: var(--red); width: 200px; }
+    .bar-green { background: var(--green); width: 25px; }
+    .bar-gray { background: #cbd5e1; width: 175px; }
+
+    .decision-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+    .decision-card { padding: 1rem; border-radius: 8px; text-align: center; border: 2px solid; }
+    .decision-card.a { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .decision-card.b { border-color: var(--green); background: rgba(0,130,80,0.05); }
+    .decision-card.c { border-color: var(--orange); background: var(--orange-light); }
+    .decision-card h4 { margin-bottom: 0.5rem; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .sv-bar { display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0; }
+    .sv-fill { height: 12px; background: var(--navy); border-radius: 2px; }
+    .sv-label { font-size: 0.8rem; color: var(--text-muted); min-width: 60px; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-chart-line fa-3x" style="color:var(--red); margin-bottom:1rem;"></i>
+      <h1>Mini-caso 3: Reducción de Variables Logísticas</h1>
+      <p class="sub">Módulo 4 — Integración con MATLAB</p>
+      <p class="sub">Matemáticas 2 — Clase 20</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 20 — Integradora</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Objetivos de la Clase</li>
+      <li class="reveal">Conexión con Clases Anteriores</li>
+      <li class="reveal">El Caso: Distribuidora Andina S.A.</li>
+      <li class="reveal">Datos del Caso: KPIs y Rutas</li>
+      <li class="reveal">KPIs Monitoreados por Ruta</li>
+      <li class="reveal">Paso 1: Análisis de la Matriz de Datos D</li>
+      <li class="reveal">Paso 2: Análisis de la Matriz de KPIs K</li>
+      <li class="reveal">Paso 3: Expresar KPIs Redundantes</li>
+      <li class="reveal">Paso 4: Modelo Reducido y Validación</li>
+      <li class="reveal">Resultados del Análisis</li>
+      <li class="reveal">Trade-off: Simplificación vs Control</li>
+      <li class="reveal">Paso 5: Análisis de Robustez con Ruido</li>
+      <li class="reveal">Marco de Decisión</li>
+      <li class="reveal">Paso 6: Cuantificar el Error de Predicción</li>
+      <li class="reveal">Rúbrica de Evaluación</li>
+      <li class="reveal">Punto de Decisión Final</li>
+      <li class="reveal">Tarea y Cierre</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de la Clase</h2>
+    <p class="reveal">Esta es una clase <strong>integradora</strong>: se aplican todos los conceptos del Módulo 4 sobre un caso real de empresa logística.</p>
+    <p class="reveal mt">Al finalizar, el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Integrar</strong> matrices, sistemas lineales, rango, espacio nulo y bases en un problema logístico completo.</li>
+      <li class="reveal"><strong>Ejecutar</strong> en MATLAB un flujo completo de análisis: carga de datos → rref → identificación de base → reducción.</li>
+      <li class="reveal"><strong>Cuantificar</strong> el tradeoff entre simplificación del modelo y control operativo.</li>
+      <li class="reveal"><strong>Fundamentar</strong> una decisión ejecutiva con argumentos matemáticos.</li>
+    </ol>
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-clock"></i> Estructura de la clase</span>
+      <strong>20 min</strong> Planteamiento del caso &nbsp;|&nbsp;
+      <strong>50 min</strong> Trabajo en MATLAB &nbsp;|&nbsp;
+      <strong>30 min</strong> Análisis de trade-offs &nbsp;|&nbsp;
+      <strong>20 min</strong> Decisión ejecutiva
+    </div>
+  </div>
+
+  <!-- SLIDE 3: CONEXIÓN CON CLASES ANTERIORES -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-link"></i> Conexión con Clases Anteriores</h2>
+    <div class="timeline reveal">
+      <div class="tm-box tm-done">Clase 17<br>Independencia</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-done">Clase 18<br>Subespacios</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-done">Clase 19<br>Base y Dim.</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-active">Clase 20<br>Mini-caso 3</div>
+    </div>
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title">Clase 17</span>
+        ¿Son los vectores redundantes?<br>
+        <strong>Independencia lineal</strong>.
+      </div>
+      <div class="block reveal">
+        <span class="b-title">Clase 18</span>
+        ¿Dónde viven?<br>
+        <strong>Subespacios, Nul(A), Col(A)</strong>.
+      </div>
+      <div class="block reveal">
+        <span class="b-title">Clase 19</span>
+        ¿Cuántos necesito?<br>
+        <strong>Base y dimensión</strong>.
+      </div>
+    </div>
+    <div class="alert-block mt reveal center" style="background:var(--red-light); border-left-color:var(--red);">
+      <span class="b-title"><i class="fas fa-puzzle-piece"></i> Clase 20: Todo junto en un caso real</span>
+      <em>¿Cuánto simplifico sin perder control?</em>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: EL CASO -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-industry"></i> El Caso: Distribuidora Andina S.A.</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-building"></i> Empresa</span>
+          <strong>Distribuidora Andina S.A.</strong><br>
+          Distribución de alimentos, 4 regiones.
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-exclamation-circle"></i> Situación actual</span>
+          <ul>
+            <li>7 rutas de distribución activas</li>
+            <li>Monitorea 8 KPIs diarios por ruta</li>
+            <li>Sistema de telemetría cuesta $12.000/mes</li>
+            <li>El analista sospecha que varios KPIs son redundantes</li>
+          </ul>
+        </div>
+        <p class="reveal mt" style="color:var(--red); font-weight:600;">
+          <i class="fas fa-question-circle"></i> <strong>Pregunta del gerente:</strong><br>
+          <em>"¿Podemos simplificar el modelo sin perder capacidad de decisión?"</em>
+        </p>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/red_distribuidora.png" alt="Red de Distribuidora Andina" style="max-width:360px"><p class="fig-cap">Centro de distribución (CD) que abastece 4 regiones mediante 7 rutas</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: DATOS DEL CASO -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-database"></i> Datos del Caso: KPIs y Rutas</h2>
+    
+    <div class="reveal"><span class="b-title">Matriz de datos históricos</span> \(D \in \mathbb{R}^{5\times7}\) (5 semanas de operación, 7 rutas):
+      \[ D = \begin{pmatrix} 10 & 5 & 15 & 8 & 3 & 12 & 20 \\ 4 & 2 & 6 & 3 & 1 & 5 & 8 \\ 6 & 3 & 9 & 5 & 2 & 7 & 12 \\ 20 & 10 & 30 & 16 & 6 & 24 & 40 \\ 2 & 1 & 3 & 2 & 1 & 2 & 4 \end{pmatrix} \]
+      <span class="italic" style="font-size:0.9rem;">Filas = semanas. Columnas = rutas. Valores = toneladas transportadas.</span>
+    </div>
+    
+    <div class="reveal mt"><span class="b-title">Matriz de KPIs</span> \(K \in \mathbb{R}^{7\times8}\) (7 rutas, 8 indicadores por ruta):
+      \[ K = \begin{pmatrix} 100 & 200 & 50 & 100 & 300 & 150 & 80 & 160 \\ 50 & 100 & 25 & 50 & 150 & 75 & 40 & 80 \\ 150 & 300 & 75 & 150 & 450 & 225 & 120 & 240 \\ 80 & 160 & 40 & 80 & 240 & 120 & 64 & 128 \\ 30 & 60 & 15 & 30 & 90 & 45 & 24 & 48 \\ 120 & 240 & 60 & 120 & 360 & 180 & 96 & 192 \\ 200 & 400 & 100 & 200 & 600 & 300 & 160 & 320 \end{pmatrix} \]
+    </div>
+    
+    <p class="reveal mt" style="color:var(--red); font-weight:600;">
+      <i class="fas fa-tasks"></i> <strong>Tarea:</strong> determinar el rango de cada matriz e identificar variables redundantes.
+    </p>
+  </div>
+
+  <!-- SLIDE 6: KPIS MONITOREADOS -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-tachometer-alt"></i> KPIs Monitoreados por Ruta</h2>
+    <table class="compact reveal">
+      <tr><th>KPI</th><th>Descripción</th><th>Unidad</th><th>Costo monitoreo/mes</th></tr>
+      <tr><td>\(k_1\)</td><td>Distancia recorrida</td><td>km</td><td>$800</td></tr>
+      <tr><td>\(k_2\)</td><td>Costo total de combustible</td><td>$</td><td>$1500</td></tr>
+      <tr><td>\(k_3\)</td><td>Tiempo de carga</td><td>horas</td><td>$600</td></tr>
+      <tr><td>\(k_4\)</td><td>Tiempo de tránsito</td><td>horas</td><td>$700</td></tr>
+      <tr><td>\(k_5\)</td><td>Peso transportado</td><td>toneladas</td><td>$500</td></tr>
+      <tr><td>\(k_6\)</td><td>Número de paradas</td><td>cantidad</td><td>$900</td></tr>
+      <tr><td>\(k_7\)</td><td>Emisión de CO₂</td><td>kg</td><td>$1200</td></tr>
+      <tr><td>\(k_8\)</td><td>Índice de satisfacción</td><td>1–10</td><td>$2800</td></tr>
+      <tr style="font-weight:bold; background:#f8fafc;"><td colspan="3">Costo total actual</td><td><strong>$9.000/mes</strong></td></tr>
+    </table>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Pregunta operativa</span>
+      Si el rango de \(K\) es \(r &lt; 8\), solo necesitamos monitorear \(r\) KPIs.<br>
+      <strong>¿Cuánto se ahorra? ¿Cuáles se eliminan?</strong>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: PASO 1 - ANÁLISIS D -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-laptop-code"></i> Paso 1: Análisis de la Matriz de Datos D</h2>
+    <pre><span class="mc">% Cargar y analizar D</span>
+<span class="mc">% Datos historicos de flujo (5 semanas x 7 rutas)</span>
+D = <span class="mf">[</span><span class="mn">10</span>  <span class="mn">5</span> <span class="mn">15</span>  <span class="mn">8</span>  <span class="mn">3</span> <span class="mn">12</span> <span class="mn">20</span>;
+      <span class="mn">4</span>  <span class="mn">2</span>  <span class="mn">6</span>  <span class="mn">3</span>  <span class="mn">1</span>  <span class="mn">5</span>  <span class="mn">8</span>;
+      <span class="mn">6</span>  <span class="mn">3</span>  <span class="mn">9</span>  <span class="mn">5</span>  <span class="mn">2</span>  <span class="mn">7</span> <span class="mn">12</span>;
+     <span class="mn">20</span> <span class="mn">10</span> <span class="mn">30</span> <span class="mn">16</span>  <span class="mn">6</span> <span class="mn">24</span> <span class="mn">40</span>;
+      <span class="mn">2</span>  <span class="mn">1</span>  <span class="mn">3</span>  <span class="mn">2</span>  <span class="mn">1</span>  <span class="mn">2</span>  <span class="mn">4</span><span class="mf">]</span>;
+
+<span class="mk">fprintf</span>(<span class="ms">'=== ANALISIS DE DATOS D ===\n'</span>)
+[R_D, piv_D] = <span class="mk">rref</span>(D);
+r_D = <span class="mk">rank</span>(D);
+nul_D = <span class="mf">size</span>(<span class="mk">null</span>(D),<span class="mn">2</span>);
+
+<span class="mk">fprintf</span>(<span class="ms">'Rango de D     = %d\n'</span>, r_D)
+<span class="mk">fprintf</span>(<span class="ms">'Nulidad de D   = %d\n'</span>, nul_D)
+<span class="mk">fprintf</span>(<span class="ms">'Rutas independientes (col. pivote): '</span>)
+<span class="mk">disp</span>(piv_D)
+
+red_D = <span class="mf">setdiff</span>(<span class="mn">1</span>:<span class="mn">7</span>, piv_D);
+<span class="mk">fprintf</span>(<span class="ms">'Rutas redundantes: '</span>)
+<span class="mk">disp</span>(red_D)</pre>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-terminal"></i> Resultado esperado</span>
+      <code>Rango de D = 2</code> &nbsp;|&nbsp; <code>Nulidad = 5</code><br>
+      <code>Rutas independientes: 1 4</code><br>
+      <code>Rutas redundantes: 2 3 5 6 7</code>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: PASO 2 - ANÁLISIS K -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-laptop-code"></i> Paso 2: Análisis de la Matriz de KPIs K</h2>
+    <pre><span class="mc">% Matriz de KPIs (7 rutas x 8 indicadores)</span>
+K = <span class="mf">[</span><span class="mn">100</span> <span class="mn">200</span>  <span class="mn">50</span> <span class="mn">100</span> <span class="mn">300</span> <span class="mn">150</span>  <span class="mn">80</span> <span class="mn">160</span>;
+      <span class="mn">50</span> <span class="mn">100</span>  <span class="mn">25</span>  <span class="mn">50</span> <span class="mn">150</span>  <span class="mn">75</span>  <span class="mn">40</span>  <span class="mn">80</span>;
+     <span class="mn">150</span> <span class="mn">300</span>  <span class="mn">75</span> <span class="mn">150</span> <span class="mn">450</span> <span class="mn">225</span> <span class="mn">120</span> <span class="mn">240</span>;
+      <span class="mn">80</span> <span class="mn">160</span>  <span class="mn">40</span>  <span class="mn">80</span> <span class="mn">240</span> <span class="mn">120</span>  <span class="mn">64</span> <span class="mn">128</span>;
+      <span class="mn">30</span>  <span class="mn">60</span>  <span class="mn">15</span>  <span class="mn">30</span>  <span class="mn">90</span>  <span class="mn">45</span>  <span class="mn">24</span>  <span class="mn">48</span>;
+     <span class="mn">120</span> <span class="mn">240</span>  <span class="mn">60</span> <span class="mn">120</span> <span class="mn">360</span> <span class="mn">180</span>  <span class="mn">96</span> <span class="mn">192</span>;
+     <span class="mn">200</span> <span class="mn">400</span> <span class="mn">100</span> <span class="mn">200</span> <span class="mn">600</span> <span class="mn">300</span> <span class="mn">160</span> <span class="mn">320</span><span class="mf">]</span>;
+
+costos = <span class="mf">[</span><span class="mn">800</span> <span class="mn">1500</span> <span class="mn">600</span> <span class="mn">700</span> <span class="mn">500</span> <span class="mn">900</span> <span class="mn">1200</span> <span class="mn">2800</span><span class="mf">]</span>; <span class="mc">% $/mes</span>
+
+[R_K, piv_K] = <span class="mk">rref</span>(K);
+r_K = <span class="mk">rank</span>(K);
+
+<span class="mk">fprintf</span>(<span class="ms">'=== ANALISIS DE KPIs K ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'Rango de K = %d (KPIs independientes)\n'</span>, r_K)
+<span class="mk">fprintf</span>(<span class="ms">'KPIs en la base: '</span>)
+<span class="mk">disp</span>(piv_K)
+
+<span class="mc">% Calcular ahorro</span>
+kpi_eliminar = <span class="mf">setdiff</span>(<span class="mn">1</span>:<span class="mn">8</span>, piv_K);
+costo_actual = <span class="mk">sum</span>(costos);
+costo_reducido = <span class="mk">sum</span>(costos(piv_K));
+ahorro = costo_actual - costo_reducido;
+
+<span class="mk">fprintf</span>(<span class="ms">'Costo actual:   $%d/mes\n'</span>, costo_actual)
+<span class="mk">fprintf</span>(<span class="ms">'Costo reducido: $%d/mes\n'</span>, costo_reducido)
+<span class="mk">fprintf</span>(<span class="ms">'Ahorro mensual: $%d/mes (%.1f%%)\n'</span>, ahorro, <span class="mn">100</span>*ahorro/costo_actual)</pre>
+  </div>
+
+  <!-- SLIDE 9: PASO 3 - RELACIONES -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-laptop-code"></i> Paso 3: Expresar KPIs Redundantes</h2>
+    <pre><span class="mc">% Relaciones entre KPIs</span>
+nombres = {<span class="ms">'Distancia'</span>,<span class="ms">'Combustible'</span>,<span class="ms">'T.Carga'</span>,<span class="ms">'T.Transito'</span>,...
+           <span class="ms">'Peso'</span>,<span class="ms">'Paradas'</span>,<span class="ms">'CO2'</span>,<span class="ms">'Satisfaccion'</span>};
+
+<span class="mk">fprintf</span>(<span class="ms">'=== RELACIONES ENTRE KPIs ===\n'</span>)
+base_K = K(:, piv_K);       <span class="mc">% columnas pivote (base)</span>
+red_K  = <span class="mf">setdiff</span>(<span class="mn">1</span>:<span class="mn">8</span>, piv_K);
+
+<span class="mk">for</span> j = red_K
+    coefs = base_K \ K(:,j);
+    <span class="mk">fprintf</span>(<span class="ms">'%s = '</span>, nombres{j});
+    <span class="mk">for</span> k = <span class="mn">1</span>:<span class="mf">length</span>(piv_K)
+        <span class="mk">if</span> k > <span class="mn">1</span> && coefs(k) >= <span class="mn">0</span>
+            <span class="mk">fprintf</span>(<span class="ms">' + '</span>);
+        <span class="mk">end</span>
+        <span class="mk">fprintf</span>(<span class="ms">'%.2f * %s'</span>, coefs(k), nombres{piv_K(k)});
+    <span class="mk">end</span>
+    <span class="mk">fprintf</span>(<span class="ms">'\n'</span>);
+<span class="mk">end</span>
+
+<span class="mc">% Verificar precision de las relaciones</span>
+<span class="mk">for</span> j = red_K
+    coefs = base_K \ K(:,j);
+    error_rel = <span class="mf">norm</span>(base_K*coefs - K(:,j)) / <span class="mf">norm</span>(K(:,j));
+    <span class="mk">fprintf</span>(<span class="ms">'Error relativo KPI %d: %.2e\n'</span>, j, error_rel)
+<span class="mk">end</span></pre>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación clave</span>
+      Si "Combustible = 2× Distancia", no se necesita medir el combustible por separado: se <strong>calcula automáticamente</strong>.
+    </div>
+  </div>
+
+  <!-- SLIDE 10: PASO 4 - MODELO REDUCIDO -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-laptop-code"></i> Paso 4: Modelo Reducido y Validación</h2>
+    <p class="mb" style="font-size:0.9rem;">Relaciones obtenidas (rango 1): Combustible = 2·Dist, T.Carga = 0.5·Dist, T.Tránsito = 1·Dist, Peso = 3·Dist, Paradas = 1.5·Dist, CO₂ = 0.8·Dist, Satisfacción = 1.6·Dist. Ruta 1 del nuevo plan (110 km): <code>110 220 55 110 330 165 88 176</code>. Error de reconstrucción ≈ 0.</p>
+    <pre><span class="mc">% Modelo reducido: solo KPIs independientes</span>
+K_red = K(:, piv_K);
+<span class="mk">fprintf</span>(<span class="ms">'Dimension modelo reducido: %d rutas x %d KPIs\n'</span>,...
+        <span class="mf">size</span>(K_red,<span class="mn">1</span>), <span class="mf">size</span>(K_red,<span class="mn">2</span>))
+
+<span class="mc">% Reconstruir KPIs eliminados desde el modelo reducido</span>
+K_reconstruido = <span class="mf">zeros</span>(<span class="mf">size</span>(K));
+K_reconstruido(:, piv_K) = K_red;
+<span class="mk">for</span> j = <span class="mf">setdiff</span>(<span class="mn">1</span>:<span class="mn">8</span>, piv_K)
+    coefs = K_red \ K(:,j);
+    K_reconstruido(:,j) = K_red * coefs;
+<span class="mk">end</span>
+
+<span class="mc">% Error de reconstruccion (debe ser ~0)</span>
+err_total = <span class="mf">norm</span>(K - K_reconstruido, <span class="ms">'fro'</span>) / <span class="mf">norm</span>(K,<span class="ms">'fro'</span>);
+<span class="mk">fprintf</span>(<span class="ms">'Error de reconstruccion: %.2e\n'</span>, err_total)
+
+<span class="mc">% Nuevo plan: se mide SOLO el KPI base (Distancia) en las 7 rutas</span>
+dist_nueva = <span class="mf">[</span><span class="mn">110</span>; <span class="mn">85</span>; <span class="mn">160</span>; <span class="mn">90</span>; <span class="mn">35</span>; <span class="mn">125</span>; <span class="mn">210</span><span class="mf">]</span>;   <span class="mc">% km por ruta</span>
+K_nuevo = <span class="mf">zeros</span>(<span class="mn">7</span>,<span class="mn">8</span>);
+K_nuevo(:, piv_K) = dist_nueva;                 <span class="mc">% KPI medido</span>
+<span class="mk">for</span> j = <span class="mf">setdiff</span>(<span class="mn">1</span>:<span class="mn">8</span>, piv_K)
+    coefs = K_red \ K(:,j);                     <span class="mc">% factor (rango 1 => escalar)</span>
+    K_nuevo(:,j) = K_nuevo(:, piv_K) * coefs;   <span class="mc">% KPI calculado</span>
+<span class="mk">end</span>
+<span class="mk">disp</span>(<span class="mf">array2table</span>(K_nuevo, <span class="ms">'VariableNames'</span>, nombres))</pre>
+  </div>
+
+  <!-- SLIDE 11: RESULTADOS -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-chart-bar"></i> Resultados del Análisis</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-database"></i> Matriz de datos D (flujos)</span>
+          <ul>
+            <li class="reveal">Rango = 2 de 5 posibles (5 semanas × 7 rutas)</li>
+            <li class="reveal">Solo 2 rutas son independientes (rutas 1 y 4)</li>
+            <li class="reveal">5 rutas son combinaciones de las 2 base (p. ej. ruta 2 = 0.5 × ruta 1)</li>
+          </ul>
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-tachometer-alt"></i> Matriz de KPIs K</span>
+          <ul>
+            <li>Rango = 1 de 8 posibles</li>
+            <li>Solo 1 KPI base (ej.: Distancia)</li>
+            <li>Los 7 restantes se derivan de ella</li>
+            <li>Ahorro potencial: $8.200/mes</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/ahorro_kpis.png" alt="Costo de monitoreo antes y después" style="max-width:380px"><p class="fig-cap">Los 7 KPIs restantes se calculan desde la Distancia</p></div>
+        <p class="reveal mt" style="color:var(--red); font-size:0.9rem; font-weight:600;">
+          <i class="fas fa-exclamation-triangle"></i> Pero: ¿es seguro eliminar 7 KPIs de 8?
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: TRADE-OFF -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-balance-scale"></i> Trade-off: Simplificación vs Control</h2>
+    <table class="compact reveal">
+      <tr><th>Dimensión</th><th>Favor de reducir</th><th>Contra de reducir</th></tr>
+      <tr><td><strong>Costo</strong></td><td>Ahorro de $8.200/mes = $98.400/año</td><td>Costo de reimplementación si hay error</td></tr>
+      <tr><td><strong>Precisión</strong></td><td>Si los KPIs son exactamente lineales, reconstrucción perfecta</td><td>En datos reales hay ruido: la relación puede no ser exacta</td></tr>
+      <tr><td><strong>Control</strong></td><td>Modelo más simple, más fácil de comunicar</td><td>Se pierde visibilidad directa de 7 indicadores</td></tr>
+      <tr><td><strong>Riesgo</strong></td><td>Menor complejidad = menos puntos de fallo</td><td>Si la relación cambia, el modelo queda inválido</td></tr>
+      <tr><td><strong>Regulación</strong></td><td>—</td><td>Algunos KPIs (CO₂, satisfacción) pueden ser obligatorios</td></tr>
+    </table>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Insight matemático clave</span>
+      El rango = 1 en datos <strong>perfectamente sintéticos</strong>.<br>
+      En datos reales con ruido, el rango efectivo suele ser mayor.<br>
+      Se recomienda analizar la <strong>descomposición en valores singulares (SVD)</strong> para determinar cuántos KPIs son realmente significativos.
+    </div>
+  </div>
+
+  <!-- SLIDE 13: PASO 5 - ROBUSTEZ -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-laptop-code"></i> Paso 5: Análisis de Robustez con Ruido</h2>
+    <div class="col-layout" style="grid-template-columns:1.25fr 1fr; margin-top:0;">
+<div><pre style="font-size:0.72rem;"><span class="mc">% Que pasa con datos reales (con ruido)?</span>
+<span class="mc">% Agregar ruido del 5% a los datos</span>
+rng(<span class="mn">42</span>);  <span class="mc">% semilla para reproducibilidad</span>
+ruido = <span class="mn">0.05</span> * <span class="mf">randn</span>(<span class="mf">size</span>(K));
+K_ruidoso = K + K .* ruido;
+
+<span class="mc">% Rango nominal vs efectivo</span>
+r_nominal = <span class="mk">rank</span>(K);
+r_ruidoso  = <span class="mk">rank</span>(K_ruidoso);
+<span class="mk">fprintf</span>(<span class="ms">'Rango sin ruido:  %d\n'</span>, r_nominal)
+<span class="mk">fprintf</span>(<span class="ms">'Rango con ruido:  %d\n'</span>, r_ruidoso)
+
+<span class="mc">% Valores singulares (cuanto "peso" tiene cada dimension)</span>
+[~,S,~] = <span class="mf">svd</span>(K_ruidoso);
+sv = <span class="mf">diag</span>(S);
+sv_norm = sv / <span class="mf">sum</span>(sv);
+<span class="mk">fprintf</span>(<span class="ms">'\nValores singulares normalizados:\n'</span>)
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mf">length</span>(sv)
+    barra = <span class="mf">repmat</span>(<span class="ms">'*'</span>, <span class="mn">1</span>, <span class="mf">round</span>(<span class="mn">30</span>*sv_norm(i)));
+    <span class="mk">fprintf</span>(<span class="ms">'  s%d = %6.2f (%.1f%%) %s\n'</span>, i, sv(i), <span class="mn">100</span>*sv_norm(i), barra)
+<span class="mk">end</span>
+
+<span class="mc">% Cuantos valores singulares acumulan el 95% de la suma total?</span>
+acum = <span class="mf">cumsum</span>(sv_norm);
+r_efectivo = <span class="mf">find</span>(acum >= <span class="mn">0.95</span>, <span class="mn">1</span>);
+<span class="mk">fprintf</span>(<span class="ms">'\nKPIs necesarios para el 95%%: %d\n'</span>, r_efectivo)</pre></div>
+<div class="reveal mt">
+      <img class="fig" src="imagenes/valores_singulares.png" alt="Valores singulares con ruido 5%" style="max-width:100%"><p class="fig-cap">Una realización del ruido del 5% (los valores exactos cambian con la semilla). K tiene 7 filas ⇒ 7 valores singulares.</p>
+      <p class="mt italic" style="font-size:0.9rem;">Con ruido del 5%, el rango numérico pasa de 1 a 7, pero \(s_1\) concentra ≈94–95%: bastan ~1–2 KPIs para capturar el 95% (suma de valores singulares).</p>
+    </div>
+</div>
+  </div>
+
+  <!-- SLIDE 14: MARCO DE DECISIÓN -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-gavel"></i> Marco de Decisión</h2>
+    <p class="reveal">Con los resultados del análisis, el equipo debe recomendar una de estas opciones:</p>
+    
+    <div class="decision-options mt">
+      <div class="decision-card a reveal">
+        <h4 style="color:var(--navy);">Opción A<br>Reducción Máxima</h4>
+        <p style="font-size:0.9rem;">Monitorear solo 1 KPI (base matemática).</p>
+        <p style="font-size:0.85rem; margin-top:0.5rem;"><strong>Ahorro:</strong> $8.200/mes<br><strong>Riesgo:</strong> alto si datos tienen ruido.</p>
+      </div>
+      <div class="decision-card b reveal">
+        <h4 style="color:var(--green);">Opción B<br>Reducción Moderada</h4>
+        <p style="font-size:0.9rem;">Monitorear los KPIs independientes según análisis con ruido (aprox. 3).</p>
+        <p style="font-size:0.85rem; margin-top:0.5rem;"><strong>Ahorro:</strong> ~$5.000/mes<br><strong>Riesgo:</strong> moderado.</p>
+      </div>
+      <div class="decision-card c reveal">
+        <h4 style="color:var(--orange);">Opción C<br>Reducción Selectiva</h4>
+        <p style="font-size:0.9rem;">Eliminar solo los KPIs sin valor regulatorio ni operativo crítico.</p>
+        <p style="font-size:0.85rem; margin-top:0.5rem;"><strong>Ahorro:</strong> ~$2.500/mes<br><strong>Riesgo:</strong> bajo.</p>
+      </div>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> Recomendación del equipo de BI (a discutir)</span>
+      <strong>Opción B</strong> con periodo de prueba de 3 meses:<br>
+      implementar el modelo reducido en paralelo al sistema actual,<br>
+      validar que las predicciones tengan error &lt; 5%,<br>
+      y luego proceder con la reducción definitiva.
+    </div>
+  </div>
+
+  <!-- SLIDE 15: PASO 6 - VALIDACIÓN -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-laptop-code"></i> Paso 6: Cuantificar el Error de Predicción</h2>
+    <pre><span class="mc">% Validar el modelo reducido con datos reales</span>
+<span class="mc">% Dividir datos: rutas 1-4 para entrenar, ruta 5 para probar</span>
+K_train = K(<span class="mn">1</span>:<span class="mn">4</span>, :);
+K_test  = K(<span class="mn">5</span>,   :)';    <span class="mc">% ruta 5 como prueba</span>
+
+<span class="mc">% Construir modelo con datos de entrenamiento</span>
+[~, piv_train] = <span class="mk">rref</span>(K_train);
+base_train = K_train(:, piv_train);
+
+<span class="mc">% Predecir KPIs completos desde base reducida</span>
+k_test_base = K_test(piv_train);   <span class="mc">% KPIs base medidos</span>
+k_pred = <span class="mf">zeros</span>(<span class="mn">8</span>,<span class="mn">1</span>);
+k_pred(piv_train) = k_test_base;
+
+<span class="mk">for</span> j = <span class="mf">setdiff</span>(<span class="mn">1</span>:<span class="mn">8</span>, piv_train)
+    coefs = base_train \ K_train(:,j);
+    k_pred(j) = k_test_base' * coefs;   <span class="mc">% usa los KPIs base de la ruta de prueba</span>
+<span class="mk">end</span>
+
+<span class="mc">% Calcular errores de prediccion (ternary: funcion auxiliar definida en clase20_mini_caso3.m)</span>
+errores = <span class="mf">abs</span>(k_pred - K_test) ./ <span class="mf">abs</span>(K_test) * <span class="mn">100</span>;
+<span class="mk">fprintf</span>(<span class="ms">'Errores de prediccion (%%):\n'</span>)
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mn">8</span>
+    estado = <span class="mf">ternary</span>(<span class="mf">ismember</span>(i,piv_train),<span class="ms">'[BASE]'</span>,<span class="ms">'[PRED]'</span>);
+    <span class="mk">fprintf</span>(<span class="ms">'  KPI %d %s: %.2f%%\n'</span>, i, estado, errores(i))
+<span class="mk">end</span>
+<span class="mk">fprintf</span>(<span class="ms">'\nError promedio en KPIs predichos: %.2f%%\n'</span>,...
+        <span class="mf">mean</span>(errores(<span class="mf">setdiff</span>(<span class="mn">1</span>:<span class="mn">8</span>,piv_train))))</pre>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Resultado esperado</span>Con datos exactos (rango 1) todos los errores son <code>0.00%</code>. Repetir con <code>K_ruidoso</code> para ver errores realistas.</div>
+  </div>
+
+  <!-- SLIDE 16: RÚBRICA -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-clipboard-check"></i> Rúbrica de Evaluación del Mini-caso</h2>
+    <table class="compact reveal" style="font-size:0.85rem;">
+      <tr><th>Criterio</th><th>Logrado (3)</th><th>En proceso (2)</th><th>Inicial (1)</th></tr>
+      <tr><td>Cálculo de rango y nulidad</td><td>Correcto con MATLAB y verificado</td><td>Correcto con MATLAB, sin verificar</td><td>Con errores</td></tr>
+      <tr><td>Identificación de base</td><td>Identifica columnas pivote e interpreta logísticamente</td><td>Identifica columnas pivote sin interpretación</td><td>No identifica base</td></tr>
+      <tr><td>Relaciones entre variables</td><td>Expresa variables redundantes como comb. lineal correcta</td><td>Expresa con pequeños errores</td><td>No expresa relaciones</td></tr>
+      <tr><td>Análisis de trade-offs</td><td>Considera costo, riesgo y regulación</td><td>Considera 1-2 dimensiones</td><td>No analiza trade-offs</td></tr>
+      <tr><td>Decisión ejecutiva</td><td>Fundamentada con números y argumentos</td><td>Parcialmente fundamentada</td><td>Sin fundamentación</td></tr>
+    </table>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-file-alt"></i> Entregable</span>
+      Informe en MATLAB Live Script (<code>.mlx</code>) o PDF con:<br>
+      código ejecutado, resultados, interpretación y decisión fundamentada.
+    </div>
+  </div>
+
+  <!-- SLIDE 17: DECISIÓN FINAL -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-gavel"></i> Punto de Decisión Final</h2>
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Decisión Ejecutiva</span><br><br>
+      <em>Distribuidora Andina S.A. puede ahorrar hasta $98.400/año reduciendo el monitoreo de 8 a 1 KPI según el análisis de rango.</em><br><br>
+      <strong>¿Recomendarías la Opción A (reducción máxima), la Opción B (moderada) o la Opción C (selectiva)? Justifica con los resultados de tu análisis MATLAB.</strong>
+    </div>
+    
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-check-circle"></i> Para argumentar a favor de A</span>
+        El rango matemático es 1. La reconstrucción tiene error cero en datos perfectos. El ahorro es máximo.
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-shield-alt"></i> Para argumentar a favor de B o C</span>
+        Datos reales tienen ruido. Algunos KPIs son obligatorios.<br>
+        La resiliencia y la confianza del equipo son activos intangibles.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: TAREA Y CIERRE -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 21</h2>
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-file-code"></i> Entregable del Mini-caso 3</span>
+      <ul>
+        <li class="reveal">Completar el script <code>clase20_mini_caso3.m</code> con los 6 pasos.</li>
+        <li class="reveal">Agregar un bloque de análisis de robustez con ruido del 3%, 5% y 10%.</li>
+        <li class="reveal">Escribir un párrafo de <strong>decisión ejecutiva</strong> (máx. 150 palabras) con la opción elegida y su justificación matemática y operativa.</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lectura preparatoria para Clase 21</span>
+      <strong>Lay</strong>, Cap. 6.1: Producto interno y ortogonalidad<br>
+      <strong>Montgomery</strong>, Cap. 1: Introducción a la regresión lineal<br>
+      <em>Pensar: ¿cómo se relaciona la regresión con el espacio columna?</em>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Próxima clase: Clase 21</span>
+      <strong>Inicio Módulo 5</strong> — Regresión Lineal e introducción a modelado de datos logísticos
+    </div>
+  </div>
+
+  <!-- SLIDE 19: REFERENCIAS -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Lay, D.C., Lay, S.R., McDonald, J.J.</strong> (2016). <em>Álgebra Lineal y sus Aplicaciones</em> (5a ed.). Pearson. Cap. 4.5 (Base y Dimensión), Cap. 4.6 (Cambio de base).</li>
+      <li class="reveal"><strong>Strang, G.</strong> (2016). <em>Introduction to Linear Algebra</em> (5th ed.). Wellesley-Cambridge. Cap. 3 (Vector Spaces and Subspaces).</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>rref</code>, <code>null</code>, <code>rank</code>, <code>svd</code>. <a href="https://www.mathworks.com/help/matlab/" style="color:var(--navy);">https://www.mathworks.com/help/matlab/</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Dataset Distribuidora Andina, Script <code>clase20_mini_caso3.m</code>, Rúbrica de evaluación.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--navy); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 20 | Mini-caso 3</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: CIERRE -->
+  <div class="slide" data-slide="20">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>¡Fin del Módulo 4!</h1>
+      <p class="sub mt">Espacios Vectoriales — Completado</p>
+      <p class="sub" style="color:var(--green); font-weight:600;">Próximo: Módulo 5 — Regresión Lineal</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

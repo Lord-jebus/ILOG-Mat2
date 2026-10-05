@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -165,11 +165,39 @@
 
     .warning-box { background: #fef3c7; border: 2px solid var(--orange); border-radius: 8px; padding: 0.8rem; margin: 0.5rem 0; font-size: 0.9rem; }
     .warning-box::before { content: "⚠️ "; font-weight: bold; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -271,97 +299,18 @@
   </div>
 
   <!-- SLIDE 5: CONFIGURACIONES TÍPICAS -->
-  <div class="slide" data-slide="5">
-    <h2><i class="fas fa-diagram-project"></i> Grados de libertad en redes logísticas</h2>
-    <div class="block reveal"><span class="b-title"><i class="fas fa-list"></i> Cuatro configuraciones típicas</span></div>
-    <div class="dof-diagram reveal">
-      <!-- Caso 1: 0 gdl -->
-      <div class="dof-case">
-        <div class="dof-title" style="color:var(--navy);">0 g.d.l.</div>
-        <div style="display:flex; gap:1rem; align-items:center;">
-          <div class="dof-nodes">
-            <div class="dof-plant">P1</div>
-            <div class="dof-plant">P2</div>
-            <div class="dof-plant">P3</div>
-          </div>
-          <div class="dof-arrows">
-            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
-            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
-          </div>
-          <div class="dof-nodes">
-            <div class="dof-cd">D1</div>
-            <div class="dof-cd">D2</div>
-            <div class="dof-cd">D3</div>
-          </div>
-        </div>
-        <div class="dof-note">\(r=n=3\)</div>
-      </div>
-      <!-- Caso 2: 1 gdl -->
-      <div class="dof-case">
-        <div class="dof-title" style="color:var(--green);">1 g.d.l.</div>
-        <div style="display:flex; gap:1rem; align-items:center;">
-          <div class="dof-nodes">
-            <div class="dof-plant">P1</div>
-            <div class="dof-plant">P2</div>
-            <div class="dof-plant">P3</div>
-            <div class="dof-plant">P4</div>
-          </div>
-          <div class="dof-arrows">
-            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
-            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
-          </div>
-          <div class="dof-nodes">
-            <div class="dof-cd">D1</div>
-            <div class="dof-cd">D2</div>
-            <div class="dof-cd">D3</div>
-          </div>
-        </div>
-        <div class="dof-note">\(n=4,\;r=3\)</div>
-      </div>
-      <!-- Caso 3: 2 gdl -->
-      <div class="dof-case">
-        <div class="dof-title" style="color:var(--purple);">2 g.d.l.</div>
-        <div style="display:flex; gap:1rem; align-items:center;">
-          <div class="dof-nodes">
-            <div class="dof-plant">P1</div>
-            <div class="dof-plant">P2</div>
-            <div class="dof-plant">P3</div>
-            <div class="dof-plant">P4</div>
-            <div class="dof-plant">P5</div>
-          </div>
-          <div class="dof-arrows">
-            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
-            <div class="dof-arrow"></div><div class="dof-arrow"></div><div class="dof-arrow"></div>
-          </div>
-          <div class="dof-nodes">
-            <div class="dof-cd">D1</div>
-            <div class="dof-cd">D2</div>
-            <div class="dof-cd">D3</div>
-          </div>
-        </div>
-        <div class="dof-note">\(n=5,\;r=3\)</div>
-      </div>
-      <!-- Caso 4: incompatible -->
-      <div class="dof-case">
-        <div class="dof-title" style="color:var(--red);">Incompatible</div>
-        <div style="display:flex; gap:1rem; align-items:center;">
-          <div class="dof-nodes">
-            <div class="dof-plant">P1</div>
-            <div class="dof-plant">P2</div>
-          </div>
-          <div class="dof-arrows">
-            <div class="dof-arrow"></div><div class="dof-arrow"></div>
-          </div>
-          <div class="dof-nodes">
-            <div class="dof-cd">D1</div>
-            <div class="dof-cd">D2</div>
-            <div class="dof-cd" style="opacity:0.5;">D3</div>
-          </div>
-        </div>
-        <div class="dof-note" style="color:var(--red);">D3 no se puede servir</div>
-      </div>
-    </div>
+<div class="slide" data-slide="5">
+  <h2><i class="fas fa-diagram-project"></i> Grados de libertad en redes logísticas</h2>
+  
+  <div class="block reveal">
+    <span class="b-title"><i class="fas fa-list"></i> Cuatro configuraciones típicas</span>
   </div>
+
+  <!-- Contenedor centrado para la imagen -->
+  <div class="reveal" style="text-align: center; margin-top: 20px;">
+    <img class="fig" src="imagenes/ejem_gdl.png" alt="Cuatro configuraciones de red: 0, 1 y 2 grados de libertad, e incompatible">
+  </div>
+</div>
 
   <!-- SLIDE 6: OPTIMIZACIÓN CON G.D.L. -->
   <div class="slide" data-slide="6">
@@ -386,7 +335,7 @@
       <div class="block reveal"><span class="b-title"><i class="fas fa-compass"></i> Estrategia de solución</span>
         <ol>
           <li>Calcular \(\mathbf{c}^T\mathbf{n}_i\) para cada lazo.</li>
-          <li>Si \(\mathbf{c}^T\mathbf{n}_i<0\): <strong>aumentar</strong> \(t_i\) reduce el costo.</li>
+          <li>Si \(\mathbf{c}^T\mathbf{n}_i&lt;0\): <strong>aumentar</strong> \(t_i\) reduce el costo.</li>
           <li>Si \(\mathbf{c}^T\mathbf{n}_i>0\): <strong>disminuir</strong> \(t_i\) reduce el costo.</li>
           <li>Si \(\mathbf{c}^T\mathbf{n}_i=0\): ese lazo no afecta el costo.</li>
           <li>El óptimo está en un <strong>vértice</strong> de la región factible definida por \(\mathbf{x}\geq\mathbf{0}\).</li>
@@ -401,8 +350,8 @@
     <div class="block reveal"><span class="b-title">Datos</span>
       Red con 4 plantas, 3 CDs, \(\operatorname{rang}(A)=3\), \(n=4\), \(k=1\) g.d.l.
       \[
-        A=\begin{pmatrix}0.5&0.2&0.3&0\\0.3&0.6&0&0.4\\0.2&0.2&0.7&0.6\end{pmatrix},\;
-        \mathbf{b}=\begin{pmatrix}200\\300\\100\end{pmatrix},\;
+        A=\begin{pmatrix}0.5&0.2&0.3&0.55\\0.3&0.6&0&0\\0.2&0.2&0.7&0.45\end{pmatrix},\;
+        \mathbf{b}=\begin{pmatrix}246\\294\\210\end{pmatrix},\;
         \mathbf{c}=\begin{pmatrix}8\\6\\12\\9\end{pmatrix}
       \]
     </div>
@@ -410,14 +359,14 @@
       <div>
         <div class="example-block reveal"><span class="b-title">Solución general</span>
           Solución particular (vars. libres \(=0\)): \(\mathbf{x}^*=(280,350,120,0)^T\).<br>
-          Lazo cerrado (base de \(\operatorname{Nul}(A)\)): \(\mathbf{n}_1=(-0.6,0.2,-0.5,1)^T\).<br>
+          Lazo cerrado (base de \(\operatorname{Nul}(A)\)): \(\mathbf{n}_1=(-1,\ 0.5,\ -0.5,\ 1)^T\).<br>
           Solución general: \(\mathbf{x}=\mathbf{x}^*+t\,\mathbf{n}_1\).
         </div>
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-coins"></i> Efecto sobre el costo</span>
           \[
-            \mathbf{c}^T\mathbf{n}_1 = 8(-0.6)+6(0.2)+12(-0.5)+9(1) = -4.8+1.2-6.0+9.0 = \mathbf{-0.6}
+            \mathbf{c}^T\mathbf{n}_1 = 8(-1)+6(0.5)+12(-0.5)+9(1) = -8+3-6+9 = \mathbf{-2}
           \]
-          Cada unidad de \(t\) <strong>reduce</strong> el costo en \$0.60.
+          Cada unidad de \(t\) <strong>reduce</strong> el costo en \$2.
         </div>
       </div>
       <div>
@@ -425,8 +374,8 @@
           \(\mathbf{x}^*+t\,\mathbf{n}_1\geq\mathbf{0}\):
           \[
             \begin{aligned}
-              280-0.6t &\geq0 \Rightarrow t\leq467\\
-              350+0.2t &\geq0 \Rightarrow t\geq-1750\\
+              280-t &\geq0 \Rightarrow t\leq280\\
+              350+0.5t &\geq0 \Rightarrow t\geq-700\\
               120-0.5t &\geq0 \Rightarrow t\leq240\\
               0+t &\geq0 \Rightarrow t\geq0
             \end{aligned}
@@ -434,45 +383,136 @@
           Rango: \(0\leq t\leq240\).
         </div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-trophy"></i> Plan óptimo</span>
-          \(t^*=240\): \(\mathbf{x}^*=(136,398,0,240)^T\).<br>
-          Costo: \(C_0-0.6(240)=\$7560-\$144=\mathbf{\$7416}\).
+          \(t^*=240\): \(\mathbf{x}_{\text{opt}}=(40,470,0,240)^T\).<br>
+          Costo: \(C_0-2(240)=\$5780-\$480=\mathbf{\$5300}\).
         </div>
       </div>
     </div>
   </div>
+  
+  <!-- SLIDE NUEVA: DESARROLLO EJEMPLO 1 -->
+<div class="slide" data-slide="8">
+    <h2>Desarrollo Paso a Paso: Ejemplo 1 g.d.l.</h2>
+    
+    <div class="block reveal">
+        <strong>Paso 1: Calcular Solución Particular \(\mathbf{x}^*\)</strong><br>
+        Resolvemos \(A\mathbf{x}=\mathbf{b}\) asumiendo \(x_4=0\) (variable libre inicial).<br>
+        Sistema reducido \(3\times3\):
+        \[
+        \begin{cases}
+        0.5x_1 + 0.2x_2 + 0.3x_3 = 246 \\
+        0.3x_1 + 0.6x_2 = 294 \\
+        0.2x_1 + 0.2x_2 + 0.7x_3 = 210
+        \end{cases}
+        \]
+        De la ec. (2): \(x_2 = 490 - 0.5x_1\). Sustituyendo en (1) y (3): \(0.4x_1+0.3x_3=148\), \(0.1x_1+0.7x_3=112\) ⇒<br>
+        <span style="color:#2980b9; font-weight:bold;">\(x_1 = 280, \quad x_2 = 350, \quad x_3 = 120\)</span>
+    </div>
+
+    <div class="block reveal">
+        <strong>Paso 2: Calcular Lazo Cerrado \(\mathbf{n}_1\) (Espacio Nulo)</strong><br>
+        Buscamos \(\mathbf{n}\) tal que \(A\mathbf{n}=\mathbf{0}\). Asignamos \(n_4=1\) (libre).<br>
+        De la ec. 2: \(0.3n_1+0.6n_2=0\Rightarrow n_2=-0.5n_1\); ecs. 1 y 3: \(0.4n_1+0.3n_3=-0.55\), \(0.1n_1+0.7n_3=-0.45\) ⇒<br>
+        <span style="color:#2980b9; font-weight:bold;">\(\mathbf{n}_1 = (-1, 0.5, -0.5, 1)^T\)</span>
+    </div>
+
+    <div class="block reveal">
+        <strong>Paso 3: Efecto en el Costo</strong><br>
+        \[ \Delta C = \mathbf{c}^T\mathbf{n}_1 = 8(-1) + 6(0.5) + 12(-0.5) + 9(1) = -2 \]<br>
+        Como es negativo, conviene aumentar \(t\) lo máximo posible.
+    </div>
+
+    <div class="block reveal">
+        <strong>Paso 4: Restricciones de Factibilidad (\(\mathbf{x} \geq 0\))</strong><br>
+        \(\mathbf{x}(t) = \mathbf{x}^* + t\mathbf{n}_1 \geq 0\):
+        <ul>
+            <li>\(280 - t \geq 0 \Rightarrow t \leq 280\)</li>
+            <li>\(350 + 0.5t \geq 0 \Rightarrow \text{Siempre cierto para } t\geq0\)</li>
+            <li>\(120 - 0.5t \geq 0 \Rightarrow t \leq 240\)</li>
+            <li>\(0 + t \geq 0 \Rightarrow t \geq 0\)</li>
+        </ul>
+        El límite más restrictivo superior es <strong>\(t_{max} = 240\)</strong>.
+    </div>
+
+    <div class="block reveal" style="background:#e8f6f3; border-left-color:#1abc9c;">
+        <strong>Paso 5: Solución Óptima</strong><br>
+        Evaluamos en \(t^* = 240\):<br>
+        \(x_1 = 280 - 240 = 40\)<br>
+        \(x_2 = 350 + 0.5(240) = 470\)<br>
+        \(x_3 = 120 - 0.5(240) = 0\)<br>
+        \(x_4 = 240\)<br>
+        <strong>Costo Óptimo:</strong> \(5780 + (-2)(240) = \$5300\) <small>(\(C_0=8(280)+6(350)+12(120)=5780\))</small>
+    </div>
+</div>
 
   <!-- SLIDE 8: EJEMPLO 2 G.D.L. -->
-  <div class="slide" data-slide="8">
-    <h2><i class="fas fa-calculator"></i> Ejemplo — red con 2 grados de libertad</h2>
-    <div class="block reveal"><span class="b-title">Datos</span>
-      Red con 5 plantas, 3 CDs: \(\operatorname{rang}(A)=3\), \(n=5\), \(k=2\) g.d.l.<br>
-      Lazos: \(\mathbf{n}_1\) y \(\mathbf{n}_2\) (calculados con MATLAB).
+<div class="slide" data-slide="8">
+  <h2><i class="fas fa-calculator"></i> Ejemplo — red con 2 grados de libertad</h2>
+  <div class="block reveal"><span class="b-title">Datos</span>
+    Red con 5 plantas, 3 CDs: \(\operatorname{rang}(A)=3\), \(n=5\), \(k=2\) g.d.l.<br>
+    Lazos: \(\mathbf{n}_1\) y \(\mathbf{n}_2\) (calculados con MATLAB).
+  </div>
+  <div class="col-layout mt">
+    <div class="example-block reveal"><span class="b-title"><i class="fas fa-chart-area"></i> Función de costo en 2D</span>
+      \[
+        C(s,t) = C_0 + s\underbrace{(\mathbf{c}^T\mathbf{n}_1)}_{\delta_1} + t\underbrace{(\mathbf{c}^T\mathbf{n}_2)}_{\delta_2}
+      \]
+      Si \(\delta_1=-3\) y \(\delta_2=-1\): el lazo \(\mathbf{n}_1\) reduce el costo más rápidamente.<br>
+      La región factible en el plano \((s,t)\) es un <strong>polígono convexo</strong> definido por \(\mathbf{x}^*+s\mathbf{n}_1+t\mathbf{n}_2\geq\mathbf{0}\).
     </div>
-    <div class="col-layout mt">
-      <div class="example-block reveal"><span class="b-title"><i class="fas fa-chart-area"></i> Función de costo en 2D</span>
-        \[
-          C(s,t) = C_0 + s\underbrace{(\mathbf{c}^T\mathbf{n}_1)}_{\delta_1} + t\underbrace{(\mathbf{c}^T\mathbf{n}_2)}_{\delta_2}
-        \]
-        Si \(\delta_1=-3\) y \(\delta_2=-1\): el lazo \(\mathbf{n}_1\) reduce el costo más rápidamente.<br>
-        La región factible en el plano \((s,t)\) es un <strong>polígono convexo</strong> definido por \(\mathbf{x}^*+s\mathbf{n}_1+t\mathbf{n}_2\geq\mathbf{0}\).
+    <div>
+      <div class="block reveal"><span class="b-title"><i class="fas fa-map"></i> Solución gráfica (2D)</span>
+        <!-- Reemplazo de la imagen generada con la imagen externa -->
+        <img class="fig" src="imagenes/region_fac.png" alt="Región factible en el plano s,t y vértice óptimo" style="max-width:90%"><p class="fig-cap">Líneas grises: costo constante \(-3s-t\). Óptimo en el vértice \((40,30)\).</p>
       </div>
-      <div>
-        <div class="block reveal"><span class="b-title"><i class="fas fa-map"></i> Solución gráfica (2D)</span>
-          <div style="width:200px; height:150px; border-left:2px solid #94a3b8; border-bottom:2px solid #94a3b8; position:relative; margin:0.5rem auto; background:rgba(0,82,147,0.05);">
-            <div style="position:absolute; bottom:0; left:0; width:100%; height:100%; clip-path:polygon(0% 100%, 75% 0%, 50% 67%, 0% 75%); background:rgba(0,82,147,0.15);"></div>
-            <div style="position:absolute; bottom:0; right:10px; width:8px; height:8px; background:var(--orange); border-radius:50%;"></div>
-            <span style="position:absolute; bottom:-20px; right:5px; font-size:0.7rem; color:var(--orange);">óptimo</span>
-            <span style="position:absolute; top:10px; left:10px; font-size:0.7rem; color:var(--navy);">Región factible</span>
-            <span style="position:absolute; bottom:5px; right:-30px; font-size:0.7rem; color:#64748b;">\(s\)</span>
-            <span style="position:absolute; top:-25px; left:5px; font-size:0.7rem; color:#64748b;">\(t\)</span>
-          </div>
-        </div>
-        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Conclusión</span>
-          El óptimo está en un <strong>vértice</strong> del poliedro factible. Los vértices son los puntos donde exactamente \(n-r\) restricciones \(x_i=0\) son activas.
-        </div>
+      <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Conclusión</span>
+        El óptimo está en un <strong>vértice</strong> del poliedro factible. Los vértices son los puntos donde exactamente \(n-r\) restricciones \(x_i=0\) son activas.
       </div>
     </div>
   </div>
+</div>
+  
+  <!-- SLIDE NUEVA: DESARROLLO EJEMPLO 2 -->
+<div class="slide" data-slide="10">
+    <h2>Desarrollo Paso a Paso: Ejemplo 2 g.d.l.</h2>
+    
+    <div class="block reveal">
+        <strong>Paso 1: Planteamiento en el Espacio de Parámetros</strong><br>
+        Tenemos dos variables libres \(s\) y \(t\). La solución general es:<br>
+        \[ \mathbf{x}(s,t) = \mathbf{x}^* + s\mathbf{n}_1 + t\mathbf{n}_2 \]<br>
+        Supongamos que MATLAB arrojó:<br>
+        \(\mathbf{n}_1 = (-1, 0, 1, -2, 1)^T\) y \(\mathbf{n}_2 = (0, -1, 0, 1, 0)^T\).<br>
+        Costos reducidos: \(\delta_1 = -3\) USD, \(\delta_2 = -1\) USD. Plan base: \(\mathbf{x}^*=(40,30,10,60,10)^T\).
+    </div>
+
+    <div class="block reveal">
+        <strong>Paso 2: Definir la Región Factible (Polígono)</strong><br>
+        Imponemos \(x_i(s,t) \geq 0\) para cada planta \(i=1..5\). Esto genera 5 desigualdades lineales:<br>
+        <ul>
+            <li>\(x_1^* - s \geq 0 \Rightarrow s \leq x_1^*\)</li>
+            <li>\(x_2^* - t \geq 0 \Rightarrow t \leq x_2^*\)</li>
+            <li>\(x_3^* + s \geq 0 \Rightarrow s \geq -x_3^*\)</li>
+            <li>\(x_4^* - 2s + t \geq 0 \Rightarrow t \geq 2s - x_4^*\)</li>
+            <li>\(x_5^* + s \geq 0 \Rightarrow s \geq -x_5^*\)</li>
+        </ul>
+        La intersección forma un <strong>polígono convexo</strong> en el plano \(st\).
+    </div>
+
+    <div class="block reveal">
+        <strong>Paso 3: Optimización Geométrica</strong><br>
+        Minimizar \(Z = C_0 - 3s - 1t\).<br>
+        Vector gradiente de costo: \(\nabla Z = (-3, -1)\).<br>
+        Desplazamos una recta de nivel en dirección opuesta al gradiente hasta tocar el último punto del polígono.<br>
+        Ese punto será necesariamente un <strong>vértice</strong> (intersección de dos restricciones activas).
+    </div>
+
+    <div class="block reveal" style="background:#e8f6f3; border-left-color:#1abc9c;">
+        <strong>Paso 4: Evaluación en Vértices</strong><br>
+        Restricciones: \(-10\le s\le40\), \(t\le30\), \(t\ge2s-60\). Vértices: \((-10,-80)\), \((-10,30)\), \((40,30)\), \((40,20)\).<br>
+        \(\Delta C=-3s-t\): \(+110,\ 0,\ \mathbf{-150},\ -140\). Óptimo \((s,t)=(40,30)\): \(\mathbf{x}=(0,0,50,10,50)^T\), el costo baja \$150. Hay exactamente \(k=2\) componentes nulas.<br>
+        <em>Nota: En Programación Lineal, nunca necesitamos evaluar puntos interiores, solo vértices.</em>
+    </div>
+</div>
 
   <!-- SLIDE 9: PROTOCOLO DE ANÁLISIS -->
   <div class="slide" data-slide="9">
@@ -482,7 +522,7 @@
     </div>
     <ol class="mt reveal">
       <li><strong>Dimensiones:</strong> \(A\in\mathbb{R}^{m\times n}\), \(m\) CDs, \(n\) plantas. Verificar consistencia.</li>
-      <li><strong>Rango:</strong> \(r=\operatorname{rang}(A)\). ¿Hay rutas redundantes? (\(r<n\)). ¿Ecuaciones redundantes? (\(r<m\)).</li>
+      <li><strong>Rango:</strong> \(r=\operatorname{rang}(A)\). ¿Hay rutas redundantes? (\(r&lt;n\)). ¿Ecuaciones redundantes? (\(r&lt;m\)).</li>
       <li><strong>Compatibilidad:</strong> \(\operatorname{rang}(A)=\operatorname{rang}([A|\mathbf{b}])\). Si no: sistema incompatible, demanda inalcanzable.</li>
       <li><strong>Grados de libertad:</strong> \(k=n-r\). Calcular la base de \(\operatorname{Nul}(A)\).</li>
       <li><strong>Invertibilidad y condición:</strong> si \(r=n\), calcular \(A^{-1}\) y \(\operatorname{cond}(A)\). ¿Es el modelo confiable?</li>
@@ -556,7 +596,7 @@
   <!-- SLIDE 11: EJERCICIO 1 -->
   <div class="slide" data-slide="11">
     <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Calcular g.d.l. y optimizar</h2>
-    <p class="reveal"><strong>Enunciado:</strong> Red con \(A\in\mathbb{R}^{3\times5}\), \(\operatorname{rang}(A)=3\), demanda \(\mathbf{b}=(100,200,150)^T\), costos \(\mathbf{c}=(5,3,8,6,4)^T\) USD/ton.</p>
+    <p class="reveal"><strong>Enunciado:</strong> Red \(A=\begin{pmatrix}0.5&0&0&0.5&0.25\\0&0.5&0&0.25&0.5\\0&0&0.5&0.25&0.25\end{pmatrix}\) (\(\operatorname{rang}(A)=3\)), demanda \(\mathbf{b}=(100,200,150)^T\), costos \(\mathbf{c}=(5,3,8,6,4)^T\) USD/ton.</p>
     <ol class="mt reveal">
       <li>Calcular \(k=5-3=\mathbf{2}\) grados de libertad.</li>
       <li>Obtener la base \(\{\mathbf{n}_1,\mathbf{n}_2\}\) de \(\operatorname{Nul}(A)\) con <code>null(A,'r')</code>.</li>
@@ -565,12 +605,54 @@
     </ol>
     <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación de los resultados</span>
       <ul>
-        <li>Si \(\delta_1<0\) y \(\delta_2<0\): ambos lazos reducen el costo. Maximizar ambos parámetros hasta el borde factible.</li>
-        <li>Si \(\delta_1<0\) y \(\delta_2>0\): solo el lazo 1 reduce el costo. Maximizar \(s\), minimizar \(t\).</li>
+        <li>Si \(\delta_1&lt;0\) y \(\delta_2&lt;0\): ambos lazos reducen el costo. Maximizar ambos parámetros hasta el borde factible.</li>
+        <li>Si \(\delta_1&lt;0\) y \(\delta_2>0\): solo el lazo 1 reduce el costo. Maximizar \(s\), minimizar \(t\).</li>
         <li>El plan óptimo tiene siempre al menos 2 componentes \(x_i=0\) (condición de optimalidad en LP).</li>
       </ul>
     </div>
   </div>
+  
+  <!-- SLIDE NUEVA: DESARROLLO EJERCICIO 1 -->
+<div class="slide" data-slide="14">
+    <h2>Desarrollo Manual: Ejercicio 1</h2>
+    
+    <div class="block reveal">
+        <strong>Paso 1: Identificación de Dimensiones y GDL</strong><br>
+        Matriz \(A\) de \(3 \times 5\).<br>
+        \(r = \operatorname{rang}(A) = 3\), \(n = 5\)<br>
+        \(k = n - r = 5 - 3 = \mathbf{2}\) grados de libertad.<br>
+        Necesitamos 2 parámetros libres (\(s, t\)).
+    </div>
+
+    <div class="block reveal">
+        <strong>Paso 2: Cálculo de la Base del Espacio Nulo</strong><br>
+        Resolvemos \(A\mathbf{n} = \mathbf{0}\). Variables libres: \(x_4, x_5\).<br>
+        Asignamos \((x_4=1, x_5=0) \to \mathbf{n}_1\) y \((x_4=0, x_5=1) \to \mathbf{n}_2\).<br>
+        Resultado: \(\mathbf{n}_1=(-1,-0.5,-0.5,1,0)^T\), \(\mathbf{n}_2=(-0.5,-1,-0.5,0,1)^T\); plan base \(\mathbf{x}^*=(200,400,300,0,0)^T\), \(Z_0=\$4600\). <em>(MATLAB: <code>null(A,\'r\')</code>)</em>.
+    </div>
+
+    <div class="block reveal">
+        <strong>Paso 3: Análisis de Costos Reducidos</strong><br>
+        \(\delta_1 = \mathbf{c}^T \mathbf{n}_1 = 5n_{11} + 3n_{21} + 8n_{31} + 6(1) + 4(0)\)<br>
+        \(\delta_2 = \mathbf{c}^T \mathbf{n}_2 = 5n_{12} + 3n_{22} + 8n_{32} + 6(0) + 4(1)\)<br>
+        <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+            <tr style="background:#ecf0f1;"><th>Signo de \(\delta\)</th><th>Acción sobre parámetro</th><th>Efecto</th></tr>
+            <tr><td>Negativo (-)</td><td>Aumentar al máximo</td><td>Reduce Costo Total</td></tr>
+            <tr><td>Positivo (+)</td><td>Disminuir al mínimo</td><td>Evita subir costo</td></tr>
+            <tr><td>Cero (0)</td><td>Indiferente</td><td>Costo constante</td></tr>
+        </table>
+    </div>
+
+    <div class="block reveal" style="background:#e8f6f3; border-left-color:#1abc9c;">
+        <strong>Paso 4: Localización del Óptimo</strong><br>
+        Dado que es un problema de Programación Lineal en 2D:<br>
+        1. Graficar restricciones \(x_i(s,t) \geq 0\).<br>
+        2. Identificar polígono factible.<br>
+        3. Evaluar \(Z(s,t) = Z_0 + s\delta_1 + t\delta_2\) solo en vértices.<br>
+        Con \(\delta_1=-5-1.5-4+6=-4.5\) y \(\delta_2=-2.5-3-4+4=-5.5\): vértices \((0,0)\to4600\), \((200,0)\to3700\), \((0,400)\to\mathbf{2400}\). <strong>Óptimo:</strong> \(\mathbf{x}=(0,0,100,0,400)^T\), costo \$2400.<br><strong>Regla de oro:</strong> en el óptimo, al menos \(k=2\) variables de flujo son cero.
+    </div>
+</div>
+
 
   <!-- SLIDE 12: EJERCICIO 2 -->
   <div class="slide" data-slide="12">
@@ -606,6 +688,40 @@
       </div>
     </div>
   </div>
+
+<!-- SLIDE NUEVA: DESARROLLO EJERCICIO 2 -->
+<div class="slide" data-slide="16">
+    <h2>Desarrollo Manual: Ejercicio 2</h2>
+    
+    <div class="block reveal">
+        <strong>Paso 1: Verificación de Rango y Compatibilidad</strong><br>
+        Filas linealmente independientes \(\Rightarrow r = 3\).<br>
+        Como \(m=3\), rango ampliado también es 3 \(\Rightarrow\) Compatible.<br>
+        \(k = n - r = 4 - 3 = \mathbf{1}\) g.d.l.
+    </div>
+
+    <div class="block reveal">
+        <strong>Paso 2: Solución Particular \(\mathbf{x}^*\)</strong><br>
+        Hacemos \(x_4=0\). Resolvemos sistema \(3\times3\):<br>
+        De fila 2: \(x_1 = 900 - \frac{5}{3}x_2\).<br>
+        Sustituyendo en filas 1 y 3: \(\mathbf{x}^*=(150,\ 450,\ 150,\ 0)^T\) (verificar: \(0.4(150)+0.2(450)+0.6(150)=240\) ✓).
+    </div>
+
+    <div class="block reveal">
+        <strong>Paso 3: Cálculo del Lazo \(\mathbf{n}_1\)</strong><br>
+        Resolvemos \(A\mathbf{n}=0\) con \(n_4=1\):<br>
+        De ec. 2: \(n_2 = -0.6n_1 - 0.8\).<br>
+        Sustituyendo en ecs. 1 y 3: \(\mathbf{n}_1=(7,\ -5,\ -3,\ 1)^T\).
+    </div>
+
+    <div class="block reveal" style="background:#e8f6f3; border-left-color:#1abc9c;">
+        <strong>Paso 4: Optimización y Capacidades</strong><br>
+        1. Calculamos \(\delta_1 = 10n_1 + 8n_2 + 14n_3 + 9(1)\).<br>
+        2. Si \(\delta_1 &lt; 0\), buscamos \(t_{max}\).<br>
+        3. Restricciones: \(x_i(t) \geq 0\) Y \(x_i(t) \leq cap_i\).<br>
+        \(\delta_1=70-40-42+9=-3\lt0\). Límites: \(450-5t\ge0\Rightarrow t\le90\); \(150-3t\ge0\Rightarrow t\le50\); \(150+7t\le800\Rightarrow t\le92.9\). Así \(t\in[0,50]\), \(t^*=50\): \(\mathbf{x}=(500,200,0,50)^T\) (dentro de capacidades), costo \(7200-150=\mathbf{\$7050}\).
+    </div>
+</div>
 
   <!-- SLIDE 13: EJERCICIO 3 -->
   <div class="slide" data-slide="13">

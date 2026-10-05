@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -142,11 +142,39 @@
     .flow-diag { display: flex; justify-content: center; gap: 1rem; align-items: center; margin: 0.5rem 0; flex-wrap: wrap; }
     .flow-box { padding: 0.5rem; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); border-radius: 8px; text-align: center; font-size: 0.85rem; min-width: 140px; }
     .flow-arrow { color: #64748b; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -248,7 +276,7 @@
         </div>
       </div>
       <div>
-        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Rango deficiente</span> \(\operatorname{rang}(A) < \min(m,n)\). <strong>Rank-deficient</strong>.
+        <div class="alert-block reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Rango deficiente</span> \(\operatorname{rang}(A) &lt; \min(m,n)\). <strong>Rank-deficient</strong>.
           Causas en logística: rutas combinaciones de otras, CDs correlacionados, patrones replicados.
         </div>
         <div class="block mt reveal"><span class="b-title">Ejemplo: rango 1</span>
@@ -298,7 +326,7 @@
     <div class="col-3 mt">
       <div class="block reveal center"><strong>Caso (a)</strong> \(\mathbf{b}=(4,8,3)^T\)<br>Fila ceros \(\to 0=0\). \(\operatorname{rang}([\cdot])=2\).<br><span style="color:var(--navy); font-weight:600;"><i class="fas fa-infinity"></i> Infinitas</span></div>
       <div class="block reveal center"><strong>Caso (b)</strong> \(\mathbf{b}=(4,8,4)^T\)<br>Fila ceros \(\to 0=0\). \(\operatorname{rang}([\cdot])=2\).<br><span style="color:var(--navy); font-weight:600;"><i class="fas fa-infinity"></i> Infinitas</span></div>
-      <div class="alert-block reveal center"><strong>Caso (c)</strong> \(\mathbf{b}=(4,8,6)^T\)<br>Fila: \([0\;0\;0\;|\;c\neq0]\). \(\operatorname{rang}([\cdot])=3\).<br><span style="color:var(--red); font-weight:600;"><i class="fas fa-times"></i> Incompatible</span></div>
+      <div class="alert-block reveal center"><strong>Caso (c)</strong> \(\mathbf{b}=(4,9,6)^T\)<br>Fila: \([0\;0\;0\;|\;c\neq0]\). \(\operatorname{rang}([\cdot])=3\).<br><span style="color:var(--red); font-weight:600;"><i class="fas fa-times"></i> Incompatible</span></div>
     </div>
   </div>
 
@@ -306,12 +334,12 @@
   <div class="slide" data-slide="8">
     <h2><i class="fas fa-road"></i> Rango y rutas logísticas</h2>
     <div class="block reveal"><span class="b-title"><i class="fas fa-eye"></i> Interpretación por columnas</span> Columnas de \(A\) = "perfiles de distribución" de cada planta. \(\operatorname{rang}(A)\) = perfiles <strong>linealmente independientes</strong>.
-      <ul><li>\(\operatorname{rang}(A)=n\): cada ruta aporta info única.</li><li>\(\operatorname{rang}(A)<n\): hay <strong>rutas redundantes</strong> (combinación de otras).</li></ul>
+      <ul><li>\(\operatorname{rang}(A)=n\): cada ruta aporta info única.</li><li>\(\operatorname{rang}(A)&lt;n\): hay <strong>rutas redundantes</strong> (combinación de otras).</li></ul>
     </div>
     <div class="col-layout mt">
       <div class="example-block reveal"><span class="b-title">Red con ruta redundante</span>
         $$ A = \begin{pmatrix} \mathbf{0.6} & 0.3 & \mathbf{0.9}\\ \mathbf{0.4} & 0.5 & \mathbf{0.6}\\ \mathbf{0.0} & 0.2 & \mathbf{0.0} \end{pmatrix} $$
-        Col 3 = Col 1 + Col 2. \(\operatorname{rang}(A)=2\). Planta 3 es redundante.
+        Col 3 = 1.5 · Col 1 (\(0.9=1.5\cdot0.6,\ 0.6=1.5\cdot0.4,\ 0=1.5\cdot0\)). \(\operatorname{rang}(A)=2\). Planta 3 replica el patrón de P1: es redundante.
       </div>
       <div>
         <div class="alert-block reveal"><span class="b-title"><i class="fas fa-cogs"></i> Implicación operativa</span> Ruta redundante = planta 3 <strong>no aporta nueva capacidad</strong>. Eliminarla no cambia demandas alcanzables. Pero si tiene menor costo, puede ser preferible.</div>
@@ -323,7 +351,7 @@
   <!-- SLIDE 9: INTERPRETACIÓN FILAS -->
   <div class="slide" data-slide="9">
     <h2><i class="fas fa-sliders"></i> Rango y flexibilidad de la red</h2>
-    <div class="block reveal"><span class="b-title">Interpretación por filas</span> Filas de \(A\) = restricciones de balance de cada CD. Si \(\operatorname{rang}(A) < m\): <strong>ecuaciones de balance redundantes</strong>. Algunos CDs tienen demandas combinación de otros.</div>
+    <div class="block reveal"><span class="b-title">Interpretación por filas</span> Filas de \(A\) = restricciones de balance de cada CD. Si \(\operatorname{rang}(A) &lt; m\): <strong>ecuaciones de balance redundantes</strong>. Algunos CDs tienen demandas combinación de otros.</div>
     <div class="col-layout mt">
       <div class="example-block reveal"><span class="b-title"><i class="fas fa-chart-bar"></i> Número de variables libres</span> Sistema compatible \(A\mathbf{x}=\mathbf{b}\):
         $$ \text{Variables libres} = n - \operatorname{rang}(A) $$
@@ -363,8 +391,8 @@
       Como \(3\lt 4\): <strong>infinitas soluciones</strong>. 1 variable libre.<br>
       <em>Logística:</em> grado de libertad para optimizar distribución.
     </div>
-    <div class="alert-block reveal"><span class="b-title">Caso incompatible: \(\mathbf{b}=(8,5,13,6)^T\)</span>
-      \(F_4\) de \([A|\mathbf{b}]\) es \([0\;0\;0\;0\;|\;2]\). \(\mathrm{rang}([\cdot])=4\gt\mathrm{rang}(A)\).<br>
+    <div class="alert-block reveal"><span class="b-title">Caso incompatible: \(\mathbf{b}=(8,5,14,4)^T\)</span>
+      \(F_4\) de \([A|\mathbf{b}]\) es \([0\;0\;0\;0\;|\;1]\) (pues \(14-12-1=1\)). \(\mathrm{rang}([\cdot])=4\gt\mathrm{rang}(A)\).<br><small>Condición de compatibilidad: \(b_3=b_1+b_2\) (la fila 3 de \(A\) es fila 1 + fila 2).</small><br>
       <strong style="color:var(--red)">Incompatible.</strong><br>
       <em>Logística:</em> demanda inconsistente con estructura de red. Revisar \(A\) o \(\mathbf{b}\).
     </div>
@@ -393,7 +421,7 @@ rA = <span class="mf">rank</span>(A);
 <span class="mk">fprintf</span>(<span class="ms">'Variables libres: %d\n'</span>, size(A,<span class="mn">2</span>) - rA);
 
 <span class="mc">% Clasificar con distintos b</span>
-b_casos = {<span class="mf">[</span><span class="mn">8</span>;<span class="mn">5</span>;<span class="mn">13</span>;<span class="mn">4</span><span class="mf">]</span>, <span class="mf">[</span><span class="mn">8</span>;<span class="mn">5</span>;<span class="mn">13</span>;<span class="mn">6</span><span class="mf">]</span>};
+b_casos = {<span class="mf">[</span><span class="mn">8</span>;<span class="mn">5</span>;<span class="mn">13</span>;<span class="mn">4</span><span class="mf">]</span>, <span class="mf">[</span><span class="mn">8</span>;<span class="mn">5</span>;<span class="mn">14</span>;<span class="mn">4</span><span class="mf">]</span>};
 <span class="mk">for</span> k = <span class="mn">1</span>:<span class="mn">2</span>
   bk = b_casos{k};
   rAb = <span class="mf">rank</span>(<span class="mf">[</span>A, bk<span class="mf">]</span>);
@@ -409,8 +437,8 @@ b_casos = {<span class="mf">[</span><span class="mn">8</span>;<span class="mn">5
       <div>
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
           <code>rang(A) = 3</code> | <code>Variables libres: 1</code><br>
-          <code>b=[8 5 13 4]: INFINITAS (1 libre)</code><br>
-          <code>b=[8 5 13 6]: INCOMPATIBLE</code>
+          <code>=> INFINITAS (1 libres)</code> &nbsp;<small>(b = [8 5 13 4])</small><br>
+          <code>=> INCOMPATIBLE</code> &nbsp;<small>(b = [8 5 14 4])</small>
         </div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-circle"></i> Precaución numérica</span> <code>rank</code> usa tolerancia. Para decimales: <code>rank(A, tol)</code> permite especificar tolerancia manualmente.</div>
       </div>
@@ -439,17 +467,17 @@ rango_red = <span class="mf">rank</span>(A_red);
 <span class="mk">fprintf</span>(<span class="ms">'Rutas esenciales: %s\n'</span>, mat2str(jb));
 
 <span class="mc">% Verificar combinacion</span>
-dif = A_red(:,<span class="mn">3</span>) - A_red(:,<span class="mn">1</span>) - A_red(:,<span class="mn">2</span>);
-<span class="mk">fprintf</span>(<span class="ms">'Col3 es comb. de Col1+Col2: %s\n'</span>, norm(dif)<span class="mn">&lt;1e-10</span>);</pre>
+dif = A_red(:,<span class="mn">3</span>) - <span class="mn">1.5</span>*A_red(:,<span class="mn">1</span>);
+<span class="mk">fprintf</span>(<span class="ms">'Col3 = 1.5*Col1: %d\n'</span>, norm(dif)<span class="mn">&lt;1e-10</span>);</pre>
       </div>
       <div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida</span>
           <code>Rango red: 2 | Columnas: 3</code><br>
           <code>La red tiene RUTAS REDUNDANTES.</code><br>
-          <code>Rutas esenciales: [1 2]</code>
+          <code>Rutas esenciales: [1 2]</code><br><code>Col3 = 1.5*Col1: 1</code>
         </div>
-        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-balance-scale"></i> Decisión logística</span> Planta 3 = mismo patrón que P1+P2.
-          <ul><li><strong>Eliminarla</strong> si costo mayor.</li><li><strong>Mantenerla</strong> como respaldo.</li><li>Usarla para <strong>reducir carga</strong> en P1/P2.</li></ul>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-balance-scale"></i> Decisión logística</span> Planta 3 = mismo patrón que P1 (escalado ×1.5).
+          <ul><li><strong>Eliminarla</strong> si costo mayor.</li><li><strong>Mantenerla</strong> como respaldo.</li><li>Usarla para <strong>reducir carga</strong> en P1.</li></ul>
         </div>
       </div>
     </div>
@@ -490,7 +518,7 @@ dif = A_red(:,<span class="mn">3</span>) - A_red(:,<span class="mn">1</span>) - 
     <div class="block reveal center">
       $$(c)\quad A=\begin{pmatrix}2&1&0\\0&3&1\\1&0&2\end{pmatrix},\;\mathbf{b}=\begin{pmatrix}5\\4\\3\end{pmatrix}$$
       FE \(A\): 3 filas no nulas. \(\mathrm{rang}(A)=3=n\).<br>
-      Verificar compatibilidad.<br>
+      Como \(\mathrm{rang}(A)=3=m\), siempre es compatible: \(\mathbf{x}=\left(\frac{25}{13},\frac{15}{13},\frac{7}{13}\right)\).<br>
       <span style="color:var(--green); font-weight:600;">Solución única</span>
     </div>
   </div>
@@ -528,7 +556,7 @@ dif = A_red(:,<span class="mn">3</span>) - A_red(:,<span class="mn">1</span>) - 
       </div>
       <div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-forward"></i> Conexión Clase 9</span> Sistemas homogéneos \(A\mathbf{x}=\mathbf{0}\):
-          <ul><li>Siempre compatibles (\(\mathbf{x}=\mathbf{0}\)).</li><li>Soluciones no triviales \(\iff \operatorname{rang}(A)<n\).</li><li>Soluciones = <strong>espacio nulo</strong> de \(A\).</li></ul>
+          <ul><li>Siempre compatibles (\(\mathbf{x}=\mathbf{0}\)).</li><li>Soluciones no triviales \(\iff \operatorname{rang}(A)&lt;n\).</li><li>Soluciones = <strong>espacio nulo</strong> de \(A\).</li></ul>
         </div>
         <div class="alert-block mt reveal center"><span class="b-title"><i class="fas fa-square-root-variable"></i> Fórmula esencial</span>
           $$ n = \underbrace{\operatorname{rang}(A)}_{\text{básicas}} + \underbrace{(n-\operatorname{rang}(A))}_{\text{libres}} $$
@@ -542,12 +570,12 @@ dif = A_red(:,<span class="mn">3</span>) - A_red(:,<span class="mn">1</span>) - 
     <h2><i class="fas fa-book"></i> Tarea para la Clase 9</h2>
     <div class="block reveal"><span class="b-title"><i class="fas fa-tasks"></i> Actividades</span>
       <ol>
-        <li><strong>Lectura:</strong> Lay, Sec. 1.5: ``Solution Sets of Linear Systems''. Diferencia homogéneo vs no homogéneo.</li>
+        <li><strong>Lectura:</strong> Lay, Sec. 1.5: “Solution Sets of Linear Systems”. Diferencia homogéneo vs no homogéneo.</li>
         <li><strong>Ejercicios manuales:</strong> Guía Clase 8 (B1–B5, I1–I3). Calcular rango por eliminación.</li>
         <li><strong>MATLAB:</strong> Ejecutar <code>clase8_datos.m</code> y responder preguntas.</li>
       </ol>
     </div>
-    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span> \(A\mathbf{x}=\mathbf{0}\) siempre tiene solución trivial. ¿Cuándo tiene <strong>soluciones no triviales</strong>? ¿Qué significa logísticamente que un flujo no nulo ``no genere costo neto''?</div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Reflexión</span> \(A\mathbf{x}=\mathbf{0}\) siempre tiene solución trivial. ¿Cuándo tiene <strong>soluciones no triviales</strong>? ¿Qué significa logísticamente que un flujo no nulo “no genere costo neto”?</div>
   </div>
 
   <!-- SLIDE 19: REFERENCIAS -->
@@ -565,7 +593,7 @@ dif = A_red(:,<span class="mn">3</span>) - A_red(:,<span class="mn">1</span>) - 
       <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
         <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
         <ul class="mt">
-          <li>Khan Academy: ``Matrix rank''</li>
+          <li>Khan Academy: “Matrix rank”</li>
           <li><em>3Blue1Brown</em> — Ep. 7: Null space and column space</li>
           <li>MathWorks: MATLAB <code>rank</code> docs</li>
         </ul>

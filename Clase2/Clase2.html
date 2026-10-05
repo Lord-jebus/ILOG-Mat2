@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -137,11 +137,39 @@
     .flow-node.hl { background: var(--navy); }
     .flow-node.sec { background: #64748b; }
     .flow-arrow { color: #94a3b8; font-size: 1.2rem; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -260,7 +288,7 @@
             <li><strong>Cero</strong>: sin cambio.</li>
           </ul>
         </div>
-        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Decisión</span> Rutas con \(\Delta c_{ij} < 0\) son más convenientes: <strong>Salto→Maldonado, Salto→Colonia, Rivera→Colonia</strong>.</div>
+        <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-lightbulb"></i> Decisión</span> Rutas con \(\Delta c_{ij} &lt; 0\) son más convenientes: <strong>Montevideo→Paysandú, Salto→Maldonado, Salto→Colonia, Rivera→Colonia</strong> (las cuatro bajaron $2/ton).</div>
       </div>
     </div>
   </div>
@@ -463,9 +491,10 @@ B = <span class="mf">[</span><span class="mn">0</span> <span class="mn">1</span>
 <span class="mk">disp</span>(A*B); <span class="mk">disp</span>(B*A);</pre>
       </div>
       <div>
-        <div class="block mt reveal"><span class="b-title">Dimensiones</span> \(C(3\times2) \cdot V(2\times3) \Rightarrow \text{resultado } 3\times3\) \checkmark</div>
+        <div class="block mt reveal"><span class="b-title">Dimensiones</span> \(C(3\times2) \cdot V(2\times3) \Rightarrow \text{resultado } 3\times3\) <span class="ok">✓</span></div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Error típico</span> Si las internas no coinciden:<br><code>Inner matrix dimensions must agree</code></div>
-        <div class="example-block mt reveal"><span class="b-title">Ejercicio en clase</span> Modifica \(V\) para que el costo de la Planta 3 baje al mínimo.</div>
+        <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span><code>CostoTotal = [1170 590 585; 850 950 425; 1360 1320 680]</code><br><code>manual_11 = 1170</code> · <code>Cpond = [24 35; 40 45; 52 56]</code><br><code>A*B = [2 1; 4 3]</code> ≠ <code>B*A = [3 4; 1 2]</code></div>
+          <div class="example-block mt reveal"><span class="b-title">Ejercicio en clase</span> Modifica \(V\) para que el costo de la Planta 3 baje al mínimo.</div>
       </div>
     </div>
   </div>

@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 26: Comparación de Modelos y Validación</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003a6b;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff3e0;
+      --red: #b41414;
+      --purple: #640096;
+      --purple-light: #f3e6f7;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--navy);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--navy);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block strong { color: var(--orange); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--purple); border-color: var(--purple); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    /* Protocol flow diagram */
+    .protocol-flow { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin: 1rem 0; }
+    .pf-step { padding: 0.5rem 0.8rem; border-radius: 6px; background: rgba(0,82,147,0.1); border: 2px solid var(--navy); color: var(--navy); font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .pf-dec { padding: 0.4rem 0.6rem; border-radius: 6px; background: rgba(230,160,0,0.15); border: 2px solid var(--orange); color: var(--orange); font-size: 0.75rem; text-align: center; min-width: 70px; }
+    .pf-arrow { color: #94a3b8; font-size: 1rem; }
+
+    /* Train/test split visualization */
+    .train-test { display: flex; align-items: center; gap: 0.5rem; margin: 1rem 0; }
+    .tt-block { padding: 0.5rem 1rem; border-radius: 4px; font-weight: 600; font-size: 0.85rem; }
+    .tt-train { background: rgba(0,82,147,0.15); border: 2px solid var(--navy); color: var(--navy); }
+    .tt-test { background: rgba(230,160,0,0.15); border: 2px solid var(--orange); color: var(--orange); }
+    .tt-arrow { color: #94a3b8; font-size: 1.2rem; }
+
+    /* Overfitting curve */
+    .overfit-curve { width: 300px; height: 200px; margin: 0.5rem auto; position: relative; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; }
+    .oc-axis { position: absolute; font-size: 0.7rem; color: #64748b; }
+    .oc-x { bottom: -15px; right: 5px; } .oc-y { top: 5px; left: -30px; }
+    .oc-train { position: absolute; background: none; border: 2px solid var(--navy); border-radius: 0 100px 100px 0; transform-origin: left center; }
+    .oc-test { position: absolute; background: none; border: 2px solid var(--red); border-radius: 0 0 100px 100px; transform-origin: left center; }
+    .oc-optimal { position: absolute; background: rgba(0,130,80,0.2); border-radius: 4px; }
+    .oc-label { position: absolute; font-size: 0.7rem; font-weight: 600; }
+
+    /* Model comparison table */
+    .model-table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.9rem; }
+    .model-table th, .model-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    .model-table th { background: #f8fafc; font-weight: 600; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .decision-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+    .dc-card { padding: 0.8rem; border-radius: 8px; text-align: center; border: 2px solid; font-size: 0.85rem; }
+    .dc-card.a { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .dc-card.b { border-color: var(--orange); background: var(--orange-light); }
+    .dc-card.c { border-color: #94a3b8; background: #f1f5f9; }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--navy); margin: 0.5rem 0; }
+
+    /* Monitoring flow */
+    .monitor-flow { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; margin: 1rem 0; }
+    .mf-step { padding: 0.4rem 0.8rem; border-radius: 6px; background: rgba(0,82,147,0.1); border: 2px solid var(--navy); color: var(--navy); font-size: 0.75rem; text-align: center; min-width: 120px; }
+    .mf-arrow { color: #94a3b8; font-size: 1.2rem; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-balance-scale fa-3x" style="color:var(--purple); margin-bottom:1rem;"></i>
+      <h1>Comparación de Modelos y Validación</h1>
+      <p class="sub">Selección del Mejor Modelo Predictivo</p>
+      <p class="sub" style="color:var(--purple); font-weight:600;">Módulo 5 — Regresión y Análisis de Datos</p>
+      <p class="sub">Matemáticas 2 — Clase 26</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 26 — Integradora</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Objetivos de Aprendizaje</li>
+      <li class="reveal">El Problema de Selección de Modelos</li>
+      <li class="reveal">Protocolo Completo de Comparación</li>
+      <li class="reveal">Criterios de Selección: Resumen Ejecutivo</li>
+      <li class="reveal">Dataset: Demanda de Distribución (24 semanas)</li>
+      <li class="reveal">Resultados de la Comparación</li>
+      <li class="reveal">Diagnóstico de Sobreajuste</li>
+      <li class="reveal">MATLAB: Estructura de Comparación</li>
+      <li class="reveal">MATLAB: Ajustar y Evaluar cada Modelo</li>
+      <li class="reveal">MATLAB: Visualización y Decisión Final</li>
+      <li class="reveal">AIC y BIC: Criterios de Información</li>
+      <li class="reveal">Cuándo Cambiar de Modelo: Monitoreo Continuo</li>
+      <li class="reveal">Tabla de Decisión Integrada</li>
+      <li class="reveal">Resumen: Flujo Completo de Selección</li>
+      <li class="reveal">Punto de Decisión</li>
+      <li class="reveal">Tarea para la Clase 27</li>
+      <li class="reveal">Referencias</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: OBJETIVOS -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de Aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Enunciar</strong> el protocolo completo de comparación de modelos.</li>
+      <li class="reveal"><strong>Aplicar</strong> la división train/test para evaluar modelos alternativos.</li>
+      <li class="reveal"><strong>Utilizar</strong> \(R^2_\text{adj}\), RMSE y MAPE como criterios de selección.</li>
+      <li class="reveal"><strong>Detectar</strong> sobreajuste comparando rendimiento en train vs test.</li>
+      <li class="reveal"><strong>Justificar</strong> la elección del modelo con argumentos cuantitativos y operativos.</li>
+      <li class="reveal"><strong>Decidir</strong> con qué modelo planificar y en qué condiciones cambiarlo.</li>
+    </ol>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Integración del Módulo 5</span>
+      Clase 21: construir modelos. Clase 22: interpretar coeficientes.<br>
+      Clase 23: múltiples variables. Clase 24: medir errores.<br>
+      Clase 25: modelos cuadráticos.<br>
+      <strong>Clase 26: elegir el mejor modelo con rigor.</strong>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: PROBLEMA DE SELECCIÓN -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-question-circle"></i> El Problema de Selección de Modelos</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-industry"></i> Situación típica</span>
+          Tienes varios modelos candidatos para pronosticar la demanda:
+          <ul>
+            <li class="reveal">M1: regresión lineal simple (distancia)</li>
+            <li class="reveal">M2: regresión cuadrática (mes)</li>
+            <li class="reveal">M3: regresión múltiple (dist + peso + paradas)</li>
+            <li class="reveal">M4: promedio móvil 4 semanas</li>
+          </ul>
+        </div>
+        <p class="reveal mt"><strong>El gerente pregunta:</strong> ¿Con cuál operamos?<br><br>
+        <span style="color:var(--red); font-weight:600;"><i class="fas fa-exclamation-triangle"></i> No puedes elegir basándote solo en \(R^2\):</span>
+          <ul>
+            <li class="reveal">\(R^2\) siempre sube al agregar variables o grado</li>
+            <li class="reveal">No mide rendimiento en datos nuevos</li>
+            <li class="reveal">Puede ser artificialmente alto por sobreajuste</li>
+          </ul>
+        </p>
+      </div>
+      <div>
+        <div class="alert-block reveal">
+          <span class="b-title"><i class="fas fa-lightbulb"></i> La pregunta correcta</span>
+          ¿Cuál modelo predice mejor los datos que <strong>aún no ha visto</strong>?<br><br>
+          Eso es lo que importa operativamente.
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-check-circle"></i> Respuesta</span>
+          Usar datos de prueba separados (test set) para evaluar el rendimiento real de cada modelo.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: PROTOCOLO DE VALIDACIÓN -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-clipboard-check"></i> Protocolo Completo de Comparación</h2>
+    
+    <div class="protocol-flow reveal">
+      <div class="pf-step">1. Recolectar<br>datos</div>
+      <i class="fas fa-arrow-right pf-arrow"></i>
+      <div class="pf-step">2. Dividir<br>train/test</div>
+      <i class="fas fa-arrow-right pf-arrow"></i>
+      <div class="pf-step">3. Ajustar<br>modelos</div>
+      <i class="fas fa-arrow-right pf-arrow"></i>
+      <div class="pf-step">4. Calcular<br>RMSE test</div>
+      <i class="fas fa-arrow-right pf-arrow"></i>
+      <div class="pf-dec">¿Sobreajuste?</div>
+      <i class="fas fa-arrow-right pf-arrow" style="color:var(--green);"></i>
+      <div class="pf-step">5. Elegir<br>mejor modelo</div>
+      <i class="fas fa-arrow-right pf-arrow"></i>
+      <div class="pf-step">6. Validar<br>con expertos</div>
+      <i class="fas fa-arrow-right pf-arrow"></i>
+      <div class="pf-step">7. Desplegar<br>y monitorear</div>
+    </div>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-gavel"></i> Regla de división</span>
+      Con pocos datos (\(n &lt; 100\)): 70% train / 30% test.<br>
+      Con muchos datos (\(n > 1000\)): 80% train / 20% test.<br>
+      En logística temporal: los datos de prueba deben ser los <strong>más recientes</strong>.
+    </div>
+  </div>
+
+  <!-- SLIDE 5: CRITERIOS DE SELECCIÓN -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-list-check"></i> Criterios de Selección: Resumen Ejecutivo</h2>
+    
+    <table class="model-table reveal" style="font-size:0.85rem;">
+      <tr><th>Criterio</th><th>Fórmula</th><th>Cuándo usarlo</th><th>Señal de alarma</th></tr>
+      <tr><td>\(R^2_\text{adj}\)</td><td>\(1-(1-R^2)\frac{n-1}{n-k-1}\)</td><td>Comparar modelos con distinto \(k\) en el mismo dataset</td><td>Baja al agregar una variable</td></tr>
+      <tr><td>RMSE\(_\text{test}\)</td><td>\(\sqrt{\frac{1}{n_t}\sum e_i^2}\)</td><td>Criterio principal de selección</td><td>Mucho mayor que RMSE\(_\text{train}\)</td></tr>
+      <tr><td>MAPE</td><td>\(\frac{100}{n}\sum\frac{|e_i|}{|y_i|}\)</td><td>Comunicar precisión al equipo operativo</td><td>Mayor que el criterio del negocio</td></tr>
+      <tr><td>Parsimonia</td><td>Grado/variables mínimas</td><td>Desempate entre modelos similares</td><td>Modelo más complejo sin mejora real</td></tr>
+    </table>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-ranking-star"></i> Jerarquía de criterios</span>
+      <strong>1°</strong> RMSE\(_\text{test}\) (rendimiento real) &nbsp;&nbsp;
+      <strong>2°</strong> \(R^2_\text{adj}\) (complejidad penalizada) &nbsp;&nbsp;
+      <strong>3°</strong> MAPE (comunicación) &nbsp;&nbsp;
+      <strong>4°</strong> Parsimonia (desempate)
+    </div>
+  </div>
+
+  <!-- SLIDE 6: DATASET -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-database"></i> Dataset: Demanda de Distribución (24 semanas)</h2>
+    
+    <p class="reveal"><strong>Una empresa registra 24 semanas de demanda de envíos.</strong><br>
+    Se tienen las siguientes variables:</p>
+    <ul class="reveal mt">
+      <li>\(t\): número de semana (1–24)</li>
+      <li>\(x_1\): distancia media de los envíos (km)</li>
+      <li>\(x_2\): número de clientes activos</li>
+      <li>\(y\): demanda total (toneladas)</li>
+    </ul>
+    
+    <div class="train-test reveal mt">
+      <div class="tt-block tt-train">Train: semanas 1–17 (70%)</div>
+      <i class="fas fa-arrow-right tt-arrow"></i>
+      <div class="tt-block tt-test">Test: sem. 18–24 (30%)</div>
+    </div>
+    
+    <p class="reveal mt"><strong>Modelos candidatos:</strong>
+      <ol>
+        <li>M1: tendencia lineal \(\hat y = \beta_0 + \beta_1 t\)</li>
+        <li>M2: tendencia cuadrática \(\hat y = \beta_0 + \beta_1 t + \beta_2 t^2\)</li>
+        <li>M3: regresión múltiple \(\hat y = \beta_0 + \beta_1 x_1 + \beta_2 x_2\)</li>
+        <li>M4: promedio móvil 4 semanas (referencia)</li>
+      </ol>
+    </p>
+  </div>
+
+  <!-- SLIDE 7: RESULTADOS COMPARACIÓN -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-chart-bar"></i> Resultados de la Comparación</h2>
+    
+    <p class="reveal" style="font-size:0.85rem; color:#64748b;">Valores de referencia de una corrida del script (los datos se simulan con <code>randn</code>; con otra versión de MATLAB o semilla, los números pueden variar levemente).</p>
+    <table class="model-table reveal" style="font-size:0.8rem;">
+      <tr><th></th><th>Modelo</th><th>\(R^2_\text{train}\)</th><th>\(R^2_\text{adj}\)</th><th>RMSE\(_\text{train}\)</th><th>RMSE\(_\text{test}\)</th><th>MAPE\(_\text{test}\)</th></tr>
+      <tr><td>M1</td><td>Lineal (\(t\))</td><td>0.871</td><td>0.864</td><td>8.2</td><td>10.4</td><td>7.8%</td></tr>
+      <tr><td>M2</td><td>Cuadrático (\(t^2\))</td><td>0.923</td><td>0.912</td><td>6.3</td><td>7.1</td><td>5.2%</td></tr>
+      <tr><td>M3</td><td>Múltiple (\(x_1,x_2\))</td><td>0.958</td><td>0.952</td><td>4.7</td><td>5.8</td><td>4.1%</td></tr>
+      <tr><td>M4</td><td>Prom. móvil 4</td><td>—</td><td>—</td><td>11.3</td><td>13.2</td><td>9.6%</td></tr>
+    </table>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-eye"></i> Análisis</span>
+      <ul>
+        <li>M3 gana en todas las métricas: menor RMSE\(_\text{test}\) (5.8) y MAPE\(_\text{test}\) (4.1%).</li>
+        <li>M2 es mejor que M1: el patrón cuadrático agrega valor real (\(R^2_\text{adj}\) sube de 0.864 a 0.912).</li>
+        <li>M4 (promedio móvil) es el peor: no captura la tendencia de crecimiento.</li>
+        <li>Sobreajuste en M3: RMSE\(_\text{test}\)/RMSE\(_\text{train}\) = 5.8/4.7 = 1.23. Aceptable (< 1.5).</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> Decisión: M3 (regresión múltiple)</span>
+      Menor RMSE en test, MAPE del 4.1% cumple criterio <5% para planificación de producción.
+    </div>
+  </div>
+
+  <!-- SLIDE 8: DIAGNÓSTICO SOBREAJUSTE -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-stethoscope"></i> Diagnóstico de Sobreajuste</h2>
+    
+    <p class="reveal"><strong>Cómo detectar sobreajuste en la tabla de resultados:</strong></p>
+    
+    <table class="compact reveal" style="font-size:0.9rem;">
+      <tr><th>Situación</th><th>RMSE\(_\text{train}\)</th><th>RMSE\(_\text{test}\)</th><th>Diagnóstico</th></tr>
+      <tr><td>Sin sobreajuste</td><td>5.0</td><td>5.8</td><td>Ratio 1.16: OK</td></tr>
+      <tr><td>Sobreajuste leve</td><td>3.0</td><td>6.5</td><td>Ratio 2.17: cuidado</td></tr>
+      <tr><td>Sobreajuste grave</td><td>1.0</td><td>12.0</td><td>Ratio 12: inaceptable</td></tr>
+      <tr><td>Subajuste</td><td>15.0</td><td>14.8</td><td>El modelo es demasiado simple</td></tr>
+    </table>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Regla práctica</span>
+      Si RMSE\(_\text{test}\) / RMSE\(_\text{train}\) > 2: hay sobreajuste significativo.<br>
+      Acción: reducir el número de predictores o el grado del polinomio.
+    </div>
+    
+    <div class="reveal mt"><img class="fig" src="imagenes/curva_sobreajuste.png" alt="Error de entrenamiento y prueba vs complejidad" style="max-width:460px"><p class="fig-cap">El error de prueba tiene forma de U: el mínimo marca la complejidad óptima</p></div>
+  </div>
+
+  <!-- SLIDE 9: MATLAB ESTRUCTURA -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Estructura de Comparación</h2>
+    
+    <pre><span class="mc">% Datos: 24 semanas</span>
+rng(<span class="mn">42</span>)
+t  = (<span class="mn">1</span>:<span class="mn">24</span>)';
+x1 = <span class="mn">100</span> + <span class="mn">5</span>*t + <span class="mn">8</span>*<span class="mk">randn</span>(<span class="mn">24</span>,<span class="mn">1</span>);    <span class="mc">% distancia media (km)</span>
+x2 = <span class="mn">50</span>  + <span class="mn">2</span>*t + <span class="mn">5</span>*<span class="mk">randn</span>(<span class="mn">24</span>,<span class="mn">1</span>);    <span class="mc">% clientes activos</span>
+y  = <span class="mn">50</span>  + <span class="mn">1.5</span>*t + <span class="mn">0.02</span>*x1 + <span class="mn">0.8</span>*x2 + <span class="mn">6</span>*<span class="mk">randn</span>(<span class="mn">24</span>,<span class="mn">1</span>);
+
+<span class="mc">% Division train (70%) / test (30%)</span>
+n_tr = <span class="mk">round</span>(<span class="mn">0.7</span>*<span class="mn">24</span>);  <span class="mc">% 17 semanas</span>
+idx_tr = <span class="mn">1</span>:n_tr;
+idx_te = (n_tr+<span class="mn">1</span>):<span class="mn">24</span>;
+
+y_tr = y(idx_tr);  y_te = y(idx_te);
+
+<span class="mc">% Funcion auxiliar: calcular metricas</span>
+rmse = @(yr,yp) <span class="mf">sqrt</span>(<span class="mk">mean</span>((yr-yp).^<span class="mn">2</span>));
+mape = @(yr,yp) <span class="mk">mean</span>(<span class="mf">abs</span>((yr-yp)./yr))*<span class="mn">100</span>;
+R2   = @(yr,yp) <span class="mn">1</span> - <span class="mk">sum</span>((yr-yp).^<span class="mn">2</span>)/<span class="mk">sum</span>((yr-<span class="mk">mean</span>(yr)).^<span class="mn">2</span>);
+
+<span class="mc">% Almacenar resultados</span>
+resultados = <span class="mk">struct</span>();</pre>
+  </div>
+
+  <!-- SLIDE 10: MATLAB AJUSTAR MODELOS -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Ajustar y Evaluar cada Modelo</h2>
+    
+    <pre><span class="mc">% M1: Lineal en t</span>
+p1 = <span class="mk">polyfit</span>(t(idx_tr), y_tr, <span class="mn">1</span>);
+yp1_tr = <span class="mk">polyval</span>(p1, t(idx_tr));
+yp1_te = <span class="mk">polyval</span>(p1, t(idx_te));
+
+<span class="mc">% M2: Cuadratico en t</span>
+p2 = <span class="mk">polyfit</span>(t(idx_tr), y_tr, <span class="mn">2</span>);
+yp2_tr = <span class="mk">polyval</span>(p2, t(idx_tr));
+yp2_te = <span class="mk">polyval</span>(p2, t(idx_te));
+
+<span class="mc">% M3: Multiple (x1, x2)</span>
+X_tr = <span class="mf">[</span><span class="mk">ones</span>(n_tr,<span class="mn">1</span>), x1(idx_tr), x2(idx_tr)<span class="mf">]</span>;
+X_te = <span class="mf">[</span><span class="mk">ones</span>(<span class="mn">24</span>-n_tr,<span class="mn">1</span>), x1(idx_te), x2(idx_te)<span class="mf">]</span>;
+b3   = X_tr \ y_tr;
+yp3_tr = X_tr * b3;
+yp3_te = X_te * b3;
+
+<span class="mc">% M4: Promedio movil 4 semanas</span>
+yp4_tr = <span class="mk">movmean</span>(y_tr, <span class="mn">4</span>);
+yp4_te = <span class="mk">repmat</span>(<span class="mk">mean</span>(y_tr(<span class="mf">end</span>-<span class="mn">3</span>:<span class="mf">end</span>)), <span class="mf">length</span>(idx_te), <span class="mn">1</span>);
+
+<span class="mc">% Tabla de resultados</span>
+modelos = <span class="mf">{</span><span class="ms">'M1 Lineal'</span>,<span class="ms">'M2 Cuadratico'</span>,<span class="ms">'M3 Multiple'</span>,<span class="ms">'M4 Prom.Movil'</span><span class="mf">}</span>;
+YP_tr = <span class="mf">{</span>yp1_tr, yp2_tr, yp3_tr, yp4_tr<span class="mf">}</span>;
+YP_te = <span class="mf">{</span>yp1_te, yp2_te, yp3_te, yp4_te<span class="mf">}</span>;
+
+<span class="mk">fprintf</span>(<span class="ms">'%-18s %-12s %-14s %-12s\n'</span>,<span class="ms">'Modelo'</span>,<span class="ms">'RMSE_train'</span>,<span class="ms">'RMSE_test'</span>,<span class="ms">'MAPE_test'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%s\n'</span>, <span class="mk">repmat</span>(<span class="ms">'-'</span>,<span class="mn">56</span>,<span class="mn">1</span>))
+<span class="mk">for</span> m = <span class="mn">1</span>:<span class="mn">4</span>
+    <span class="mk">fprintf</span>(<span class="ms">'%-18s %-12.4f %-14.4f %-12.2f%%\n'</span>, modelos<span class="mf">{</span>m<span class="mf">}</span>, ...
+        rmse(y_tr, YP_tr<span class="mf">{</span>m<span class="mf">}</span>), rmse(y_te, YP_te<span class="mf">{</span>m<span class="mf">}</span>), mape(y_te, YP_te<span class="mf">{</span>m<span class="mf">}</span>))
+<span class="mk">end</span></pre>
+  </div>
+
+  <!-- SLIDE 11: MATLAB VISUALIZACIÓN -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Visualización y Decisión Final</h2>
+    
+    <pre><span class="mc">% Grafico comparativo y seleccion del modelo</span>
+<span class="mk">figure</span>(<span class="ms">'Name'</span>,<span class="ms">'Clase 26 - Comparacion de Modelos'</span>,<span class="ms">'Position'</span>,<span class="mf">[</span><span class="mn">50</span> <span class="mn">50</span> <span class="mn">950</span> <span class="mn">430</span><span class="mf">]</span>);
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">2</span>,<span class="mn">1</span>)
+<span class="mk">plot</span>(t, y, <span class="ms">'ko-'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>,<span class="ms">'DisplayName'</span>,<span class="ms">'Real'</span>); <span class="mk">hold on</span>
+<span class="mk">plot</span>(t(idx_tr), yp1_tr,<span class="ms">'b--'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>,<span class="ms">'DisplayName'</span>,<span class="ms">'M1 Lineal'</span>)
+<span class="mk">plot</span>(t(idx_tr), yp2_tr,<span class="ms">'g-'</span>, <span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>,<span class="ms">'DisplayName'</span>,<span class="ms">'M2 Cuadratico'</span>)
+<span class="mk">plot</span>(t(idx_tr), yp3_tr,<span class="ms">'r-'</span>, <span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>,<span class="ms">'DisplayName'</span>,<span class="ms">'M3 Multiple'</span>)
+<span class="mk">plot</span>(t(idx_te), yp1_te,<span class="ms">'b--'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>,<span class="ms">'HandleVisibility'</span>,<span class="ms">'off'</span>)
+<span class="mk">plot</span>(t(idx_te), yp2_te,<span class="ms">'g-'</span>, <span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>,<span class="ms">'HandleVisibility'</span>,<span class="ms">'off'</span>)
+<span class="mk">plot</span>(t(idx_te), yp3_te,<span class="ms">'r-'</span>, <span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>,<span class="ms">'HandleVisibility'</span>,<span class="ms">'off'</span>)
+<span class="mk">xline</span>(n_tr+<span class="mn">0.5</span>,<span class="ms">'k:'</span>,<span class="ms">'LineWidth'</span>,<span class="mn">2</span>,<span class="ms">'DisplayName'</span>,<span class="ms">'Train|Test'</span>)
+<span class="mk">legend</span>(<span class="ms">'Location'</span>,<span class="ms">'northwest'</span>,<span class="ms">'FontSize'</span>,<span class="mn">8</span>); <span class="mk">grid on</span>
+<span class="mk">xlabel</span>(<span class="ms">'Semana'</span>); <span class="mk">ylabel</span>(<span class="ms">'Demanda (ton)'</span>)
+<span class="mk">title</span>(<span class="ms">'Comparacion de Modelos'</span>); 
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">2</span>,<span class="mn">2</span>)
+rmse_vals = <span class="mf">[</span>rmse(y_tr,yp1_tr) rmse(y_te,yp1_te);
+             rmse(y_tr,yp2_tr) rmse(y_te,yp2_te);
+             rmse(y_tr,yp3_tr) rmse(y_te,yp3_te);
+             rmse(y_tr,yp4_tr) rmse(y_te,yp4_te)<span class="mf">]</span>;
+b = <span class="mk">bar</span>(rmse_vals);
+b(<span class="mn">1</span>).FaceColor = <span class="mf">[</span><span class="mn">0</span> <span class="mn">0.45</span> <span class="mn">0.74</span><span class="mf">]</span>;
+b(<span class="mn">2</span>).FaceColor = <span class="mf">[</span><span class="mn">0.85</span> <span class="mn">0.33</span> <span class="mn">0.10</span><span class="mf">]</span>;
+<span class="mk">set</span>(gca,<span class="ms">'XTickLabel'</span>,<span class="mf">{</span><span class="ms">'M1'</span>,<span class="ms">'M2'</span>,<span class="ms">'M3'</span>,<span class="ms">'M4'</span><span class="mf">}</span>)
+<span class="mk">legend</span>(<span class="mf">{</span><span class="ms">'RMSE train'</span>,<span class="ms">'RMSE test'</span><span class="mf">}</span>,<span class="ms">'Location'</span>,<span class="ms">'northeast'</span>)
+<span class="mk">ylabel</span>(<span class="ms">'RMSE (ton)'</span>); <span class="mk">title</span>(<span class="ms">'RMSE: Train vs Test'</span>); <span class="mk">grid on</span></pre>
+  </div>
+
+  <!-- SLIDE 12: AIC Y BIC -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-calculator"></i> AIC y BIC: Criterios de Información</h2>
+    
+    <p class="reveal">Cuando RMSE\(_\text{test}\) y \(R^2_\text{adj}\) dan señales contradictorias, se pueden usar criterios de información:</p>
+    
+    <div class="formula-card reveal mt">
+      <span class="b-title"><i class="fas fa-info-circle"></i> AIC — Criterio de Información de Akaike</span>
+      \[ \text{AIC} = n\ln\!\left(\frac{\text{SCR}}{n}\right) + 2(k+1) \]
+      Penaliza por el número de parámetros. <strong>Menor es mejor.</strong>
+    </div>
+    
+    <div class="formula-card reveal mt">
+      <span class="b-title"><i class="fas fa-info-circle"></i> BIC — Criterio de Información Bayesiano</span>
+      \[ \text{BIC} = n\ln\!\left(\frac{\text{SCR}}{n}\right) + (k+1)\ln(n) \]
+      Penaliza más fuerte que AIC. Favorece modelos más simples.<br>
+      <strong>Menor es mejor.</strong>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Uso práctico</span>
+      AIC y BIC son útiles cuando <strong>no</strong> se puede separar datos de prueba (datasets pequeños). En logística con datos abundantes, preferir RMSE\(_\text{test}\).
+    </div>
+  </div>
+
+  <!-- SLIDE 13: MONITOREO CONTINUO -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-sync-alt"></i> Cuándo Cambiar de Modelo: Monitoreo Continuo</h2>
+    
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Un modelo elegido hoy puede volverse obsoleto</span>
+          <strong>Señales de que el modelo debe actualizarse:</strong>
+          <ul>
+            <li class="reveal">RMSE\(_\text{test}\) empieza a subir mes a mes</li>
+            <li class="reveal">Los residuos recientes muestran patrón sistemático</li>
+            <li class="reveal">Cambio estructural en el negocio (nuevo cliente grande, apertura de nueva ruta)</li>
+            <li class="reveal">Los coeficientes cambian significativamente al reajustar</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/ciclo_monitoreo.png" alt="Ciclo de monitoreo del modelo" style="max-width:320px"></div>
+      </div>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Regla de reentrenamiento</span>
+      Reajustar el modelo cuando el RMSE de las últimas 4 semanas sea un 20% mayor que el RMSE de validación original. Incluir los datos nuevos en el entrenamiento.
+    </div>
+  </div>
+
+  <!-- SLIDE 14: TABLA DE DECISIÓN -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-table"></i> Tabla de Decisión Integrada</h2>
+    
+    <table class="model-table reveal" style="font-size:0.85rem;">
+      <tr><th>Observación</th><th>Diagnóstico</th><th>Acción</th><th>Modelo a usar</th></tr>
+      <tr><td>Residuos sin patrón, RMSE\(_\text{test}\) bajo</td><td>Modelo adecuado</td><td>Desplegar y monitorear</td><td>El modelo actual</td></tr>
+      <tr><td>Residuos en U, RMSE\(_\text{test}\) alto</td><td>Curvatura no capturada</td><td>Agregar término cuadrático</td><td>Modelo cuadrático</td></tr>
+      <tr><td>RMSE\(_\text{test}\) \(\gg\) RMSE\(_\text{train}\)</td><td>Sobreajuste</td><td>Reducir grado o variables</td><td>Modelo más simple</td></tr>
+      <tr><td>RMSE\(_\text{test}\) alto en ambos modelos</td><td>Datos con mucho ruido</td><td>Agregar más variables, más datos</td><td>Modelo múltiple</td></tr>
+      <tr><td>RMSE\(_\text{test}\) sube con el tiempo</td><td>Cambio estructural</td><td>Reentrenar con datos recientes</td><td>Modelo actualizado</td></tr>
+    </table>
+  </div>
+
+  <!-- SLIDE 15: RESUMEN -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-flag-checkered"></i> Resumen: Flujo Completo de Selección</h2>
+    
+    <ol class="reveal">
+      <li><strong>Graficar</strong> los datos. ¿Hay tendencia lineal, curva, estacional?</li>
+      <li><strong>Dividir</strong> los datos: 70% train, 30% test (los más recientes en test).</li>
+      <li><strong>Ajustar</strong> todos los modelos candidatos solo con train.</li>
+      <li><strong>Calcular</strong> RMSE\(_\text{test}\), MAPE\(_\text{test}\) y \(R^2_\text{adj}\) para cada uno.</li>
+      <li><strong>Verificar</strong> sobreajuste: RMSE\(_\text{test}\) / RMSE\(_\text{train}\) < 2.</li>
+      <li><strong>Seleccionar</strong> el modelo con menor RMSE\(_\text{test}\) que no muestre sobreajuste.</li>
+      <li><strong>Validar</strong> que los coeficientes tengan sentido operativo.</li>
+      <li><strong>Desplegar</strong> y monitorear el RMSE periódicamente.</li>
+    </ol>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-feather-alt"></i> Principio de parsimonia (navaja de Occam)</span>
+      Si dos modelos tienen RMSE\(_\text{test}\) similar (diferencia < 10%), elegir el <strong>más simple</strong>. Es más fácil de mantener, explicar y actualizar.
+    </div>
+  </div>
+
+  <!-- SLIDE 16: PUNTO DE DECISIÓN -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-gavel"></i> Punto de Decisión</h2>
+    
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Pregunta de Cierre</span><br><br>
+      <em>El modelo cuadrático M2 tiene RMSE\(_\text{test}\)=7.1 y MAPE=5.2%. El modelo múltiple M3 tiene RMSE\(_\text{test}\)=5.8 y MAPE=4.1%. Pero M3 requiere medir distancia y clientes cada semana (costo adicional de $200/mes). M2 solo necesita el número de semana (gratis).</em><br><br>
+      <strong>¿Qué modelo eliges? ¿El ahorro en precisión justifica el costo de recolección?</strong>
+    </div>
+    
+    <div class="decision-cards mt">
+      <div class="dc-card a reveal">
+        <strong>A favor de M3</strong><br><br>
+        RMSE 18% menor. MAPE cumple <5%. Mejor para contratos exigentes.
+      </div>
+      <div class="dc-card b reveal">
+        <strong>A favor de M2</strong><br><br>
+        No requiere datos adicionales. La diferencia de precisión es \(7.1-5.8=1.3\) ton por semana.
+      </div>
+      <div class="dc-card c reveal">
+        <strong>Análisis de ROI</strong><br><br>
+        Con M3 el IS (95%) baja \(1.645\times1.3\approx2.1\) ton. A $4/ton/semana: ahorro \(\approx 2.1\times4\times4.33\approx\$37\)/mes &lt; $200/mes de medición. Solo por IS, M3 <strong>no</strong> se paga; se justifica si hay penalidades por error (contratos exigentes).
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: TAREA -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 27</h2>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lecturas</span>
+      <ul>
+        <li class="reveal"><strong>Montgomery</strong>, Cap. 3.3: Criterios de selección de variables</li>
+        <li class="reveal">Revisar la rúbrica del Mini-caso 4 (disponible en plataforma)</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Ejercicio preparatorio</span>
+      Con el dataset del script <code>clase26_comparacion.m</code>:
+      <ol>
+        <li class="reveal">Ejecutar los 4 modelos y reproducir la tabla de resultados.</li>
+        <li class="reveal">Calcular el ratio RMSE\(_\text{test}\)/RMSE\(_\text{train}\) para cada modelo. ¿Hay sobreajuste?</li>
+        <li class="reveal">Calcular AIC y BIC para M1, M2 y M3.</li>
+        <li class="reveal">¿AIC y BIC coinciden con la elección por RMSE\(_\text{test}\)?</li>
+        <li class="reveal">Escribir en un párrafo (150 palabras) la justificación de tu elección de modelo.</li>
+      </ol>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Próxima clase 27</span>
+      <strong>Mini-caso 4</strong> — Predicción de demanda: caso integrador del Módulo 5
+    </div>
+  </div>
+
+  <!-- SLIDE 18: REFERENCIAS -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Montgomery, D.C., Peck, E.A. & Vining, G.G.</strong> (2012). <em>Introduction to Linear Regression Analysis</em> (5th ed.). Wiley. Cap. 3.3 (Selección de modelos), Cap. 9 (Validación de modelos).</li>
+      <li class="reveal"><strong>Hyndman, R.J. & Athanasopoulos, G.</strong> (2021). <em>Forecasting: Principles and Practice</em> (3rd ed.). OTexts. Cap. 5.8 (Selección de modelos). <a href="https://otexts.com/fpp3/" style="color:var(--navy);">https://otexts.com/fpp3/</a></li>
+      <li class="reveal"><strong>Akaike, H.</strong> (1974). A New Look at the Statistical Model Identification. <em>IEEE Transactions on Automatic Control</em>, 19(6), 716–723.</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>aicbic</code>, <code>fitlm</code>, <code>stepwiselm</code>. <a href="https://www.mathworks.com/help/econ/aicbic.html" style="color:var(--navy);">https://www.mathworks.com/help/econ/aicbic.html</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Script <code>clase26_comparacion.m</code>.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--navy); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 26 | Comparación y Selección de Modelos</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: CIERRE -->
+  <div class="slide" data-slide="19">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>¡Fin del Módulo 5!</h1>
+      <p class="sub mt">Regresión y Análisis de Datos — Completado</p>
+      <p class="sub" style="color:var(--green); font-weight:600;">Próximo: Módulo 6 — Temas Avanzados</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

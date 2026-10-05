@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 30: Eigenvalores y Estabilidad de Sistemas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --orange: #c85000;
+      --orange-dark: #a04000;
+      --navy: #005293;
+      --navy-light: #0066b8;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --red: #b41414;
+      --red-light: #ffe0e0;
+      --purple: #7800a0;
+      --purple-light: #f3e6f7;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--orange);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--orange);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--red-light); border-left-color: var(--red); }
+    .alert-block strong { color: var(--red); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--orange); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--orange); border-color: var(--orange); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    /* Eigenvalue visualization */
+    .eigen-viz { width: 300px; height: 220px; margin: 0.5rem auto; position: relative; }
+    .ev-vector { position: absolute; width: 2px; height: 60px; background: var(--purple); transform-origin: bottom center; }
+    .ev-vector.stretched { height: 100px; background: var(--orange); }
+    .ev-label { position: absolute; font-size: 0.75rem; font-weight: 600; }
+    .ev-arrow { position: absolute; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid; }
+
+    /* Spectral radius visualization */
+    .spectral-viz { width: 260px; height: 260px; margin: 0.5rem auto; position: relative; border-radius: 50%; border: 2px dashed var(--green); }
+    .sv-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 4px; height: 4px; background: var(--navy); border-radius: 50%; }
+    .sv-eigen { position: absolute; width: 6px; height: 6px; background: var(--purple); border-radius: 50%; transform: translate(-50%, -50%); }
+    .sv-eigen.unstable { background: var(--red); width: 8px; height: 8px; }
+    .sv-label { position: absolute; font-size: 0.7rem; color: var(--text-muted); }
+
+    /* Module flow diagram */
+    .module-flow { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem; margin: 1rem 0; }
+    .mf-step { padding: 0.4rem 0.6rem; border-radius: 6px; background: rgba(0,82,147,0.1); border: 2px solid var(--navy); color: var(--navy); font-size: 0.7rem; text-align: center; min-width: 70px; }
+    .mf-step.active { background: var(--orange); border-color: var(--orange); color: white; font-weight: 600; }
+    .mf-arrow { color: #94a3b8; font-size: 0.9rem; }
+
+    /* Decision flow */
+    .decision-flow { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin: 1rem 0; }
+    .df-question { padding: 0.6rem 1rem; border-radius: 8px; background: rgba(230,160,0,0.15); border: 2px solid var(--orange); color: var(--orange); font-weight: 600; text-align: center; }
+    .df-answer { padding: 0.5rem 0.8rem; border-radius: 6px; background: rgba(0,82,147,0.1); border: 2px solid var(--navy); color: var(--navy); font-size: 0.85rem; text-align: center; min-width: 120px; }
+    .df-arrow { color: #94a3b8; font-size: 1.2rem; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .decision-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+    .dc-card { padding: 0.8rem; border-radius: 8px; text-align: center; border: 2px solid; font-size: 0.85rem; }
+    .dc-card.a { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .dc-card.b { border-color: var(--orange); background: var(--orange-light); }
+    .dc-card.c { border-color: var(--purple); background: rgba(120,0,160,0.05); }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--orange); margin: 0.5rem 0; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-infinity fa-3x" style="color:var(--purple); margin-bottom:1rem;"></i>
+      <h1>Eigenvalores y Eigenvectores</h1>
+      <p class="sub">Estabilidad de Sistemas Logísticos</p>
+      <p class="sub" style="color:var(--orange); font-weight:600;">Módulo 6 — Herramientas de Ingeniería (Cierre)</p>
+      <p class="sub">Matemáticas 2 — Clase 30</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 30 — Cierre Módulo 6</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Cierre del Módulo 6: Mapa de Herramientas</li>
+      <li class="reveal">Objetivos de Aprendizaje</li>
+      <li class="reveal">Definición de Eigenvalor y Eigenvector</li>
+      <li class="reveal">Cálculo Manual para Matrices 2×2</li>
+      <li class="reveal">Radio Espectral y Criterio de Estabilidad</li>
+      <li class="reveal">Matrices de Transición: Modelo Dinámico de Inventarios</li>
+      <li class="reveal">Equilibrio vía (I−A)⁻¹b</li>
+      <li class="reveal">Eigenvector Dominante: Distribución de Largo Plazo</li>
+      <li class="reveal">MATLAB: Calcular Eigenvalores con eig()</li>
+      <li class="reveal">MATLAB: Simular Dinámica de Inventarios</li>
+      <li class="reveal">Propiedades de los Eigenvalores</li>
+      <li class="reveal">Conexión Final: Eigenvalores en Todo el Curso</li>
+      <li class="reveal">Punto de Decisión</li>
+      <li class="reveal">Tarea y Cierre del Módulo 6</li>
+      <li class="reveal">Referencias</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: CIERRE MÓDULO 6 -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-flag-checkered"></i> Cierre del Módulo 6: Mapa de Herramientas</h2>
+    
+    <div class="module-flow reveal">
+      <div class="mf-step">Mod. 1-2<br>Matrices</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">Mod. 3<br>Vectores</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">Mod. 4<br>Espacios</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">Mod. 5<br>Regresión</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step active">Mod. 6<br>Herramientas</div>
+    </div>
+    
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-toolbox"></i> Las tres herramientas del Módulo 6</span>
+        <ul>
+          <li class="reveal"><strong>Normas de vectores</strong> (Clase 28): medir errores y distancias</li>
+          <li class="reveal"><strong>Matrices de adyacencia</strong> (Clase 29): modelar redes y nodos críticos</li>
+          <li class="reveal"><strong>Eigenvalores</strong> (Clase 30): analizar estabilidad de sistemas dinámicos</li>
+        </ul>
+      </div>
+      <div class="example-block reveal">
+        <span class="b-title"><i class="fas fa-lightbulb"></i> Conexión profunda</span>
+        Estas herramientas no son independientes:<br>
+        • Las normas miden el "tamaño" de los eigenvectores<br>
+        • Las matrices de adyacencia tienen eigenvalores que revelan conectividad<br>
+        • Los eigenvalores determinan la convergencia de modelos de regresión iterativos
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: OBJETIVOS -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de Aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Enunciar</strong> la definición de eigenvalor y eigenvector: \(A\mathbf{v}=\lambda\mathbf{v}\).</li>
+      <li class="reveal"><strong>Calcular</strong> eigenvalores de una matriz \(2\times2\) usando la ecuación característica \(\det(A-\lambda I)=0\).</li>
+      <li class="reveal"><strong>Usar</strong> <code>eig(A)</code> en MATLAB para matrices de mayor dimensión.</li>
+      <li class="reveal"><strong>Definir</strong> el radio espectral \(\rho(A) = \max_i|\lambda_i|\) e interpretarlo.</li>
+      <li class="reveal"><strong>Aplicar</strong> el criterio: \(\rho(A)&lt;1\) sistema estable, \(\rho(A)>1\) inestable.</li>
+      <li class="reveal"><strong>Calcular</strong> el inventario de equilibrio vía \((I-A)^{-1}\mathbf{b}\) y relacionarlo con el álgebra lineal del Módulo 1.</li>
+      <li class="reveal"><strong>Interpretar</strong> el eigenvector dominante como la distribución de largo plazo del sistema.</li>
+      <li class="reveal"><strong>Conectar</strong> eigenvalores con conceptos de los módulos anteriores.</li>
+    </ol>
+  </div>
+
+  <!-- SLIDE 4: DEFINICIÓN EIGENVALOR -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-infinity"></i> Definición de Eigenvalor y Eigenvector</h2>
+    
+    <div class="formula-card reveal">
+      <span class="b-title">Definición fundamental</span>
+      Para una matriz cuadrada \(A \in \mathbb{R}^{n\times n}\), un escalar \(\lambda\) y un vector \(\mathbf{v} \neq \mathbf{0}\) satisfacen:
+      \[ A\mathbf{v} = \lambda\mathbf{v} \]
+      entonces:
+      • \(\lambda\) es un <strong>eigenvalor</strong> (valor propio) de \(A\)<br>
+      • \(\mathbf{v}\) es un <strong>eigenvector</strong> (vector propio) asociado a \(\lambda\)
+    </div>
+    
+    <div class="col-layout mt">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-eye"></i> Interpretación geométrica</span>
+          <ul>
+            <li class="reveal">La matriz \(A\) transforma vectores del espacio</li>
+            <li class="reveal">Un eigenvector es especial: solo cambia de tamaño (escala \(\lambda\)), no de dirección</li>
+            <li class="reveal">Si \(\lambda > 1\): el vector se estira; si \(0 &lt; \lambda &lt; 1\): se contrae; si \(\lambda &lt; 0\): cambia de dirección</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/eigenvector_geometria.png" alt="Eigenvector: misma dirección tras aplicar A" style="max-width:340px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">El eigenvector mantiene su dirección bajo la transformación \(A\).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: CÁLCULO MANUAL 2×2 -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-calculator"></i> Cálculo Manual para Matrices 2×2</h2>
+    
+    <p class="reveal"><strong>Ecuación característica:</strong> Para encontrar eigenvalores, resolvemos:
+      \[ \det(A - \lambda I) = 0 \]
+    </p>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-square"></i> Ejemplo: matriz de transición de inventarios</span>
+      \[ A = \begin{pmatrix} 0.9 & 0.1 \\ 0.2 & 0.8 \end{pmatrix} \]
+      \[ \det\begin{pmatrix} 0.9-\lambda & 0.1 \\ 0.2 & 0.8-\lambda \end{pmatrix} = (0.9-\lambda)(0.8-\lambda) - 0.02 = 0 \]
+      \[ \lambda^2 - 1.7\lambda + 0.70 = 0 \quad\Rightarrow\quad \lambda = \frac{1.7 \pm \sqrt{2.89-2.80}}{2} = \frac{1.7 \pm 0.3}{2} \]
+      \[ \lambda_1 = 1.0, \quad \lambda_2 = 0.7 \]
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> Verificación para \(\lambda_1=1\)</span>
+      \[ A\begin{pmatrix}1\\1\end{pmatrix} = \begin{pmatrix}0.9\times1+0.1\times1\\0.2\times1+0.8\times1\end{pmatrix} = \begin{pmatrix}1\\1\end{pmatrix} = 1\cdot\begin{pmatrix}1\\1\end{pmatrix} \checkmark \]
+      El vector \((1,1)^T\) es eigenvector con eigenvalor 1: distribución uniforme estable.
+    </div>
+  </div>
+
+  <!-- SLIDE 6: RADIO ESPECTRAL -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-chart-line"></i> Radio Espectral y Criterio de Estabilidad</h2>
+    
+    <div class="formula-card reveal">
+      <span class="b-title">Radio espectral</span>
+      \[ \rho(A) = \max_i |\lambda_i| \]
+      El valor absoluto máximo de los eigenvalores de \(A\).
+    </div>
+    
+    <div class="col-layout mt">
+      <div>
+        <table class="compact reveal">
+          <tr><th>Condición</th><th>Interpretación</th><th>Aplicación logística</th></tr>
+          <tr><td>\(\rho(A) &lt; 1\)</td><td>Sistema estable</td><td>Inventarios convergen sin reabastecimiento</td></tr>
+          <tr><td>\(\rho(A) = 1\)</td><td>Equilibrio marginal</td><td>Cadenas de Markov: distribución estacionaria</td></tr>
+          <tr><td>\(\rho(A) > 1\)</td><td>Sistema inestable</td><td>Inventarios divergen: requiere intervención</td></tr>
+        </table>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/radio_espectral.png" alt="Eigenvalores y círculo unitario" style="max-width:320px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">Todos los eigenvalores dentro del círculo unitario → sistema estable. Basta uno fuera (\(\lambda_3=1.2\)) para que \(\rho(A)>1\) y el sistema sea inestable.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: MATRICES DE TRANSICIÓN -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-exchange-alt"></i> Matrices de Transición: Modelo Dinámico de Inventarios</h2>
+    
+    <div class="block reveal">
+      <span class="b-title">Modelo dinámico de inventarios</span>
+      \[ \mathbf{x}_{t+1} = A\mathbf{x}_t + \mathbf{b} \]
+      donde:
+      • \(\mathbf{x}_t\): vector de inventarios en el periodo \(t\)<br>
+      • \(A\): matriz de transición (qué fracción del inventario se transfiere entre depósitos)<br>
+      • \(\mathbf{b}\): vector de reabastecimiento externo
+    </div>
+    
+    <p class="reveal mt"><strong>Ejemplo: sistema de 2 depósitos</strong>
+      \[ A = \begin{pmatrix} 0.85 & 0.10 \\ 0.15 & 0.90 \end{pmatrix}, \quad \mathbf{b} = \begin{pmatrix} 20 \\ 15 \end{pmatrix} \]
+      Interpretación (columnas de \(A\)): cada periodo, el 85% del inventario del depósito 1 permanece allí y el 15% pasa al depósito 2; del depósito 2, el 90% permanece y el 10% pasa al depósito 1.
+    </p>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-calculator"></i> Eigenvalores de \(A\)</span>
+      \[ \det(A-\lambda I) = (0.85-\lambda)(0.90-\lambda) - 0.015 = \lambda^2 - 1.75\lambda + 0.75 = 0 \]
+      \[ \lambda_1 = 1.0, \quad \lambda_2 = 0.75 \quad\Rightarrow\quad \rho(A) = 1.0 \]
+      Con \(\lambda_1=1\) el inventario <strong>total se conserva</strong>: sin reabastecimiento (\(\mathbf{b}=\mathbf{0}\)) converge a la distribución 40% / 60% (eigenvector dominante). Pero con \(\mathbf{b}=(20,15)^T\) el total crece 35 ton por periodo: <strong>no hay equilibrio</strong> (ver diapositiva siguiente).
+    </div>
+  </div>
+
+  <!-- SLIDE 8: EQUILIBRIO (I-A)⁻¹b -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-balance-scale"></i> Equilibrio vía \((I-A)^{-1}\mathbf{b}\)</h2>
+    
+    <p class="reveal"><strong>Estado de equilibrio:</strong> cuando \(\mathbf{x}_{t+1} = \mathbf{x}_t = \mathbf{x}^*\):
+      \[ \mathbf{x}^* = A\mathbf{x}^* + \mathbf{b} \quad\Rightarrow\quad (I-A)\mathbf{x}^* = \mathbf{b} \quad\Rightarrow\quad \mathbf{x}^* = (I-A)^{-1}\mathbf{b} \]
+    </p>
+    
+    <div class="reveal mt"><span class="b-title"><i class="fas fa-link"></i> Conexión con Módulo 1-2</span>
+      ¡Esto es exactamente el sistema lineal \(M\mathbf{x}=\mathbf{b}\) que estudiamos al inicio del curso!<br>
+      Con \(M = I-A\). Se resuelve con eliminación gaussiana o en MATLAB con <code>(eye(n)-A)\b</code>.
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Ejemplo numérico</span>
+      Para \(A = \begin{pmatrix}0.85&0.10\\0.15&0.90\end{pmatrix}\), \(\mathbf{b} = \begin{pmatrix}20\\15\end{pmatrix}\):
+      \[ I-A = \begin{pmatrix}0.15&-0.10\\-0.15&0.10\end{pmatrix}, \quad \det(I-A) = 0.015-0.015 = 0 \]
+      ¡El determinante es cero! Esto ocurre porque \(\lambda=1\) es eigenvalor de \(A\).<br>
+      Además, \(\operatorname{rang}(I-A)=1\) pero \(\operatorname{rang}([I-A\,|\,\mathbf{b}])=2\): el sistema es <strong>incompatible</strong> (las filas de \(I-A\) suman 0, pero \(20+15\neq0\)). No existe equilibrio: el inventario crece sin límite.
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Condición de invertibilidad</span>
+      \((I-A)\) es invertible si y solo si \(\lambda=1\) <strong>no</strong> es eigenvalor de \(A\).<br>
+      Para sistemas con reabastecimiento constante, normalmente \(\rho(A)&lt;1\) y el equilibrio es único.
+    </div>
+  </div>
+
+  <!-- SLIDE 9: EIGENVECTOR DOMINANTE -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-crown"></i> Eigenvector Dominante: Distribución de Largo Plazo</h2>
+    
+    <div class="block reveal">
+      <span class="b-title">Teorema de Perron-Frobenius (simplificado)</span>
+      Si \(A\) tiene entradas positivas (como una matriz de transición logística), entonces:
+      • Su mayor eigenvalor \(\lambda_1\) es real, positivo y simple<br>
+      • El eigenvector asociado \(\mathbf{v}_1\) tiene todas sus entradas positivas<br>
+      • Para cualquier vector inicial \(\mathbf{x}_0\), la iteración \(\mathbf{x}_{t+1} = A\mathbf{x}_t\) converge a un múltiplo de \(\mathbf{v}_1\)
+    </div>
+    
+    <p class="reveal mt"><strong>Interpretación logística:</strong> el eigenvector dominante \(\mathbf{v}_1\) representa la <strong>distribución de largo plazo</strong> del inventario entre los depósitos, independientemente de la distribución inicial.</p>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Ejemplo: sistema de 3 depósitos</span>
+      Para \(A = \begin{pmatrix}0.7&0.2&0.1\\0.1&0.8&0.1\\0.2&0.1&0.7\end{pmatrix}\), los eigenvalores son \(\lambda_1=1.0\), \(\lambda_2=\lambda_3=0.6\) (verificación: traza \(=2.2=1+0.6+0.6\)).<br>
+      El eigenvector dominante es \(\mathbf{v}_1 = (1, 1, 1)^T\) (cada fila de \(A\) suma 1): distribución uniforme estable.<br>
+      Si la demanda está concentrada en el depósito 1 pero el stock converge al depósito 2, hay desbalance estructural.
+    </div>
+  </div>
+
+  <!-- SLIDE 10: MATLAB EIG() -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Calcular Eigenvalores con eig()</h2>
+    <p class="mb" style="font-size:0.85rem;"><strong>Salida esperada:</strong> eigenvalores 0.7, 0.8 y 1.0 (el orden puede variar) · \(\rho(A)=1\): equilibrio marginal · distribución de largo plazo: 33.33% en cada depósito.</p>
+    
+    <pre><span class="mc">% Matriz de transicion de inventarios (3 depositos)</span>
+A = <span class="mf">[</span><span class="mn">0.85</span> <span class="mn">0.10</span> <span class="mn">0.05</span>;
+     <span class="mn">0.10</span> <span class="mn">0.80</span> <span class="mn">0.10</span>;
+     <span class="mn">0.05</span> <span class="mn">0.10</span> <span class="mn">0.85</span><span class="mf">]</span>;
+
+<span class="mc">% Calcular eigenvalores y eigenvectores</span>
+[V, D] = <span class="mk">eig</span>(A);  <span class="mc">% A*V = V*D</span>
+eigenvalues = <span class="mk">diag</span>(D);
+
+<span class="mk">fprintf</span>(<span class="ms">'=== EIGENVALORES ===\n'</span>)
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mn">3</span>
+    <span class="mk">fprintf</span>(<span class="ms">'Lambda %d: %.4f (|lambda| = %.4f)\n'</span>,...
+i, eigenvalues(i), <span class="mf">abs</span>(eigenvalues(i)))
+<span class="mk">end</span>
+
+<span class="mc">% Radio espectral</span>
+rho_A = <span class="mk">max</span>(<span class="mf">abs</span>(eigenvalues));
+<span class="mk">fprintf</span>(<span class="ms">'\nRadio espectral rho(A) = %.4f\n'</span>, rho_A)
+
+<span class="mc">% Criterio de estabilidad</span>
+<span class="mk">if</span> rho_A &lt; <span class="mn">1</span> - <span class="mn">1e-10</span>
+    <span class="mk">fprintf</span>(<span class="ms">'Sistema ESTABLE: inventarios convergen sin reabastecimiento\n'</span>)
+<span class="mk">elseif</span> <span class="mf">abs</span>(rho_A - <span class="mn">1</span>) &lt; <span class="mn">1e-10</span>   <span class="mc">% comparar con tolerancia</span>
+    <span class="mk">fprintf</span>(<span class="ms">'Equilibrio marginal: sistema alcanza distribucion estacionaria\n'</span>)
+<span class="mk">else</span>
+    <span class="mk">fprintf</span>(<span class="ms">'Sistema INESTABLE: inventarios divergen - requiere intervencion\n'</span>)
+<span class="mk">end</span>
+
+<span class="mc">% Eigenvector dominante (asociado al mayor eigenvalor)</span>
+[~, idx_max] = <span class="mk">max</span>(<span class="mf">abs</span>(eigenvalues));
+v_dominant = V(:, idx_max);
+<span class="mc">% Normalizar para interpretar como distribucion</span>
+v_dominant = v_dominant / <span class="mk">sum</span>(v_dominant);
+<span class="mk">fprintf</span>(<span class="ms">'\nEigenvector dominante (distribucion de largo plazo):\n'</span>)
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mn">3</span>
+    <span class="mk">fprintf</span>(<span class="ms">'  Deposito %d: %.2f%%\n'</span>, i, <span class="mn">100</span>*v_dominant(i))
+<span class="mk">end</span></pre>
+  </div>
+
+  <!-- SLIDE 11: MATLAB SIMULACIÓN -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Simular Dinámica de Inventarios</h2>
+    
+    <pre><span class="mc">% Parametros del sistema: cada periodo se consume el 10% del stock</span>
+A_s = <span class="mn">0.9</span> * A;            <span class="mc">% rho(A_s) = 0.9 &lt; 1  -&gt; sistema estable</span>
+b = <span class="mf">[</span><span class="mn">20</span>; <span class="mn">15</span>; <span class="mn">10</span><span class="mf">]</span>;  <span class="mc">% reabastecimiento semanal (ton)</span>
+x0 = <span class="mf">[</span><span class="mn">100</span>; <span class="mn">80</span>; <span class="mn">120</span><span class="mf">]</span>;  <span class="mc">% inventario inicial</span>
+n_periods = <span class="mn">30</span>;
+
+<span class="mc">% Simular SIN reabastecimiento</span>
+x_no_reab = <span class="mk">zeros</span>(<span class="mn">3</span>, n_periods+<span class="mn">1</span>);
+x_no_reab(:,<span class="mn">1</span>) = x0;
+<span class="mk">for</span> t = <span class="mn">1</span>:n_periods
+    x_no_reab(:,t+<span class="mn">1</span>) = A_s * x_no_reab(:,t);
+<span class="mk">end</span>
+
+<span class="mc">% Simular CON reabastecimiento</span>
+x_with_reab = <span class="mk">zeros</span>(<span class="mn">3</span>, n_periods+<span class="mn">1</span>);
+x_with_reab(:,<span class="mn">1</span>) = x0;
+<span class="mk">for</span> t = <span class="mn">1</span>:n_periods
+    x_with_reab(:,t+<span class="mn">1</span>) = A_s * x_with_reab(:,t) + b;
+<span class="mk">end</span>
+
+<span class="mc">% Calcular equilibrio teorico</span>
+x_equilibrium = (eye(<span class="mn">3</span>) - A_s) \ b;   <span class="mc">% [167.86; 150.00; 132.14] ton</span>
+
+<span class="mc">% Visualizacion</span>
+<span class="mk">figure</span>(<span class="ms">'Position'</span>,<span class="mf">[</span><span class="mn">50</span> <span class="mn">50</span> <span class="mn">950</span> <span class="mn">420</span><span class="mf">]</span>);
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">2</span>,<span class="mn">1</span>)
+<span class="mk">plot</span>(<span class="mn">0</span>:n_periods, x_no_reab', <span class="ms">'LineWidth'</span>,<span class="mn">2</span>)
+<span class="mk">xlabel</span>(<span class="ms">'Periodo'</span>); <span class="mk">ylabel</span>(<span class="ms">'Inventario (ton)'</span>)
+<span class="mk">title</span>(<span class="ms">'Sin reabastecimiento: convergencia a cero'</span>)
+<span class="mk">legend</span>(<span class="ms">'Deposito 1'</span>,<span class="ms">'Deposito 2'</span>,<span class="ms">'Deposito 3'</span>,<span class="ms">'Location'</span>,<span class="ms">'best'</span>)
+<span class="mk">grid on</span>
+
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">2</span>,<span class="mn">2</span>)
+<span class="mk">plot</span>(<span class="mn">0</span>:n_periods, x_with_reab', <span class="ms">'LineWidth'</span>,<span class="mn">2</span>)
+<span class="mk">hold on</span>
+<span class="mk">plot</span>([<span class="mn">0</span> n_periods], [x_equilibrium(1) x_equilibrium(1)], <span class="ms">'k--'</span>, <span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>)
+<span class="mk">plot</span>([<span class="mn">0</span> n_periods], [x_equilibrium(2) x_equilibrium(2)], <span class="ms">'k--'</span>, <span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>)
+<span class="mk">plot</span>([<span class="mn">0</span> n_periods], [x_equilibrium(3) x_equilibrium(3)], <span class="ms">'k--'</span>, <span class="ms">'LineWidth'</span>,<span class="mn">1.5</span>)
+<span class="mk">xlabel</span>(<span class="ms">'Periodo'</span>); <span class="mk">ylabel</span>(<span class="ms">'Inventario (ton)'</span>)
+<span class="mk">title</span>(<span class="ms">'Con reabastecimiento: convergencia al equilibrio'</span>)
+<span class="mk">legend</span>(<span class="ms">'Deposito 1'</span>,<span class="ms">'Deposito 2'</span>,<span class="ms">'Deposito 3'</span>,<span class="ms">'Equilibrio'</span>,<span class="ms">'Location'</span>,<span class="ms">'best'</span>)
+<span class="mk">grid on</span></pre>
+    <div class="reveal mt"><img class="fig" src="imagenes/simulacion_inventarios.png" alt="Simulación de inventarios"><p class="fig-cap">Resultado del script con \(A_s=0.9A\): equilibrio \(\mathbf{x}^*\approx(167.9,\ 150.0,\ 132.1)\) ton</p></div>
+  </div>
+
+  <!-- SLIDE 12: PROPIEDADES EIGENVALORES -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-list-check"></i> Propiedades de los Eigenvalores</h2>
+    
+    <table class="compact reveal">
+      <tr><th>Propiedad</th><th>Fórmula</th><th>Aplicación logística</th></tr>
+      <tr><td>Traza</td><td>\(\text{tr}(A) = \sum_i \lambda_i\)</td><td>Suma de tasas de retención = suma de eigenvalores</td></tr>
+      <tr><td>Determinante</td><td>\(\det(A) = \prod_i \lambda_i\)</td><td>Producto de eigenvalores indica volumen de transformación</td></tr>
+      <tr><td>Invertibilidad</td><td>\(A\) invertible \(\Leftrightarrow\) ningún \(\lambda_i=0\)</td><td>Sistema de equilibrio tiene solución única</td></tr>
+      <tr><td>Potencias</td><td>Si \(\lambda\) eigenvalor de \(A\), entonces \(\lambda^k\) eigenvalor de \(A^k\)</td><td>Comportamiento a largo plazo determinado por \(\lambda_{\max}^k\)</td></tr>
+      <tr><td>Perron-Frobenius</td><td>Si \(A>0\), entonces \(\lambda_1>0\) real y simple, \(\mathbf{v}_1>0\)</td><td>Distribución de largo plazo es única y positiva</td></tr>
+    </table>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Verificación numérica</span>
+      Para \(A = \begin{pmatrix}0.9&0.1\\0.2&0.8\end{pmatrix}\) con \(\lambda_1=1.0\), \(\lambda_2=0.7\):
+      • \(\text{tr}(A) = 1.7 = 1.0 + 0.7\) <span class="ok">✓</span><br>
+      • \(\det(A) = 0.70 = 1.0 \times 0.7\) <span class="ok">✓</span><br>
+      • \(A\) es invertible porque ningún eigenvalor es cero <span class="ok">✓</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 13: CONEXIÓN FINAL -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-link"></i> Conexión Final: Eigenvalores en Todo el Curso</h2>
+    
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-cube"></i> Módulo 1-2: Sistemas lineales</span>
+          • Eigenvalores de \(A^TA\) determinan el número de condición de un sistema<br>
+          • Un número de condición alto indica sensibilidad a errores en los datos
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-chart-line"></i> Módulo 5: Regresión</span>
+          • Los eigenvalores de \(X^TX\) indican multicolinealidad entre predictores<br>
+          • Si un eigenvalor es cercano a cero, las variables son casi linealmente dependientes
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-network-wired"></i> Módulo 6: Redes</span>
+          • El mayor eigenvalor de la matriz de adyacencia mide la "conectividad espectral" de la red<br>
+          • La eliminación de un nodo crítico reduce significativamente este eigenvalor
+        </div>
+      </div>
+      <div>
+        <div class="decision-flow reveal">
+          <div class="df-question">¿Qué pregunta responde cada herramienta?</div>
+          <i class="fas fa-arrow-down df-arrow"></i>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center;">
+            <div style="text-align:center;">
+              <div class="df-answer">Normas: ¿Qué tan grande es el error?</div>
+              <i class="fas fa-arrow-down df-arrow"></i>
+              <span style="font-size:0.8rem; color:var(--navy);">Minimizar MAE vs RMSE</span>
+            </div>
+            <div style="text-align:center;">
+              <div class="df-answer">Adyacencia: ¿Cómo están conectados los nodos?</div>
+              <i class="fas fa-arrow-down df-arrow"></i>
+              <span style="font-size:0.8rem; color:var(--navy);">Identificar nodos críticos</span>
+            </div>
+            <div style="text-align:center;">
+              <div class="df-answer">Eigenvalores: ¿El sistema converge o diverge?</div>
+              <i class="fas fa-arrow-down df-arrow"></i>
+              <span style="font-size:0.8rem; color:var(--navy);">Diseñar sistemas estables</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> La gran idea del curso</span>
+      El álgebra lineal no es solo cálculo de matrices: es un <strong>lenguaje para modelar sistemas reales</strong>.<br>
+      Cada herramienta (normas, grafos, eigenvalores) responde una pregunta operativa específica en logística.
+    </div>
+  </div>
+
+  <!-- SLIDE 14: PUNTO DE DECISIÓN -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-gavel"></i> Punto de Decisión</h2>
+    
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Pregunta de Cierre</span><br><br>
+      <em>El sistema de gestión de inventarios de tu empresa tiene radio espectral \(\rho(A)=0.92\). Sin reabastecimiento, los inventarios se reducen un 8% por periodo. El eigenvector dominante indica que el depósito 2 concentrará el 45% del stock.</em><br><br>
+      <strong>¿Intervendrías el sistema o lo mantendrías? ¿Qué reabastecimiento es óptimo?</strong>
+    </div>
+    
+    <div class="decision-cards mt">
+      <div class="dc-card a reveal">
+        <strong>Mantener el sistema</strong><br><br>
+        \(\rho=0.92&lt;1\): el sistema es estable. No hay urgencia de restructuración.<br>
+        Pero los inventarios decaen un 8% por periodo: se necesita reabastecimiento.
+      </div>
+      <div class="dc-card b reveal">
+        <strong>Reabastecimiento óptimo</strong><br><br>
+        El reabastecimiento que mantiene el nivel deseado \(\mathbf{x}^*\):<br>
+        \(\mathbf{b} = (I-A)\mathbf{x}^*\) (sistema lineal directo).
+      </div>
+      <div class="dc-card c reveal">
+        <strong>Ajustar distribución</strong><br><br>
+        Si la demanda está concentrada en el depósito 1 pero el stock converge al depósito 2, hay desbalance estructural: modificar las tasas de transferencia \(A_{ij}\).
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: TAREA Y CIERRE -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-book"></i> Tarea y Cierre del Módulo 6</h2>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-file-code"></i> Entregable del Módulo 6</span>
+      <ul>
+        <li class="reveal">Script MATLAB ejecutable (<code>clase30_eigenvalores.m</code>) con:</li>
+        <ul>
+          <li>Cálculo de eigenvalores para matriz de transición 3×3</li>
+          <li>Simulación de dinámica con/sin reabastecimiento</li>
+          <li>Cálculo del equilibrio \((I-A)^{-1}\mathbf{b}\)</li>
+          <li>Gráfico de convergencia al equilibrio</li>
+        </ul>
+        <li class="reveal">Párrafo de decisión (100 palabras): recomendación basada en \(\rho(A)\) y eigenvector dominante</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lectura preparatoria para Clases 31-32</span>
+      <strong>Lay</strong>, Cap. 7: Ortogonalidad y Mínimos Cuadrados (repaso)<br>
+      <strong>Material del curso</strong>: Rúbrica del Proyecto Final Integrador<br>
+      <em>Pensar: ¿cómo integrar regresión, normas, redes y eigenvalores en un solo modelo logístico?</em>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-trophy"></i> Próximas clases: Proyecto Final</span>
+      <strong>Clases 31-32</strong> — Proyecto Integrador: Modelado completo de una red logística con pronóstico, optimización y análisis de estabilidad
+    </div>
+  </div>
+
+  <!-- SLIDE 16: REFERENCIAS -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Lay, D.C., Lay, S.R., McDonald, J.J.</strong> (2016). <em>Álgebra Lineal y sus Aplicaciones</em> (5a ed.). Pearson. <strong>Cap. 5.1-5.2</strong> (Eigenvalores y eigenvectores), pp. 283–310.</li>
+      <li class="reveal"><strong>Strang, G.</strong> (2016). <em>Introduction to Linear Algebra</em> (5th ed.). Wellesley-Cambridge. <strong>Cap. 6</strong> (Eigenvalues and Eigenvectors).</li>
+      <li class="reveal"><strong>Horn, R.A. & Johnson, C.R.</strong> (2012). <em>Matrix Analysis</em> (2nd ed.). Cambridge. Cap. 8 (Perron-Frobenius Theorem).</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>eig</code>, <code>condeig</code>, <code>schur</code>. <a href="https://www.mathworks.com/help/matlab/ref/eig.html" style="color:var(--orange);">https://www.mathworks.com/help/matlab/ref/eig.html</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Script <code>clase30_eigenvalores.m</code>, Dataset de inventarios, Rúbrica de evaluación.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--orange); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 30 | Eigenvalores y Estabilidad</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: CIERRE FINAL -->
+  <div class="slide" data-slide="17">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--orange); margin-bottom:1rem;"></i>
+      <h1>¡Felicitaciones!</h1>
+      <p class="sub mt">Módulo 6 — Herramientas de Ingeniería: Completado</p>
+      <p class="sub" style="color:var(--green); font-weight:600;">Próximas clases: Proyecto Final Integrador</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

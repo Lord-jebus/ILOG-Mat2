@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 31: Proyecto Final Integrador</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --green-proj: #006e3c;
+      --green-proj-dark: #005530;
+      --orange: #c85000;
+      --orange-dark: #a04000;
+      --navy: #005293;
+      --navy-light: #0066b8;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --red: #b41414;
+      --red-light: #ffe0e0;
+      --purple: #7800a0;
+      --purple-light: #f3e6f7;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--green-proj);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--green-proj);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--red-light); border-left-color: var(--red); }
+    .alert-block strong { color: var(--red); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--green-proj); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--green-proj); border-color: var(--green-proj); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    /* Module flow diagram */
+    .module-flow { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem; margin: 1rem 0; }
+    .mf-step { padding: 0.4rem 0.6rem; border-radius: 6px; background: rgba(0,82,147,0.1); border: 2px solid var(--navy); color: var(--navy); font-size: 0.7rem; text-align: center; min-width: 70px; }
+    .mf-step.active { background: var(--green-proj); border-color: var(--green-proj); color: white; font-weight: 600; }
+    .mf-arrow { color: #94a3b8; font-size: 0.9rem; }
+
+    /* Project blocks timeline */
+    .project-timeline { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin: 1rem 0; }
+    .pt-block { padding: 0.5rem 0.8rem; border-radius: 6px; background: rgba(0,110,60,0.1); border: 2px solid var(--green-proj); color: var(--green-proj); font-size: 0.75rem; text-align: center; min-width: 90px; }
+    .pt-time { font-weight: 600; display: block; }
+    .pt-title { font-size: 0.7rem; }
+
+    /* Network graph visualization */
+    .network-graph { width: 280px; height: 220px; margin: 0.5rem auto; position: relative; }
+    .ng-node { position: absolute; width: 32px; height: 32px; border-radius: 50%; background: rgba(0,82,147,0.15); border: 2px solid var(--navy); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8rem; color: var(--navy); z-index: 2; }
+    .ng-node.critical { border-color: var(--red); background: rgba(180,20,20,0.15); color: var(--red); }
+    .ng-edge { position: absolute; height: 2px; background: var(--navy); transform-origin: left center; }
+
+    /* Decision cards */
+    .decision-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; margin: 1rem 0; }
+    .dc-card { padding: 0.8rem; border-radius: 8px; text-align: center; border: 2px solid; font-size: 0.85rem; }
+    .dc-card.a { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .dc-card.b { border-color: var(--orange); background: var(--orange-light); }
+    .dc-card.c { border-color: var(--green-proj); background: rgba(0,110,60,0.05); }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--green-proj); margin: 0.5rem 0; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-project-diagram fa-3x" style="color:var(--green-proj); margin-bottom:1rem;"></i>
+      <h1>Proyecto Final Integrador</h1>
+      <p class="sub">Diseño de Operación Logística: Red, Demanda y Estabilidad</p>
+      <p class="sub" style="color:var(--green-proj); font-weight:600;">Módulo 7 — Proyecto Integrador y Evaluación Final</p>
+      <p class="sub">Matemáticas 2 — Clase 31</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 31 — Proyecto Final</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">¿Qué es el Proyecto Final?</li>
+      <li class="reveal">Mapa de Herramientas del Curso</li>
+      <li class="reveal">El Caso: Logística Austral S.A.</li>
+      <li class="reveal">Datos del Caso</li>
+      <li class="reveal">Organización del Trabajo (120 min)</li>
+      <li class="reveal">Bloque 1: Análisis de la Red</li>
+      <li class="reveal">Bloque 2: Modelo de Demanda</li>
+      <li class="reveal">Bloque 3: Normas y SLA</li>
+      <li class="reveal">Bloque 4: Estabilidad e Inventario</li>
+      <li class="reveal">Estructura del Informe de Decisión</li>
+      <li class="reveal">Rúbrica del Proyecto Final</li>
+      <li class="reveal">Marco de Decisión Integrado</li>
+      <li class="reveal">Instrucciones Finales</li>
+      <li class="reveal">Referencias del Proyecto</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: ¿QUÉ ES EL PROYECTO? -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-question-circle"></i> ¿Qué es el Proyecto Final?</h2>
+    
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-users"></i> Clase de trabajo intensivo en grupos</span>
+          Cada grupo diseña la operación logística de una empresa ficticia usando <strong>todas</strong> las herramientas matemáticas del curso.
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-clock"></i> Detalles operativos</span>
+          <ul>
+            <li><strong>Duración:</strong> 120 minutos de trabajo en clase + entrega al final</li>
+            <li><strong>Modalidad:</strong> grupos de 3-4 estudiantes</li>
+            <li><strong>Entregable:</strong> script MATLAB ejecutable + informe de decisión (1 página)</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="alert-block reveal">
+          <span class="b-title"><i class="fas fa-toolbox"></i> Herramientas a usar</span>
+          <ul>
+            <li class="reveal"><strong>Módulo 1-2:</strong> sistemas lineales, matrices</li>
+            <li class="reveal"><strong>Módulo 4:</strong> espacios vectoriales, SVD</li>
+            <li class="reveal"><strong>Módulo 5:</strong> regresión, RMSE, IS</li>
+            <li class="reveal"><strong>Módulo 6:</strong> normas, adyacencia, eigenvalores</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: MAPA DE HERRAMIENTAS -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-map"></i> Mapa de Herramientas del Curso</h2>
+    
+    <div class="module-flow reveal">
+      <div class="mf-step">Mod. 1-2<br>Sistemas Ax=b</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">Mod. 4<br>Espacios vectoriales</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">Mod. 5<br>Regresión lineal</div>
+      <i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-step">Mod. 6<br>Normas, redes</div>
+      <i class="fas fa-arrow-down mf-arrow"></i>
+      <div class="mf-step active">PROYECTO FINAL:<br>Diseño de Operación Logística Integrada</div>
+    </div>
+    
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> El proyecto no es un examen — es una demostración de competencia</span>
+      No se trata de recordar fórmulas, sino de <strong>decidir cuál herramienta usar</strong>, <strong>ejecutarla correctamente</strong> e <strong>interpretar el resultado</strong> en el contexto logístico.
+    </div>
+  </div>
+
+  <!-- SLIDE 4: EL CASO -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-industry"></i> El Caso: Logística Austral S.A.</h2>
+    
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-building"></i> Empresa</span>
+          <strong>Logística Austral S.A.</strong><br>
+          Distribución de productos de consumo masivo.<br>
+          Tiene 5 centros de distribución interconectados y atiende a 80 clientes en toda la región.
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-exclamation-circle"></i> Situación actual</span>
+          <ul>
+            <li class="reveal">Datos históricos de 26 semanas de demanda, precio y marketing</li>
+            <li class="reveal">Red logística con conexiones entre los 5 CDs</li>
+            <li class="reveal">Errores de entrega observados en las últimas 6 semanas</li>
+            <li class="reveal">Sistema de transferencia de inventario entre CDs con matriz de transición conocida</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-tasks"></i> Lo que debe decidir el equipo</span>
+          <ol>
+            <li class="reveal">¿Cuál es el mejor modelo de pronóstico?</li>
+            <li class="reveal">¿Qué CD es el nodo crítico de la red?</li>
+            <li class="reveal">¿Qué norma de error usar para cumplir el SLA?</li>
+            <li class="reveal">¿Es estable el sistema de inventarios?</li>
+            <li class="reveal">¿Cuánto inventario de seguridad se necesita?</li>
+            <li class="reveal">¿Qué acciones de mejora recomiendas?</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: DATOS DEL CASO -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-database"></i> Datos del Caso</h2>
+    
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-chart-line"></i> Dataset de demanda (26 semanas)</span>
+          <ul>
+            <li class="reveal">\(t\): número de semana (1-26)</li>
+            <li class="reveal">\(p\): precio promedio ($/kg)</li>
+            <li class="reveal">\(m\): campañas de marketing (0-3)</li>
+            <li class="reveal">\(y\): demanda total (toneladas)</li>
+          </ul>
+          <p class="mt italic" style="font-size:0.9rem;">Incluidos en el script <code>clase31_proyecto.m</code>.</p>
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-network-wired"></i> Red logística (5 CDs)</span>
+          Conexiones: CD1-CD2, CD1-CD3, CD2-CD3, CD2-CD4, CD3-CD4, CD3-CD5, CD4-CD5.
+          <img class="fig" src="imagenes/red_logistica_austral.png" alt="Red de 5 CD de Logística Austral" style="max-width:260px">
+        </div>
+      </div>
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Errores de entrega (últimas 6 semanas)</span>
+          \[ \mathbf{e} = (4, -9, 2, -1, 7, -3)^T \text{ ton} \]
+          SLA contractual: ningún error > 6 ton.
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-exchange-alt"></i> Matriz de transición (5 CDs)</span>
+          \[ A_T = \begin{pmatrix} 0.80&0.05&0.00&0.00&0.00\\ 0.10&0.75&0.10&0.00&0.00\\ 0.05&0.10&0.70&0.10&0.05\\ 0.00&0.05&0.10&0.80&0.10\\ 0.00&0.00&0.05&0.05&0.85 \end{pmatrix} \]
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6: ORGANIZACIÓN DEL TRABAJO -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-tasks"></i> Organización del Trabajo (120 min)</h2>
+    
+    <div class="project-timeline reveal">
+      <div class="pt-block"><span class="pt-time">25 min</span><span class="pt-title">Bloque 1<br>Análisis de red</span></div>
+      <div class="pt-block"><span class="pt-time">25 min</span><span class="pt-title">Bloque 2<br>Modelo de demanda</span></div>
+      <div class="pt-block"><span class="pt-time">20 min</span><span class="pt-title">Bloque 3<br>Normas y SLA</span></div>
+      <div class="pt-block"><span class="pt-time">20 min</span><span class="pt-title">Bloque 4<br>Estabilidad e inventario</span></div>
+      <div class="pt-block"><span class="pt-time">30 min</span><span class="pt-title">Bloque 5<br>Integración y decisión</span></div>
+    </div>
+    
+    <table class="compact reveal mt" style="font-size:0.85rem;">
+      <tr><th>Bloque</th><th>Tiempo</th><th>Tarea</th></tr>
+      <tr><td>Bloque 1</td><td>25 min</td><td><strong>Análisis de la red:</strong> construir matriz de adyacencia, calcular grados, identificar nodo crítico, analizar impacto de su falla.</td></tr>
+      <tr><td>Bloque 2</td><td>25 min</td><td><strong>Modelo de demanda:</strong> ajustar 3 modelos, comparar con RMSE<sub>test</sub>, elegir el mejor, pronosticar 6 semanas.</td></tr>
+      <tr><td>Bloque 3</td><td>20 min</td><td><strong>Normas y SLA:</strong> calcular L1, L2, L∞ para errores, diagnosticar incumplimiento del SLA, proponer acción correctiva.</td></tr>
+      <tr><td>Bloque 4</td><td>20 min</td><td><strong>Estabilidad e inventario:</strong> calcular eigenvalores, radio espectral, inventario de equilibrio, IS con fórmula.</td></tr>
+      <tr><td>Bloque 5</td><td>30 min</td><td><strong>Integración y decisión:</strong> conectar los cuatro análisis en una recomendación ejecutiva coherente. Completar informe.</td></tr>
+    </table>
+  </div>
+
+  <!-- SLIDE 7: BLOQUE 1 - RED -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-network-wired"></i> Bloque 1: Análisis de la Red (25 min)</h2>
+    
+    <pre><span class="mc">% Matriz de adyacencia (5 CDs)</span>
+A_red = <span class="mf">[</span><span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span> <span class="mn">0</span>;
+         <span class="mn">1</span> <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span>;
+         <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span>;
+         <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span> <span class="mn">1</span>;
+         <span class="mn">0</span> <span class="mn">0</span> <span class="mn">1</span> <span class="mn">1</span> <span class="mn">0</span><span class="mf">]</span>;
+
+G = <span class="mk">graph</span>(A_red);
+nombres = <span class="mf">{</span><span class="ms">'CD1'</span>,<span class="ms">'CD2'</span>,<span class="ms">'CD3'</span>,<span class="ms">'CD4'</span>,<span class="ms">'CD5'</span><span class="mf">}</span>;
+
+<span class="mc">% Grado de cada nodo</span>
+grados = <span class="mk">degree</span>(G);
+[max_g, nodo_crit] = <span class="mk">max</span>(grados);
+<span class="mk">fprintf</span>(<span class="ms">'Nodo critico: %s (grado %d)\n'</span>, nombres<span class="mf">{</span>nodo_crit<span class="mf">}</span>, max_g)
+
+<span class="mc">% Distancias minimas</span>
+D_red = <span class="mk">distances</span>(G);
+dist_prom = <span class="mk">mean</span>(D_red, <span class="mn">2</span>);
+
+<span class="mc">% Vulnerabilidad: simular falla de cada nodo</span>
+<span class="mk">for</span> k = <span class="mn">1</span>:<span class="mn">5</span>
+    nodos_r = <span class="mk">setdiff</span>(<span class="mn">1</span>:<span class="mn">5</span>, k);
+    G_r = <span class="mk">graph</span>(A_red(nodos_r,nodos_r));
+    n_comp = <span class="mk">max</span>(<span class="mk">conncomp</span>(G_r));
+    <span class="mk">fprintf</span>(<span class="ms">'Sin %s: %d componentes\n'</span>, nombres<span class="mf">{</span>k<span class="mf">}</span>, n_comp)
+<span class="mk">end</span>
+
+<span class="mc">% Visualizar</span>
+<span class="mk">figure</span>; h = <span class="mk">plot</span>(G, <span class="ms">'Layout'</span>,<span class="ms">'force'</span>, <span class="ms">'NodeLabel'</span>,nombres,...
+    <span class="ms">'MarkerSize'</span>,<span class="mn">12</span>, <span class="ms">'NodeFontSize'</span>,<span class="mn">12</span>);
+<span class="mk">highlight</span>(h, nodo_crit, <span class="ms">'NodeColor'</span>,<span class="ms">'r'</span>,<span class="ms">'MarkerSize'</span>,<span class="mn">16</span>)
+<span class="mk">title</span>(<span class="mf">sprintf</span>(<span class="ms">'Red Logistica (%s = nodo critico)'</span>, nombres<span class="mf">{</span>nodo_crit<span class="mf">}</span>))</pre>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>Grados <code>2 3 4 3 2</code> · <code>Nodo critico: CD3 (grado 4)</code> · al eliminar cualquier CD la red queda con <code>1</code> componente; sin CD3, CD1 y CD5 quedan con una sola conexión.</div>
+  </div>
+
+  <!-- SLIDE 8: BLOQUE 2 - DEMANDA -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-chart-line"></i> Bloque 2: Modelo de Demanda (25 min)</h2>
+    
+    <pre><span class="mc">% Datos (mismo generador que clase31_proyecto.m: 26 semanas)</span>
+<span class="mk">rng</span>(<span class="mn">2025</span>); n = <span class="mn">26</span>; t = (<span class="mn">1</span>:n)';
+precio    = <span class="mn">5.20</span> - <span class="mn">0.015</span>*t + <span class="mn">0.04</span>*<span class="mk">randn</span>(n,<span class="mn">1</span>);
+marketing = <span class="mf">max</span>(<span class="mn">0</span>, <span class="mf">min</span>(<span class="mn">3</span>, <span class="mk">round</span>(<span class="mn">0.4</span> + <span class="mn">0.04</span>*t + <span class="mn">0.4</span>*<span class="mk">randn</span>(n,<span class="mn">1</span>))));
+demanda   = <span class="mf">max</span>(<span class="mn">120</span>, <span class="mn">200</span> + <span class="mn">6</span>*t - <span class="mn">20</span>*precio + <span class="mn">25</span>*marketing + <span class="mn">9</span>*<span class="mk">randn</span>(n,<span class="mn">1</span>));
+
+<span class="mc">% Division train/test (semanas 1-19 train, 20-26 test)</span>
+n_tr = <span class="mn">19</span>;
+idx_tr = <span class="mn">1</span>:n_tr; idx_te = (n_tr+<span class="mn">1</span>):<span class="mn">26</span>;
+y_tr=demanda(idx_tr); y_te=demanda(idx_te);
+
+rmse_f = @(yr,yp) <span class="mf">sqrt</span>(<span class="mk">mean</span>((yr-yp).^<span class="mn">2</span>));
+mape_f = @(yr,yp) <span class="mk">mean</span>(<span class="mf">abs</span>((yr-yp)./yr))*<span class="mn">100</span>;
+
+<span class="mc">% Modelo A: lineal en t</span>
+pA = <span class="mk">polyfit</span>(t(idx_tr), y_tr, <span class="mn">1</span>);
+yA_te = <span class="mk">polyval</span>(pA, t(idx_te));
+
+<span class="mc">% Modelo B: cuadratico en t</span>
+pB = <span class="mk">polyfit</span>(t(idx_tr), y_tr, <span class="mn">2</span>);
+yB_te = <span class="mk">polyval</span>(pB, t(idx_te));
+
+<span class="mc">% Modelo C: multiple (t + precio + marketing)</span>
+Xc_tr = <span class="mf">[</span><span class="mk">ones</span>(n_tr,<span class="mn">1</span>), t(idx_tr), precio(idx_tr), marketing(idx_tr)<span class="mf">]</span>;
+Xc_te = <span class="mf">[</span><span class="mk">ones</span>(<span class="mn">7</span>,<span class="mn">1</span>), t(idx_te), precio(idx_te), marketing(idx_te)<span class="mf">]</span>;
+bC = Xc_tr \ y_tr;
+yC_te = Xc_te * bC;
+
+<span class="mc">% Tabla comparativa</span>
+<span class="mk">fprintf</span>(<span class="ms">'%-20s %-14s %-14s\n'</span>,<span class="ms">'Modelo'</span>,<span class="ms">'RMSE_test'</span>,<span class="ms">'MAPE_test'</span>)
+modelos = <span class="mf">{{</span><span class="ms">'A: Lineal'</span>,yA_te<span class="mf">},{</span><span class="ms">'B: Cuadratico'</span>,yB_te<span class="mf">},{</span><span class="ms">'C: Multiple'</span>,yC_te<span class="mf">}}</span>;
+<span class="mk">for</span> m = <span class="mn">1</span>:<span class="mn">3</span>
+    <span class="mk">fprintf</span>(<span class="ms">'%-20s %-14.4f %-14.2f%%\n'</span>, modelos<span class="mf">{</span>m<span class="mf">}{</span><span class="mn">1</span><span class="mf">}</span>,...
+        rmse_f(y_te,modelos<span class="mf">{</span>m<span class="mf">}{</span><span class="mn">2</span><span class="mf">}</span>), mape_f(y_te,modelos<span class="mf">{</span>m<span class="mf">}{</span><span class="mn">2</span><span class="mf">}</span>))
+<span class="mk">end</span></pre>
+  </div>
+
+  <!-- SLIDE 9: BLOQUE 3 - NORMAS -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-ruler-combined"></i> Bloque 3: Normas y SLA (20 min)</h2>
+    
+    <pre><span class="mc">% Errores de entrega (ton)</span>
+e_entrega = <span class="mf">[</span><span class="mn">4</span>; <span class="mn">-9</span>; <span class="mn">2</span>; <span class="mn">-1</span>; <span class="mn">7</span>; <span class="mn">-3</span><span class="mf">]</span>;
+SLA_max   = <span class="mn">6</span>;  <span class="mc">% ton (SLA contractual)</span>
+costo_correccion = <span class="mn">45</span>;  <span class="mc">% $/ton</span>
+
+<span class="mc">% Calcular las tres normas</span>
+L1   = <span class="mk">norm</span>(e_entrega, <span class="mn">1</span>);
+L2   = <span class="mk">norm</span>(e_entrega, <span class="mn">2</span>);
+Linf = <span class="mk">norm</span>(e_entrega, Inf);
+
+<span class="mk">fprintf</span>(<span class="ms">'=== ANALISIS DE NORMAS ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'L1 (MAE x n) = %.2f ton -> MAE = %.2f ton/entrega\n'</span>, L1, L1/<span class="mn">6</span>)
+<span class="mk">fprintf</span>(<span class="ms">'L2 (RMSE x sqrt(n)) = %.2f -> RMSE = %.2f ton\n'</span>, L2, L2/<span class="mf">sqrt</span>(<span class="mn">6</span>))
+<span class="mk">fprintf</span>(<span class="ms">'Linf = %.2f ton (error maximo)\n\n'</span>, Linf)
+
+<span class="mc">% Verificar SLA</span>
+<span class="mk">fprintf</span>(<span class="ms">'SLA contractual: ningun error > %d ton\n'</span>, SLA_max)
+<span class="mk">if</span> Linf > SLA_max
+    [max_e, idx_v] = <span class="mk">max</span>(<span class="mf">abs</span>(e_entrega));
+    <span class="mk">fprintf</span>(<span class="ms">'INCUMPLIMIENTO: entrega %d tiene error %.1f ton (> %d ton)\n'</span>,...
+        idx_v, e_entrega(idx_v), SLA_max)
+    <span class="mk">fprintf</span>(<span class="ms">'ACCION PRIORITARIA: corregir entrega %d\n'</span>, idx_v)
+    <span class="mk">fprintf</span>(<span class="ms">'Costo de correccion total (L1): $%.2f\n'</span>, L1*costo_correccion)
+<span class="mk">end</span></pre>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span><code>L1 = 26.00 → MAE = 4.33</code> · <code>L2 = 12.65 → RMSE = 5.16</code> · <code>Linf = 9.00</code> · <code>INCUMPLIMIENTO: entrega 2 tiene error -9.0 ton (&gt; 6 ton)</code> · <code>Costo de correccion total (L1): $1170.00</code></div>
+  </div>
+
+  <!-- SLIDE 10: BLOQUE 4 - ESTABILIDAD -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-infinity"></i> Bloque 4: Estabilidad e Inventario (20 min)</h2>
+    
+    <pre><span class="mc">% Matriz de transicion (5 CDs)</span>
+A_trans = <span class="mf">[</span><span class="mn">0.80</span> <span class="mn">0.05</span> <span class="mn">0.00</span> <span class="mn">0.00</span> <span class="mn">0.00</span>;
+           <span class="mn">0.10</span> <span class="mn">0.75</span> <span class="mn">0.10</span> <span class="mn">0.00</span> <span class="mn">0.00</span>;
+           <span class="mn">0.05</span> <span class="mn">0.10</span> <span class="mn">0.70</span> <span class="mn">0.10</span> <span class="mn">0.05</span>;
+           <span class="mn">0.00</span> <span class="mn">0.05</span> <span class="mn">0.10</span> <span class="mn">0.80</span> <span class="mn">0.10</span>;
+           <span class="mn">0.00</span> <span class="mn">0.00</span> <span class="mn">0.05</span> <span class="mn">0.05</span> <span class="mn">0.85</span><span class="mf">]</span>;
+
+<span class="mc">% Eigenvalores</span>
+[V_t, D_t] = <span class="mk">eig</span>(A_trans);
+eigs_t = <span class="mk">sort</span>(<span class="mf">abs</span>(<span class="mk">diag</span>(D_t)), <span class="ms">'descend'</span>);
+rho_t  = eigs_t(<span class="mn">1</span>);
+
+<span class="mk">fprintf</span>(<span class="ms">'Radio espectral: rho(A) = %.4f\n'</span>, rho_t)
+<span class="mk">if</span> rho_t &lt; <span class="mn">1</span>
+    <span class="mk">fprintf</span>(<span class="ms">'Sistema ESTABLE. Sin reabastecimiento, decae %.1f%%/periodo.\n'</span>,...
+        <span class="mn">100</span>*(<span class="mn">1</span>-rho_t))
+<span class="mk">end</span>
+
+<span class="mc">% Inventario de equilibrio</span>
+b_repo = <span class="mf">[</span><span class="mn">30</span>; <span class="mn">25</span>; <span class="mn">20</span>; <span class="mn">25</span>; <span class="mn">20</span><span class="mf">]</span>;  <span class="mc">% reabastecimiento (ton/sem)</span>
+x_eq   = (eye(<span class="mn">5</span>) - A_trans) \ b_repo;
+<span class="mk">fprintf</span>(<span class="ms">'\nInventario de equilibrio:\n'</span>)
+CDs = <span class="mf">{</span><span class="ms">'CD1'</span>,<span class="ms">'CD2'</span>,<span class="ms">'CD3'</span>,<span class="ms">'CD4'</span>,<span class="ms">'CD5'</span><span class="mf">}</span>;
+<span class="mk">for</span> i=<span class="mn">1</span>:<span class="mn">5</span>, <span class="mk">fprintf</span>(<span class="ms">'  %s: %.2f ton\n'</span>, CDs<span class="mf">{</span>i<span class="mf">}</span>, x_eq(i)), <span class="mk">end</span>
+
+<span class="mc">% Inventario de seguridad (con RMSE del mejor modelo)</span>
+RMSE_modelo = <span class="mn">9.5</span>;  <span class="mc">% ton: reemplazar por el RMSE_test del modelo elegido en el Bloque 2</span>
+z95  = <span class="mn">1.645</span>;
+LT   = <span class="mn">2</span>;           <span class="mc">% semanas de lead time</span>
+IS   = z95 * RMSE_modelo * <span class="mf">sqrt</span>(LT);
+<span class="mk">fprintf</span>(<span class="ms">'\nInventario de seguridad (nivel 95%%, LT=%d sem):\n'</span>, LT)
+<span class="mk">fprintf</span>(<span class="ms">'  IS = %.3f x %.2f x sqrt(%d) = %.2f ton\n'</span>, z95, RMSE_modelo, LT, IS)
+<span class="mk">fprintf</span>(<span class="ms">'  Costo IS: $%.2f/semana\n'</span>, IS*<span class="mn">3.5</span>)</pre>
+    <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span><code>rho(A) = 0.9628</code> → ESTABLE, decae 3.7%/periodo · Equilibrio: CD1 272.32, CD2 489.29, CD3 700.89, CD4 937.50, CD5 679.46 ton · <code>IS = 1.645 x 9.50 x sqrt(2) = 22.10 ton</code> · <code>Costo IS: $77.35/semana</code></div>
+  </div>
+
+  <!-- SLIDE 11: ESTRUCTURA DEL INFORME -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-file-alt"></i> Estructura del Informe de Decisión</h2>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-list-ol"></i> Estructura del informe (1 página, 300-400 palabras)</span>
+      <ol>
+        <li class="reveal"><strong>Red logística</strong> (2-3 oraciones): nodo crítico identificado, impacto de su falla, acción recomendada.</li>
+        <li class="reveal"><strong>Modelo de demanda</strong> (2-3 oraciones): modelo elegido con justificación cuantitativa (RMSE, MAPE), pronóstico de las próximas 6 semanas.</li>
+        <li class="reveal"><strong>Errores de entrega</strong> (2-3 oraciones): diagnóstico con normas, incumplimiento de SLA si existe, acción prioritaria y costo de corrección.</li>
+        <li class="reveal"><strong>Estabilidad e inventario</strong> (2-3 oraciones): radio espectral, estabilidad del sistema, inventario de equilibrio e IS recomendado.</li>
+        <li class="reveal"><strong>Recomendación ejecutiva</strong> (3-4 oraciones): las 3 acciones más urgentes en orden de prioridad, con justificación numérica.</li>
+      </ol>
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-gavel"></i> Criterio de evaluación clave</span>
+      Cada afirmación debe estar <strong>respaldada por un número</strong>.<br>
+      "El CD3 es el nodo crítico" no es suficiente.<br>
+      "El CD3 tiene grado 4 (el máximo); si falla, la red sigue conectada pero CD1 y CD5 quedan con una sola conexión cada uno" sí lo es.
+    </div>
+  </div>
+
+  <!-- SLIDE 12: RÚBRICA -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-clipboard-check"></i> Rúbrica del Proyecto Final</h2>
+    
+    <table class="compact reveal" style="font-size:0.8rem;">
+      <tr><th>Criterio</th><th>Logrado (3)</th><th>En proceso (2)</th><th>Inicial (1)</th></tr>
+      <tr><td>Análisis de red</td><td>Nodo crítico, impacto de falla, propuesta de contingencia cuantificada</td><td>Nodo crítico sin impacto cuantificado</td><td>Solo grafo sin análisis</td></tr>
+      <tr><td>Modelo de demanda</td><td>Tabla comparativa, RMSE test, pronóstico con IS</td><td>Un modelo sin comparación</td><td>Solo ajuste sin validación</td></tr>
+      <tr><td>Normas y SLA</td><td>L1/L2/L∞ calculadas, diagnóstico SLA, acción priorizada</td><td>Cálculo sin diagnóstico</td><td>Sin análisis de SLA</td></tr>
+      <tr><td>Estabilidad</td><td>Radio espectral, equilibrio \((I-A)^{-1}b\), IS correcto</td><td>Eigenvalores sin interpretación</td><td>Sin cálculo de equilibrio</td></tr>
+      <tr><td>Informe ejecutivo</td><td>3 acciones priorizadas con números, coherente con el análisis</td><td>Recomendación sin jerarquía</td><td>Sin números de respaldo</td></tr>
+    </table>
+  </div>
+
+  <!-- SLIDE 13: MARCO DE DECISIÓN -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-gavel"></i> Marco de Decisión Integrado</h2>
+    
+    <div class="center reveal" style="background:var(--green-light); padding:0.8rem; border-radius:8px; border-left:4px solid var(--green-proj);">
+      <span style="font-size:1.1rem; font-weight:600;">Recomendación para Logística Austral S.A.</span>
+    </div>
+    
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-check-circle"></i> Resultado esperado</span>
+        Al completar el proyecto, el equipo habrá:
+        <ul>
+          <li>Identificado el nodo crítico de la red</li>
+          <li>Elegido el modelo de pronóstico con menor RMSE<sub>test</sub></li>
+          <li>Diagnosticado el incumplimiento del SLA con L∞</li>
+          <li>Calculado el radio espectral e IS óptimo</li>
+        </ul>
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Para la Clase 32</span>
+        La Clase 32 es la Evaluación Parcial 2. Los problemas son similares a los del proyecto pero individuales. Revisar:
+        <ul>
+          <li>El script del proyecto</li>
+          <li>Los mini-casos 3 y 4</li>
+          <li>La guía de estudio (disponible en plataforma)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: INSTRUCCIONES FINALES -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-flag-checkered"></i> Instrucciones Finales</h2>
+    
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-file-code"></i> Entregable del Proyecto Final</span>
+      <ul>
+        <li class="reveal">Script <code>clase31_proyecto_GrupoN.m</code>: completamente ejecutable sin errores.</li>
+        <li class="reveal">Informe de decisión: documento de 1 página (puede ser el <code>%%</code> final del script).</li>
+        <li class="reveal">Enviar por la plataforma antes de las 23:59 del día de la clase.</li>
+      </ul>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Consejo para la Evaluación (Clase 32)</span>
+      La evaluación parcial 2 tiene 4 problemas correspondientes a los 4 bloques del proyecto.<br>
+      Cada problema es independiente: puede resolverse sin haber resuelto los anteriores.<br>
+      Llevar la guía de estudio y el formulario de normas e inventario de seguridad.
+    </div>
+    
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-clock"></i> Estructura de la Clase 32</span>
+      <strong>120 minutos</strong>, 4 problemas, <strong>calculadora y MATLAB permitidos</strong>.<br>
+      Consultar la plataforma para la guía completa de estudio.
+    </div>
+  </div>
+
+  <!-- SLIDE 15: REFERENCIAS -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-quote-left"></i> Referencias del Proyecto</h2>
+    <ul>
+      <li class="reveal"><strong>Lay, D.C. et al.</strong> (2016). <em>Álgebra Lineal y sus Aplicaciones</em> (5a ed.). Pearson. Caps. 1-6.</li>
+      <li class="reveal"><strong>Montgomery, D.C. et al.</strong> (2012). <em>Introduction to Linear Regression Analysis</em> (5th ed.). Wiley. Caps. 2-3, 9.</li>
+      <li class="reveal"><strong>Hyndman, R.J. & Athanasopoulos, G.</strong> (2021). <em>Forecasting: Principles and Practice</em> (3rd ed.). <a href="https://otexts.com/fpp3/" style="color:var(--green-proj);">https://otexts.com/fpp3/</a></li>
+      <li class="reveal"><strong>Silver, E.A. et al.</strong> (2017). <em>Inventory and Production Management in Supply Chains</em> (4th ed.). CRC Press. Cap. 7.</li>
+      <li class="reveal"><strong>Newman, M.E.J.</strong> (2010). <em>Networks: An Introduction</em>. Oxford. Cap. 6.</li>
+      <li class="reveal"><strong>Material propio</strong>: Scripts de las clases 18-30, mini-casos 3 y 4.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--green-proj); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 31 | Proyecto Final Integrador</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: CIERRE -->
+  <div class="slide" data-slide="16">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--green-proj); margin-bottom:1rem;"></i>
+      <h1>¡Éxito en el Proyecto!</h1>
+      <p class="sub mt">Clase 32: Evaluación Parcial 2</p>
+      <p class="sub" style="color:var(--green); font-weight:600;">Proyecto Final + Evaluación: Cierre del Curso</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

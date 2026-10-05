@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 17: Combinación Lineal e Independencia Lineal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+        :root {
+            --navy: #005293;
+            --navy-dark: #003a6b;
+            --green: #008250;
+            --green-light: #e6f5ed;
+            --orange: #dc6b1f;
+            --orange-light: #fff3e0;
+            --red: #b41414;
+            --bg-start: #f8fafc;
+            --bg-end: #e2e8f0;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --font-text: 'Inter', sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
+            --radius: 12px;
+        }
+
+
+
+
+        /* SLIDE STYLES */
+
+
+
+        .slide h2 {
+            color: var(--navy);
+            font-size: 1.8rem;
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--navy);
+            display: inline-block;
+        }
+
+        .slide p, .slide li, .slide td, .slide th {
+            font-size: 1.05rem;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .col-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 850px) {
+            .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+            .slide h2 { font-size: 1.4rem; }
+        }
+
+        /* BLOCKS */
+        .block, .example-block, .alert-block {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 5px solid transparent;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+        .block strong { color: var(--navy); }
+        
+        .example-block { background: var(--green-light); border-left-color: var(--green); }
+        .example-block strong { color: var(--green); }
+
+        .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+        .alert-block strong { color: var(--orange); }
+
+        .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+        /* CODE */
+        pre {
+            background: #0f172a; color: #e2e8f0;
+            padding: 1rem; border-radius: 8px;
+            overflow-x: auto;
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        .mk { color: #7dd3fc; font-weight: bold; } /* Keyword */
+        .mc { color: #86efac; font-style: italic; } /* Comment */
+        .ms { color: #fca5a5; } /* String */
+        .mv { color: #e2e8f0; } /* Variable */
+        .mn { color: #d8b4fe; } /* Number */
+
+        /* NAVIGATION */
+
+
+
+
+
+
+
+        /* REVEAL SYSTEM (Overlays) */
+        .reveal {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* PORTADA */
+        .portada { text-align: center; padding-top: 10%; }
+        .portada h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 0.5rem; }
+        .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+        .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+        /* DIAGRAMS (TikZ Replacements) */
+        .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+        .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+        .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+        .tm-active { background: var(--navy); border-color: var(--navy); color: white; font-weight: bold; }
+        .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+        .tm-arrow { color: #94a3b8; }
+
+        .vector-graph { width: 200px; height: 160px; margin: 0 auto; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; position: relative; }
+        .v-axis-label { position: absolute; font-size: 0.7rem; color: #64748b; }
+        .v-line { position: absolute; height: 2px; background: #334155; transform-origin: bottom left; }
+        .v-line::after { content: ''; position: absolute; right: -5px; top: -4px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 5px solid #334155; }
+        .v-navy { background: var(--navy); } .v-navy::after { border-left-color: var(--navy); }
+        .v-green { background: var(--green); } .v-green::after { border-left-color: var(--green); }
+        .v-red { background: var(--red); } .v-red::after { border-left-color: var(--red); }
+        .v-label { position: absolute; font-size: 0.75rem; font-weight: 600; }
+        .v-note { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; color: #64748b; text-align: center; width: 100%; }
+    
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+    <!-- SLIDE 0: PORTADA -->
+    <div class="slide active" data-slide="0">
+        <div class="portada">
+            <i class="fas fa-vector-square fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+            <h1>Combinación Lineal<br>Dependencia e Independencia Lineal</h1>
+            <p class="sub">Matemáticas 2 — Módulo 4, Clase 17</p>
+            <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+                <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+                <span>Ingeniería en Logística</span>
+            </div>
+            <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 17</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 1: ÍNDICE -->
+    <div class="slide" data-slide="1">
+        <h2><i class="fas fa-list-ul"></i> Contenido de la sesión</h2>
+        <ul>
+            <li class="reveal">Apertura del Módulo 4</li>
+            <li class="reveal">Objetivos de aprendizaje</li>
+            <li class="reveal">Combinación lineal (Definición y ejemplos)</li>
+            <li class="reveal">El conjunto generado</li>
+            <li class="reveal">Dependencia e independencia lineal</li>
+            <li class="reveal">Criterio del rango y casos especiales</li>
+            <li class="reveal">Interpretación logística de la dependencia</li>
+            <li class="reveal">Verificación sistemática</li>
+            <li class="reveal">Práctica MATLAB</li>
+            <li class="reveal">Ejercicios prácticos</li>
+            <li class="reveal">Resumen y tarea</li>
+        </ul>
+    </div>
+
+    <!-- SLIDE 2: APERTURA MOD 4 -->
+    <div class="slide" data-slide="2">
+        <h2><i class="fas fa-door-open"></i> Apertura del Módulo 4 — Espacios Vectoriales</h2>
+        <div class="timeline reveal">
+            <div class="tm-box tm-done">M1<br>Matrices</div><i class="fas fa-arrow-right tm-arrow"></i>
+            <div class="tm-box tm-done">M2<br>Sistemas</div><i class="fas fa-arrow-right tm-arrow"></i>
+            <div class="tm-box tm-done">M3<br>Vectores</div><i class="fas fa-arrow-right tm-arrow"></i>
+            <div class="tm-box tm-active">M4<br>Espacios</div><i class="fas fa-arrow-right tm-arrow"></i>
+            <div class="tm-box tm-prox">M5<br>Regresión</div><i class="fas fa-arrow-right tm-arrow"></i>
+            <div class="tm-box tm-prox">M6-7<br>Normas/Redes</div>
+        </div>
+        <div class="block mt reveal">
+            <span class="b-title">Módulo 4: Clases 17–20</span>
+            <ul>
+                <li class="reveal"><strong>C17 (hoy):</strong> Combinación lineal. Dependencia e independencia lineal.</li>
+                <li class="reveal"><strong>C18:</strong> Espacios vectoriales. Subespacios.</li>
+                <li class="reveal"><strong>C19:</strong> Base y dimensión. Reducción de variables logísticas.</li>
+                <li class="reveal"><strong>C20:</strong> Mini-caso 3: Reducción de Variables Logísticas.</li>
+            </ul>
+        </div>
+        <div class="alert-block mt reveal">
+            <span class="b-title"><i class="fas fa-link"></i> Conexión con lo visto</span>
+            La independencia lineal ya apareció en el curso: rutas redundantes (\(\operatorname{rang}(A)&lt;n\), columnas dependientes), lazos cerrados. Hoy lo formalizamos.
+        </div>
+    </div>
+
+    <!-- SLIDE 3: OBJETIVOS -->
+    <div class="slide" data-slide="3">
+        <h2><i class="fas fa-bullseye"></i> Objetivos de aprendizaje</h2>
+        <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+        <ul>
+            <li class="reveal"><strong>Definir</strong> combinación lineal de vectores y calcularla.</li>
+            <li class="reveal"><strong>Determinar</strong> si un vector es combinación lineal de un conjunto dado resolviendo un sistema.</li>
+            <li class="reveal"><strong>Definir</strong> y <strong>verificar</strong> la dependencia e independencia lineal.</li>
+            <li class="reveal"><strong>Relacionar</strong> la independencia lineal con el rango de la matriz.</li>
+            <li class="reveal"><strong>Interpretar</strong> la dependencia lineal en logística: rutas redundantes, perfiles solapados.</li>
+            <li class="reveal"><strong>Decidir</strong> si un conjunto de rutas es redundante usando MATLAB.</li>
+        </ul>
+    </div>
+
+    <!-- SLIDE 4: COMBINACIÓN LINEAL -->
+    <div class="slide" data-slide="4">
+        <h2><i class="fas fa-calculator"></i> Combinación lineal — definición</h2>
+        <div class="block reveal">
+            <span class="b-title">Definición</span>
+            Un vector \(\mathbf{y}\in\mathbb{R}^m\) es <strong>combinación lineal</strong> de \(\mathbf{v}_1,\ldots,\mathbf{v}_k\) si existen escalares \(c_i\) tales que:
+            \[ \mathbf{y} = c_1\mathbf{v}_1 + \cdots + c_k\mathbf{v}_k \]
+        </div>
+        <div class="col-layout">
+            <div class="example-block mt reveal">
+                <span class="b-title">Ejemplo logístico</span>
+                Perfil de demanda de tres fábricas:
+                \[ \mathbf{f}_1=\begin{pmatrix}300\\200\\100\end{pmatrix},\; \mathbf{f}_2=\begin{pmatrix}150\\300\\50\end{pmatrix},\; \mathbf{f}_3=\begin{pmatrix}750\\700\\250\end{pmatrix} \]
+                <span class="reveal mt">¿Es \(\mathbf{f}_3\) combinación lineal de \(\mathbf{f}_1\) y \(\mathbf{f}_2\)?</span>
+                <span class="reveal mt"><strong>Solución:</strong> \(c_1=2\), \(c_2=1\). <span class="ok">✓</span></span>
+            </div>
+            <div>
+                <div class="alert-block mt reveal">
+                    <span class="b-title">Interpretación</span>
+                    \(\mathbf{f}_3 = 2\mathbf{f}_1 + \mathbf{f}_2\). F3 no agrega información nueva; su plan se deriva de F1 y F2.
+                </div>
+                <div class="block mt reveal">
+                    <span class="b-title">Conexión con \(A\mathbf{x}=\mathbf{b}\)</span>
+                    "\(\mathbf{y}\) es c.l. de las columnas de \(A\)" \(\Leftrightarrow\) el sistema \(A\mathbf{c}=\mathbf{y}\) es compatible.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 5: CONJUNTO GENERADO -->
+    <div class="slide" data-slide="5">
+        <h2><i class="fas fa-expand"></i> El conjunto generado</h2>
+        <div class="block reveal">
+            <span class="b-title">Definición</span>
+            El <strong>conjunto generado</strong> por \(\{\mathbf{v}_1,\ldots,\mathbf{v}_k\}\) es el conjunto de <strong>todas</strong> las combinaciones lineales posibles:
+            \[ \operatorname{Gen}\{\mathbf{v}_1,\ldots,\mathbf{v}_k\} = \{c_1\mathbf{v}_1+\cdots+c_k\mathbf{v}_k\} \]
+        </div>
+        <div class="col-layout">
+            <div class="example-block mt reveal">
+                <span class="b-title">Ejemplos geométricos</span>
+                <ul>
+                    <li class="reveal">\(\operatorname{Gen}\{\mathbf{v}\}\): la recta que pasa por el origen.</li>
+                    <li class="reveal">\(\operatorname{Gen}\{\mathbf{v}_1,\mathbf{v}_2\}\) (l.i.): el plano que pasa por el origen.</li>
+                    <li class="reveal">\(\operatorname{Gen}\{\mathbf{v}_1,\mathbf{v}_2\}\) (dep.): misma recta (si son paralelos).</li>
+                </ul>
+            </div>
+            <div class="block mt reveal">
+                <span class="b-title">En logística</span>
+                Si los perfiles \(\mathbf{f}_1,\mathbf{f}_2\) generan un plano, cualquier demanda en ese plano se satisface con combinaciones de F1 y F2.
+                <p class="mt"><strong>Importante:</strong> Si la demanda de un nuevo cliente cae <strong>fuera</strong> del plano, se necesitan fuentes adicionales.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 6: DEPENDENCIA/INDEPENDENCIA -->
+    <div class="slide" data-slide="6">
+        <h2><i class="fas fa-code-branch"></i> Dependencia lineal</h2>
+        <div class="block reveal">
+            <span class="b-title">Definición</span>
+            El conjunto \(\{\mathbf{v}_1,\ldots,\mathbf{v}_k\}\) es <strong>linealmente dependiente (l.d.)</strong> si existen \(c_i\) <strong>no todos cero</strong> tales que:
+            \[ c_1\mathbf{v}_1 + \cdots + c_k\mathbf{v}_k = \mathbf{0} \]
+        </div>
+        <div class="alert-block mt reveal">
+            <span class="b-title">Equivalencia</span>
+            Es l.d. \(\Leftrightarrow\) al menos un vector es combinación lineal de los demás.
+        </div>
+        <div class="example-block mt reveal">
+            <span class="b-title">Independiente lineal (l.i.)</span>
+            La <strong>única</strong> solución de \(c_1\mathbf{v}_1 + \cdots + c_k\mathbf{v}_k = \mathbf{0}\) es la <strong>trivial</strong>: \(c_1=\dots=c_k=0\).
+        </div>
+        <div class="block mt reveal">
+            <span class="b-title">Verificación práctica</span>
+            Formar \(A=[\mathbf{v}_1\;\cdots\;\mathbf{v}_k]\) y resolver \(A\mathbf{c}=\mathbf{0}\):
+            <ul>
+                <li class="reveal">Solo solución trivial \(\Rightarrow\) <strong>l.i.</strong> (\(\operatorname{rang}(A)=k\))</li>
+                <li class="reveal">Soluciones no triviales \(\Rightarrow\) <strong>l.d.</strong> (\(\operatorname{rang}(A)&lt;k\))</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- SLIDE 7: CRITERIO DEL RANGO -->
+    <div class="slide" data-slide="7">
+        <h2><i class="fas fa-ruler-combined"></i> Criterio del rango y casos especiales</h2>
+        <div class="block reveal">
+            <span class="b-title">Teorema</span>
+            Columnas de \(A\) son <strong>linealmente independientes</strong> \(\iff\) \(\operatorname{rang}(A) = k\) (rango máximo).
+        </div>
+        <div class="col-layout">
+            <div>
+                <div class="block mt reveal"><span class="b-title">Casos especiales</span>
+                    <ol>
+                        <li class="reveal">Si \(k>m\): <strong>siempre</strong> l.d.</li>
+                        <li class="reveal">Si \(\mathbf{v}_i=\mathbf{0}\): <strong>siempre</strong> l.d.</li>
+                        <li class="reveal">Si \(\mathbf{v}_i=c\mathbf{v}_j\): <strong>siempre</strong> l.d.</li>
+                        <li class="reveal">Dos vectores: l.d. \(\iff\) uno es múltiplo del otro.</li>
+                    </ol>
+                </div>
+            </div>
+            <div>
+                <div class="example-block mt reveal center">
+                    <span class="b-title">3 vectores en \(\mathbb{R}^2\)</span>
+                    Siempre l.d. (\(k=3>m=2\)).
+                    <img class="fig" src="imagenes/tres_vectores_R2.png" alt="Tres vectores en R2" style="max-width:340px"><p class="fig-cap">Con 3 vectores en \(\mathbb{R}^2\), uno siempre es combinación de los otros dos.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 8: INTERPRETACIÓN LOGÍSTICA -->
+    <div class="slide" data-slide="8">
+        <h2><i class="fas fa-truck-loading"></i> Dependencia lineal en logística</h2>
+        <div class="block reveal">
+            <span class="b-title">Tres interpretaciones clave</span>
+            <ol>
+                <li class="reveal"><strong>Columnas de \(A\) (rutas):</strong> Columnas l.d. \(\Rightarrow\) rutas redundantes. Agregar esa ruta no amplía las demandas alcanzables.</li>
+                <li class="reveal"><strong>Vectores de demanda (fábricas):</strong> Vectores l.d. \(\Rightarrow\) patrones de demanda solapados. No requiere capacidad logística adicional.</li>
+                <li class="reveal"><strong>Vectores del espacio nulo (lazos):</strong> Siempre son l.i. entre sí (base de subespacio).</li>
+            </ol>
+        </div>
+        <div class="example-block mt reveal">
+            <span class="b-title">Ejemplo: rutas redundantes</span>
+            Red donde la ruta P3 es combinación de P1 y P2: \(\mathbf{a}_3 = 0.5\mathbf{a}_1 + 0.5\mathbf{a}_2\).
+            <p class="mt">Agregar P3 no cambia el \(\operatorname{Gen}\{\mathbf{a}_1,\mathbf{a}_2\}\). Se pueden satisfacer las mismas demandas con o sin P3.</p>
+            <p class="mt italic"><strong>Nota:</strong> P3 puede ser útil si tiene menor costo o mayor capacidad que P1 y P2.</p>
+        </div>
+    </div>
+
+    <!-- SLIDE 9: VERIFICACIÓN SISTEMÁTICA -->
+    <div class="slide" data-slide="9">
+        <h2><i class="fas fa-clipboard-check"></i> Dependencia lineal: verificación</h2>
+        <div class="block reveal">
+            <span class="b-title">Procedimiento</span>
+            Dado \(\{\mathbf{v}_1,\ldots,\mathbf{v}_k\}\), formar \(A=[\mathbf{v}_1|\cdots|\mathbf{v}_k]\):
+            <ol>
+                <li class="reveal">Calcular \(\operatorname{rang}(A)\).</li>
+                <li class="reveal">Si \(\operatorname{rang}(A)=k\): <strong>l.i.</strong></li>
+                <li class="reveal">Si \(\operatorname{rang}(A)&lt;k\): <strong>l.d.</strong> Resolver \(A\mathbf{c}=\mathbf{0}\) para hallar la relación.</li>
+            </ol>
+        </div>
+        <div class="example-block mt reveal">
+            <span class="b-title">Ejemplo completo</span>
+            \[ \mathbf{v}_1=\begin{pmatrix}1\\2\\1\end{pmatrix}, \mathbf{v}_2=\begin{pmatrix}2\\3\\1\end{pmatrix}, \mathbf{v}_3=\begin{pmatrix}4\\7\\3\end{pmatrix} \]
+            <span class="reveal mt">RREF de \(A\): \(\begin{pmatrix}1&0&2\\0&1&1\\0&0&0\end{pmatrix} \implies \operatorname{rang}(A)=2 &lt; 3\). <strong>l.d.</strong></span>
+            <span class="reveal mt"><strong>Relación:</strong> \(\mathbf{v}_3=2\mathbf{v}_1+\mathbf{v}_2\).</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 10: MATLAB -->
+    <div class="slide" data-slide="10">
+        <h2><i class="fas fa-laptop-code"></i> MATLAB — independencia lineal</h2>
+        <div class="col-layout">
+            <div>
+                <pre><span class="mc">% Vectores de demanda de 3 fabricas</span>
+f1 = <span class="mf">[</span><span class="mn">300</span>; <span class="mn">200</span>; <span class="mn">100</span><span class="mf">]</span>;
+f2 = <span class="mf">[</span><span class="mn">150</span>; <span class="mn">300</span>;  <span class="mn">50</span><span class="mf">]</span>;
+f3 = <span class="mf">[</span><span class="mn">750</span>; <span class="mn">700</span>; <span class="mn">250</span><span class="mf">]</span>;  <span class="mc">% 2*f1 + 1*f2</span>
+
+<span class="mc">% Formar la matriz y calcular el rango</span>
+A = <span class="mf">[</span>f1, f2, f3<span class="mf">]</span>;
+r = <span class="mk">rank</span>(A); k = <span class="mf">size</span>(A, <span class="mn">2</span>);
+<span class="mk">if</span> r == k
+    <span class="mk">disp</span>(<span class="ms">'INDEPENDIENTES'</span>);
+<span class="mk">else</span>
+    <span class="mk">disp</span>(<span class="ms">'DEPENDIENTES'</span>);
+<span class="mk">end</span>
+
+<span class="mc">% Encontrar la relacion de dependencia</span>
+N = <span class="mk">null</span>(A, <span class="ms">'r'</span>);
+<span class="mk">disp</span>(N);</pre>
+            </div>
+            <div>
+                <div class="example-block mt reveal">
+                    <span class="b-title">Salida esperada</span>
+                    <code>rang(A) = 2, k = 3</code><br>
+                    <code>DEPENDIENTES</code><br>
+                    <code>Relación (Nul(A)):</code><br>
+                    <code>-2.0000</code><br>
+                    <code>-1.0000</code><br>
+                    <code> 1.0000</code>
+                </div>
+                <div class="block mt reveal">
+                    <span class="b-title">Interpretación</span>
+                    La relación \(-2\mathbf{f}_1 - \mathbf{f}_2 + \mathbf{f}_3 = \mathbf{0}\) implica \(\mathbf{f}_3 = 2\mathbf{f}_1 + \mathbf{f}_2\).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 11: EJERCICIO 1 -->
+    <div class="slide" data-slide="11">
+        <h2><i class="fas fa-pencil-alt"></i> Ejercicio 1 — Verificar dependencia</h2>
+        <p class="reveal"><strong>Enunciado:</strong> Determinar si son l.i. o l.d.
+        \[ \mathbf{u}_1=\begin{pmatrix}1\\0\\2\end{pmatrix},\; \mathbf{u}_2=\begin{pmatrix}2\\1\\3\end{pmatrix},\; \mathbf{u}_3=\begin{pmatrix}0\\-1\\1\end{pmatrix} \]</p>
+        <div class="example-block mt reveal">
+            <span class="b-title">Resolución</span>
+            \(A=[\mathbf{u}_1|\mathbf{u}_2|\mathbf{u}_3]\). RREF: \(\begin{pmatrix}1&0&2\\0&1&-1\\0&0&0\end{pmatrix}\).
+            <span class="reveal mt">\(\operatorname{rang}(A)=2 &lt; 3 \implies\) <strong>l.d.</strong></span>
+            <span class="reveal mt">Del Nul(A) (\(c_3=1\Rightarrow c_1=-2,\ c_2=1\)): \(-2\mathbf{u}_1+\mathbf{u}_2+\mathbf{u}_3=\mathbf{0}\).</span>
+            <span class="reveal mt"><strong>Relación:</strong> \(\mathbf{u}_3=2\mathbf{u}_1-\mathbf{u}_2\). Verificación: \(2(1,0,2)-(2,1,3)=(0,-1,1)\) <span class="ok">✓</span></span>
+        </div>
+    </div>
+
+    <!-- SLIDE 12: EJERCICIO 2 -->
+    <div class="slide" data-slide="12">
+        <h2><i class="fas fa-pencil-alt"></i> Ejercicio 2 — Rutas redundantes</h2>
+        <p class="reveal"><strong>Enunciado:</strong> Perfiles de 4 plantas:
+        \(\mathbf{a}_1=(0.5,0.3,0.2)^T, \mathbf{a}_2=(0.2,0.5,0.3)^T, \mathbf{a}_3=(0.1,0.1,0.8)^T, \mathbf{a}_4=(0.7,0.8,0.5)^T\).</p>
+        <div class="example-block mt reveal">
+            <span class="b-title">Resolución con MATLAB</span>
+            <code>A = [a1,a2,a3,a4]; rank(A) = 3 < 4</code>.
+            <span class="reveal mt">Hay 1 ruta redundante. P4 es combinación de P1, P2, P3.</span>
+            <span class="reveal mt">Resolviendo \([\mathbf{a}_1|\mathbf{a}_2|\mathbf{a}_3]\mathbf{c}=\mathbf{a}_4\): \(c_1=1,\ c_2=1,\ c_3=0\), es decir \(\mathbf{a}_4 = \mathbf{a}_1 + \mathbf{a}_2\). Verificación: \((0.5+0.2,\ 0.3+0.5,\ 0.2+0.3)=(0.7,0.8,0.5)\) ✓</span>
+            <span class="reveal mt"><strong>Decisión:</strong> Si P4 es más cara que esa combinación, se puede eliminar.</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 13: EJERCICIO 3 -->
+    <div class="slide" data-slide="13">
+        <h2><i class="fas fa-pencil-alt"></i> Ejercicio 3 — Demanda alcanzable</h2>
+        <p class="reveal"><strong>Enunciado:</strong> Red con \(\mathbf{a}_1=(0.6,0.4)^T, \mathbf{a}_2=(0.3,0.7)^T\). Pedidos: \(\mathbf{d}_1=(480,320)^T\), \(\mathbf{d}_2=(150,350)^T\), \(\mathbf{d}_3=(300,400)^T\). ¿Son alcanzables?</p>
+        <div class="example-block mt reveal">
+            <span class="b-title">Resolución</span>
+            Calculamos \(\det(A)\) o Rango.
+            <span class="reveal mt">\(\det(A)=0.6(0.7)-0.4(0.3)=0.30 \neq 0\).</span>
+            <span class="reveal mt"><strong>Conclusión:</strong> \(A\) es invertible. Todo vector en \(\mathbb{R}^2\) es alcanzable.</span>
+            <span class="reveal mt">Los 3 pedidos son alcanzables. (En \(\mathbb{R}^2\), 2 vectores l.i. generan todo el plano).</span>
+            <span class="reveal mt"><strong>Planes</strong> \(\mathbf{c}=A^{-1}\mathbf{d}\): \(\mathbf{c}_1=(800,0)^T\), \(\mathbf{c}_2=(0,500)^T\), \(\mathbf{c}_3=(300,400)^T\). Todos \(\geq 0\): factibles.</span>
+        </div>
+    </div>
+
+    <!-- SLIDE 14: RESUMEN -->
+    <div class="slide" data-slide="14">
+        <h2><i class="fas fa-flag-checkered"></i> Resumen — Combinación lineal e independencia</h2>
+        <div class="col-layout">
+            <div class="block reveal">
+                <span class="b-title">Lo aprendido hoy</span>
+                <ul>
+                    <li class="reveal"><strong>Comb. lineal:</strong> \(\mathbf{y}=\sum c_i\mathbf{v}_i\). Verificar resolviendo sistema.</li>
+                    <li class="reveal"><strong>Conjunto generado:</strong> todas las comb. lineales posibles.</li>
+                    <li class="reveal"><strong>L.D.:</strong> existe \(\mathbf{c}\neq\mathbf{0}\) con \(A\mathbf{c}=\mathbf{0}\). \(\iff \operatorname{rang}(A)&lt;k\).</li>
+                    <li class="reveal"><strong>L.I.:</strong> solo \(\mathbf{c}=\mathbf{0}\) satisface. \(\iff \operatorname{rang}(A)=k\).</li>
+                    <li class="reveal"><strong>Aplicación:</strong> columnas l.d. en \(A\) = rutas redundantes.</li>
+                </ul>
+            </div>
+            <div>
+                <div class="alert-block mt reveal">
+                    <span class="b-title">Conexión Clase 18</span>
+                    Un subespacio es el conjunto generado por un conjunto l.i. La dimensión es el número de vectores l.i.
+                </div>
+                <div class="block mt reveal center">
+                    <span class="b-title">Fórmulas clave</span>
+                    <span class="reveal mt">L.I. \(\iff \operatorname{rang}([\mathbf{v}_1|\cdots|\mathbf{v}_k])=k\)</span><br>
+                    <span class="reveal mt">L.D. \(\iff \operatorname{rang}([\mathbf{v}_1|\cdots|\mathbf{v}_k])&lt;k\)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE 15: TAREA -->
+    <div class="slide" data-slide="15">
+        <h2><i class="fas fa-book"></i> Tarea para la Clase 18</h2>
+        <div class="block reveal">
+            <span class="b-title">Actividades preparatorias</span>
+            <ul>
+                <li class="reveal"><strong>Lectura:</strong> Lay, Sec. 2.8: Subspaces of \(\mathbb{R}^n\).</li>
+                <li class="reveal"><strong>Ejercicios:</strong> B1–B5 e I1–I3 de la guía Clase 17.</li>
+                <li class="reveal"><strong>MATLAB:</strong> Ejecutar <code>clase17_datos.m</code>.</li>
+            </ul>
+        </div>
+        <div class="alert-block mt reveal">
+            <span class="b-title">Para reflexionar</span>
+            El espacio nulo es el conjunto de lazos cerrados. Sabemos que la base del espacio nulo es l.i. ¿Qué propiedad tiene este conjunto respecto a la capacidad de generar todos los lazos posibles?
+        </div>
+    </div>
+
+    <!-- SLIDE 16: CIERRE -->
+    <div class="slide" data-slide="16">
+        <div class="portada">
+            <i class="fas fa-graduation-cap fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+            <h1>¡Hasta la próxima clase!</h1>
+            <p class="sub mt">Clase 18: Espacios Vectoriales y Subespacios</p>
+            <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

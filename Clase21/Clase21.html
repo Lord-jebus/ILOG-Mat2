@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matemáticas 2 — Clase 21: Introducción a Regresión Lineal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']], packages: {'[+]': ['color']} },
+      svg: { fontCache: 'global' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+  <style>
+    /* ===== estilos propios de la clase ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003a6b;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff3e0;
+      --red: #b41414;
+      --purple: #640096;
+      --purple-light: #f3e6f7;
+      --bg-start: #f8fafc;
+      --bg-end: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --font-text: 'Inter', sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+      --radius: 12px;
+    }
+
+
+
+
+
+
+    .slide h2 {
+      color: var(--navy);
+      font-size: 1.8rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--navy);
+      display: inline-block;
+    }
+
+    .slide p, .slide li, .slide td, .slide th {
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .col-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 850px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+
+      .slide h2 { font-size: 1.4rem; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 5px solid transparent;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .block { background: rgba(0,82,147,0.05); border-left-color: var(--navy); }
+    .block strong { color: var(--navy); }
+    
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block strong { color: var(--green); }
+
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block strong { color: var(--orange); }
+
+    .b-title { font-weight: 700; margin-bottom: 0.3rem; display: block; }
+
+    pre {
+      background: #0f172a; color: #e2e8f0;
+      padding: 1rem; border-radius: 8px;
+      overflow-x: auto;
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+    .mk { color: #7dd3fc; font-weight: bold; }
+    .mc { color: #86efac; font-style: italic; }
+    .ms { color: #fca5a5; }
+    .mv { color: #e2e8f0; }
+    .mn { color: #d8b4fe; }
+
+
+
+
+
+
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.4s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .portada { text-align: center; padding-top: 10%; }
+    .portada h1 { font-size: 2.5rem; color: var(--navy); margin-bottom: 0.5rem; }
+    .portada .sub { font-size: 1.4rem; color: var(--text-muted); }
+    .portada .info { margin-top: 2rem; font-size: 1rem; }
+
+    .timeline { display: flex; gap: 10px; align-items: center; justify-content: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .tm-box { padding: 0.5rem 0.8rem; border-radius: 6px; border: 2px solid #cbd5e1; font-size: 0.8rem; text-align: center; min-width: 80px; }
+    .tm-done { background: var(--green-light); border-color: var(--green); color: var(--green); }
+    .tm-active { background: var(--purple); border-color: var(--purple); color: white; font-weight: bold; }
+    .tm-prox { background: #f1f5f9; border-color: #cbd5e1; color: #64748b; }
+    .tm-arrow { color: #94a3b8; }
+
+    /* Scatter plot CSS */
+    .scatter-plot { width: 280px; height: 200px; margin: 0.5rem auto; position: relative; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; }
+    .sp-axis { position: absolute; font-size: 0.7rem; color: #64748b; }
+    .sp-x { bottom: -15px; right: 5px; } .sp-y { top: 5px; left: -25px; }
+    .sp-point { position: absolute; width: 6px; height: 6px; background: var(--navy); border-radius: 50%; transform: translate(-50%, -50%); }
+    .sp-line { position: absolute; height: 2px; background: var(--red); transform-origin: left center; }
+    .sp-resid { position: absolute; width: 2px; background: var(--green); border-style: dashed; }
+    .sp-label { position: absolute; font-size: 0.7rem; font-weight: 600; }
+
+    /* Residual plots */
+    .resid-plot { width: 240px; height: 140px; margin: 0.3rem auto; position: relative; border-left: 2px solid #94a3b8; border-bottom: 2px solid #94a3b8; }
+    .rp-zero { position: absolute; bottom: 50%; left: 0; right: 0; height: 1px; background: #94a3b8; border-style: dashed; }
+    .rp-point { position: absolute; width: 5px; height: 5px; background: var(--green); border-radius: 50%; transform: translate(-50%, -50%); }
+    .rp-point.bad { background: var(--red); }
+    .rp-label { position: absolute; font-size: 0.65rem; color: #64748b; }
+
+    /* Projection diagram */
+    .proj-diag { width: 260px; height: 180px; margin: 0.5rem auto; position: relative; }
+    .pd-plane { position: absolute; top: 80px; left: 40px; width: 180px; height: 60px; background: rgba(0,82,147,0.1); border: 2px solid var(--navy); border-radius: 4px; transform: skewX(-15deg); }
+    .pd-y { position: absolute; top: 20px; left: 120px; width: 3px; height: 100px; background: var(--red); }
+    .pd-y::after { content: ''; position: absolute; top: -6px; left: -3px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 6px solid var(--red); }
+    .pd-yhat { position: absolute; top: 110px; left: 40px; width: 100px; height: 3px; background: var(--green); }
+    .pd-yhat::after { content: ''; position: absolute; right: -6px; top: -3px; border-top: 6px solid transparent; border-bottom: 6px solid transparent; border-left: 6px solid var(--green); }
+    .pd-resid { position: absolute; top: 20px; left: 140px; width: 2px; height: 90px; background: #94a3b8; border-style: dashed; }
+    .pd-label { position: absolute; font-size: 0.7rem; font-weight: 600; }
+
+    table.compact { border-collapse: collapse; width: 100%; margin: 0.5rem 0; font-size: 0.9rem; }
+    table.compact th, table.compact td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #cbd5e1; text-align: left; }
+    table.compact th { background: #f8fafc; font-weight: 600; }
+
+    .decision-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0; }
+    .dc-card { padding: 0.8rem; border-radius: 8px; text-align: center; border: 2px solid; font-size: 0.85rem; }
+    .dc-card.a { border-color: var(--navy); background: rgba(0,82,147,0.05); }
+    .dc-card.b { border-color: var(--orange); background: var(--orange-light); }
+    .dc-card.c { border-color: #94a3b8; background: #f1f5f9; }
+
+    .formula-card { background: #f8fafc; padding: 0.8rem; border-radius: 8px; border-left: 4px solid var(--navy); margin: 0.5rem 0; }
+  
+    /* ===== estilos base (Clases 1-15) ===== */
+
+    :root {
+      --navy: #005293;
+      --navy-dark: #003d6e;
+      --green: #008250;
+      --green-light: #e6f5ed;
+      --orange: #dc6b1f;
+      --orange-light: #fff4e8;
+      --purple: #660099;
+      --red: #b41414;
+      --bg-grad-1: #f8fafc;
+      --bg-grad-2: #e2e8f0;
+      --glass: rgba(255,255,255,0.94);
+      --shadow: 0 12px 40px rgba(0,20,50,0.12);
+      --radius: 18px;
+      --font-text: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-code: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: var(--font-text);
+      background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 100%);
+      color: #1e293b;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 16px;
+    }
+
+    #presentation-container {
+      width: 100%; height: 100vh;
+      display: flex; justify-content: center; align-items: center;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      width: 90%; max-width: 1200px; height: 84vh;
+      background: var(--glass);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem 2.5rem;
+      overflow-y: auto;
+      opacity: 0; transform: scale(0.96) translateY(10px);
+      transition: opacity 0.45s cubic-bezier(0.4,0,0.2,1), transform 0.45s cubic-bezier(0.4,0,0.2,1);
+      pointer-events: none; z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 10;
+    }
+
+    .slide h2 {
+      font-size: clamp(1.35rem, 2.2vw, 1.8rem); font-weight: 700; color: var(--navy);
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 3px solid var(--navy);
+      display: inline-block; letter-spacing: -0.02em;
+    }
+    .slide p, .slide li, .slide td, .slide th { font-size: clamp(0.9rem, 1.1vw, 1rem); line-height: 1.55; }
+    .slide ul, .slide ol { padding-left: 1.3rem; }
+    .slide li { margin-bottom: 0.35rem; }
+    .mt { margin-top: 0.8rem; } .mb { margin-bottom: 0.6rem; }
+    .bold { font-weight: 600; } .italic { font-style: italic; } .center { text-align: center; }
+
+    .col-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 0.8rem; }
+    @media (max-width: 900px) {
+      .col-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .slide { padding: 1.4rem; width: 96%; height: 90vh; }
+    }
+
+    .block, .example-block, .alert-block {
+      padding: 0.9rem 1.1rem; border-radius: 8px; margin-bottom: 0.9rem;
+      border-left: 5px solid transparent; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .block { background: rgba(0, 82, 147, 0.06); border-left-color: var(--navy); }
+    .block .b-title, .block strong { color: var(--navy); }
+    .example-block { background: var(--green-light); border-left-color: var(--green); }
+    .example-block .b-title, .example-block strong { color: var(--green); }
+    .alert-block { background: var(--orange-light); border-left-color: var(--orange); }
+    .alert-block .b-title, .alert-block strong { color: var(--orange); }
+    .b-title { font-weight: 600; display: block; margin-bottom: 0.35rem; }
+
+    .reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.35s ease, transform 0.35s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    pre {
+      background: #0f172a; color: #e2e8f0; padding: 0.9rem 1rem; border-radius: 10px;
+      overflow-x: auto; font-family: var(--font-code); font-size: clamp(0.7rem, 0.85vw, 0.85rem);
+      line-height: 1.5; box-shadow: inset 0 0 0 1px #334155; margin: 0.5rem 0; white-space: pre;
+    }
+    .mk { color: #7dd3fc; font-weight: 600; } .mc { color: #6ee7b7; font-style: italic; }
+    .ms { color: #fca5a5; } .mf { color: #fbbf24; } .mn { color: #c084fc; } 
+    code { font-family: var(--font-code); background: #f1f5f9; padding: 0.12em 0.3em; border-radius: 4px; font-size: 0.95em; }
+
+    #progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--navy), var(--green)); z-index: 200; transition: width 0.3s ease; }
+    #nav-controls {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px); padding: 8px 20px; border-radius: 30px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.13); z-index: 100;
+    }
+    .nav-btn {
+      background: var(--navy); color: white; border: none; width: 38px; height: 38px;
+      border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center;
+      font-size: 1rem; transition: background 0.2s, transform 0.12s;
+    }
+    .nav-btn:hover { background: var(--navy-dark); transform: scale(1.08); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+    #slide-counter { font-family: var(--font-code); font-weight: 600; color: #334155; font-size: 0.95rem; min-width: 60px; text-align: center; }
+
+    .portada { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80%; text-align: center; }
+    .portada h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); color: var(--navy); font-weight: 700; line-height: 1.15; }
+    .portada .sub { font-size: clamp(1.1rem, 2vw, 1.35rem); color: #475569; margin: 0.6rem 0 1.5rem; }
+    .portada .info { font-size: 1rem; color: #64748b; }
+
+    
+    /* ===== v2: overrides de layout (mismo formato que Clases 1-15) ===== */
+    body { display: block !important; }
+    #presentation-container { width: 100% !important; max-width: none !important; height: 100vh !important; margin: 0 !important; display: flex; justify-content: center; align-items: center; position: relative; }
+    .slide { width: 90%; max-width: 1200px; height: 84vh; padding-bottom: 4.5rem; }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
+<div id="presentation-container">
+
+  <!-- SLIDE 0: PORTADA -->
+  <div class="slide active" data-slide="0">
+    <div class="portada">
+      <i class="fas fa-chart-line fa-3x" style="color:var(--purple); margin-bottom:1rem;"></i>
+      <h1>Introducción a Regresión Lineal</h1>
+      <p class="sub">Relación entre Variables Logísticas</p>
+      <p class="sub" style="color:var(--purple); font-weight:600;">Módulo 5 — Regresión y Análisis de Datos</p>
+      <p class="sub">Matemáticas 2 — Clase 21</p>
+      <div class="block reveal" style="margin: 1rem auto; width: fit-content;">
+        <span class="b-title"><i class="fas fa-chalkboard-teacher"></i> Cátedra de Matemáticas 2</span>
+        <span>Ingeniería en Logística</span>
+      </div>
+      <p class="info reveal"><i class="fas fa-calendar-day"></i> Clase 21 — Inicio Módulo 5</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: ÍNDICE -->
+  <div class="slide" data-slide="1">
+    <h2><i class="fas fa-list-ul"></i> Contenidos de la Clase</h2>
+    <ul>
+      <li class="reveal">Inicio del Módulo 5: De Álgebra a Datos</li>
+      <li class="reveal">Objetivos de Aprendizaje</li>
+      <li class="reveal">El Problema: Datos con Ruido</li>
+      <li class="reveal">Mínimos Cuadrados: La Idea Central</li>
+      <li class="reveal">Interpretación de los Coeficientes</li>
+      <li class="reveal">Residuos: Medir el Ajuste</li>
+      <li class="reveal">Datos del Ejemplo: Rutas de Distribución</li>
+      <li class="reveal">Imagen: Dispersión y Recta de Regresión</li>
+      <li class="reveal">Residuos del Ejemplo</li>
+      <li class="reveal">MATLAB: Ajuste Lineal con polyfit</li>
+      <li class="reveal">MATLAB: Visualización Completa</li>
+      <li class="reveal">MATLAB: Predicción y Uso Práctico</li>
+      <li class="reveal">Coeficiente de Determinación \(R^2\)</li>
+      <li class="reveal">Limitaciones del Modelo Lineal Simple</li>
+      <li class="reveal">¿Usarías este Modelo para Planificar?</li>
+      <li class="reveal">Regresión como Proyección Ortogonal</li>
+      <li class="reveal">Resumen de Conceptos Clave</li>
+      <li class="reveal">Punto de Decisión</li>
+      <li class="reveal">Tarea para la Clase 22</li>
+      <li class="reveal">Referencias</li>
+    </ul>
+  </div>
+
+  <!-- SLIDE 2: INICIO MÓDULO 5 -->
+  <div class="slide" data-slide="2">
+    <h2><i class="fas fa-door-open"></i> Inicio del Módulo 5: De Álgebra a Datos</h2>
+    <div class="timeline reveal">
+      <div class="tm-box tm-done">Mod. 1-2<br>Matrices</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-done">Mod. 3<br>Vectores</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-done">Mod. 4<br>Espacios</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-active">Mod. 5<br>Regresión</div><i class="fas fa-arrow-right tm-arrow"></i>
+      <div class="tm-box tm-prox">Mod. 6-7<br>Avanzado</div>
+    </div>
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-check-circle"></i> Lo que ya sabemos</span>
+        <ul>
+          <li>Sistemas \(A\mathbf{x}=\mathbf{b}\): solución exacta</li>
+          <li>Espacio columna: qué demandas son posibles</li>
+          <li>Rango: variables independientes</li>
+        </ul>
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-question-circle"></i> La nueva pregunta</span>
+        En datos reales <strong>no hay solución exacta</strong>.<br>
+        Si \(\mathbf{b} \notin \text{Col}(A)\)... ¿qué hacemos?<br><br>
+        <strong>Regresión: buscar la mejor aproximación.</strong>
+      </div>
+    </div>
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> La conexión profunda</span>
+      La regresión lineal es geométricamente una <strong>proyección ortogonal</strong> sobre el espacio columna.<br>
+      Es álgebra lineal aplicada a datos.
+    </div>
+  </div>
+
+  <!-- SLIDE 3: OBJETIVOS -->
+  <div class="slide" data-slide="3">
+    <h2><i class="fas fa-bullseye"></i> Objetivos de Aprendizaje</h2>
+    <p class="reveal">Al finalizar esta clase el estudiante será capaz de:</p>
+    <ol class="mt">
+      <li class="reveal"><strong>Formular</strong> un problema de regresión lineal simple a partir de datos logísticos reales.</li>
+      <li class="reveal"><strong>Calcular</strong> la recta de regresión usando <code>polyfit(x,y,1)</code> en MATLAB.</li>
+      <li class="reveal"><strong>Interpretar</strong> la pendiente y el intercepto en contexto operativo.</li>
+      <li class="reveal"><strong>Visualizar</strong> los datos, la recta ajustada y los residuos.</li>
+      <li class="reveal"><strong>Evaluar</strong> si el modelo es adecuado para tomar decisiones de planificación.</li>
+    </ol>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-tools"></i> Herramienta MATLAB de hoy</span>
+      <code>polyfit(x, y, 1)</code> — ajuste lineal de mínimos cuadrados<br>
+      <code>polyval(p, x)</code> — evaluación del polinomio ajustado<br>
+      <code>scatter</code> / <code>plot</code> — visualización de datos y recta
+    </div>
+  </div>
+
+  <!-- SLIDE 4: PROBLEMA DATOS CON RUIDO -->
+  <div class="slide" data-slide="4">
+    <h2><i class="fas fa-exclamation-triangle"></i> El Problema: Datos con Ruido</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-database"></i> Situación</span>
+          Se tienen \(n\) pares de datos \((x_i, y_i)\):
+          <ul>
+            <li class="reveal">\(x_i\): variable predictora (distancia, tiempo...)</li>
+            <li class="reveal">\(y_i\): variable respuesta (costo, demanda...)</li>
+          </ul>
+          Se sospecha que existe una relación lineal:
+          \[ y \approx \beta_0 + \beta_1 x \]
+        </div>
+        <p class="reveal mt"><strong>Problema:</strong> los datos no caen exactamente en una recta.<br>
+        Hay <strong>ruido</strong>, errores de medición, variabilidad.
+        \[ y_i = \beta_0 + \beta_1 x_i + \varepsilon_i \]
+        donde \(\varepsilon_i\) es el <strong>error</strong> (residuo).</p>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/concepto_regresion.png" alt="Dispersión con recta de regresión y residuos" style="max-width:400px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">La recta <span style="color:var(--red);">roja</span> minimiza la suma de cuadrados de los <span style="color:var(--green);">residuos</span>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: MÍNIMOS CUADRADOS -->
+  <div class="slide" data-slide="5">
+    <h2><i class="fas fa-calculator"></i> Mínimos Cuadrados: La Idea Central</h2>
+    <div class="block reveal">
+      <span class="b-title">Criterio de Mínimos Cuadrados</span>
+      Elegir \(\beta_0\) y \(\beta_1\) que minimicen la <strong>Suma de Cuadrados de Residuos (SCR)</strong>:
+      \[ \text{SCR}(\beta_0,\beta_1) = \sum_{i=1}^{n}(y_i - \beta_0 - \beta_1 x_i)^2 = \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|^2 \]
+    </div>
+    <p class="reveal mt"><strong>Interpretación geométrica:</strong> \(\mathbf{X}\boldsymbol{\beta}\) es un vector en \(\text{Col}(\mathbf{X})\). Minimizar \(\|\mathbf{y}-\mathbf{X}\boldsymbol{\beta}\|^2\) significa encontrar el vector de Col(\(\mathbf{X}\)) <strong>más cercano a \(\mathbf{y}\)</strong>: la <strong>proyección ortogonal</strong> de \(\mathbf{y}\) sobre Col(\(\mathbf{X}\)).</p>
+    
+    <div class="formula-card reveal"><span class="b-title">Solución analítica (ecuaciones normales)</span>
+      \[ \hat{\beta}_1 = \frac{\sum(x_i-\bar{x})(y_i-\bar{y})}{\sum(x_i-\bar{x})^2} \qquad \hat{\beta}_0 = \bar{y} - \hat{\beta}_1\bar{x} \]
+    </div>
+    
+    <div class="example-block reveal">
+      <span class="b-title"><i class="fas fa-laptop-code"></i> En MATLAB</span>
+      <code>p = polyfit(x, y, 1)</code> devuelve <code>p = [beta1, beta0]</code><br>
+      <code>y_hat = polyval(p, x)</code> evalúa \(\hat{y} = p(1)\cdot x + p(2)\)
+    </div>
+  </div>
+
+  <!-- SLIDE 6: INTERPRETACIÓN COEFICIENTES -->
+  <div class="slide" data-slide="6">
+    <h2><i class="fas fa-info-circle"></i> Interpretación de los Coeficientes</h2>
+    <div class="formula-card reveal">
+      \[ \hat{y} = \hat{\beta}_0 + \hat{\beta}_1 \cdot x \]
+    </div>
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-arrow-up"></i> Pendiente \(\hat{\beta}_1\)</span>
+        <strong>Cambio en \(y\) por cada unidad de \(x\).</strong><br><br>
+        Ejemplo: si \(x\) = distancia (km) e \(y\) = costo ($):
+        \[ \hat{\beta}_1 = 2.3 \;\Rightarrow\; \frac{\$2.3}{\text{km}} \]
+        Cada km adicional cuesta $2.3 en promedio.
+      </div>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-home"></i> Intercepto \(\hat{\beta}_0\)</span>
+        <strong>Valor de \(y\) cuando \(x = 0\).</strong><br><br>
+        En logística: costo fijo de la operación (carga, descarga, administración) independiente de la distancia recorrida.
+        \[ \hat{\beta}_0 = 150 \;\Rightarrow\; \$150 \text{ fijos} \]
+      </div>
+    </div>
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Precaución: extrapolación</span>
+      El modelo es válido <strong>dentro del rango de los datos</strong>.<br>
+      Usar \(\hat{y}\) para \(x\) muy alejado de los datos observados puede dar predicciones sin sentido físico.
+    </div>
+  </div>
+
+  <!-- SLIDE 7: RESIDUOS -->
+  <div class="slide" data-slide="7">
+    <h2><i class="fas fa-chart-scatter"></i> Residuos: Medir el Ajuste</h2>
+    <div class="formula-card reveal">
+      \[ e_i = y_i - \hat{y}_i = y_i - (\hat{\beta}_0 + \hat{\beta}_1 x_i) \]
+    </div>
+    <div class="col-layout mt">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Propiedades de los residuos (MCO)</span>
+          <ul>
+            <li class="reveal">\(\sum e_i = 0\) (se compensan)</li>
+            <li class="reveal">\(\sum x_i e_i = 0\) (ortogonalidad)</li>
+            <li class="reveal">\(\bar{e} = 0\)</li>
+          </ul>
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-eye"></i> Gráfico de residuos ideal</span>
+          <ul>
+            <li>Sin patrón: aleatoriamente dispersos</li>
+            <li>Simétricos alrededor de cero</li>
+            <li>Sin tendencia ni embudo</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/residuos_bueno_malo.png" alt="Gráficos de residuos: bueno y malo" style="max-width:380px"></div>
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8: DATOS DEL EJEMPLO -->
+  <div class="slide" data-slide="8">
+    <h2><i class="fas fa-table"></i> Datos del Ejemplo: Rutas de Distribución</h2>
+    <p class="reveal"><strong>Una empresa registra distancia y costo total de 10 envíos:</strong></p>
+    <table class="compact reveal">
+      <tr><th>Envío</th><th>Distancia (km)</th><th>Costo ($)</th><th>Envío</th><th>Distancia (km)</th><th>Costo ($)</th></tr>
+      <tr><td>1</td><td>50</td><td>260</td><td>6</td><td>300</td><td>820</td></tr>
+      <tr><td>2</td><td>80</td><td>310</td><td>7</td><td>350</td><td>960</td></tr>
+      <tr><td>3</td><td>120</td><td>420</td><td>8</td><td>420</td><td>1080</td></tr>
+      <tr><td>4</td><td>180</td><td>560</td><td>9</td><td>480</td><td>1240</td></tr>
+      <tr><td>5</td><td>250</td><td>710</td><td>10</td><td>550</td><td>1390</td></tr>
+    </table>
+    
+    <div class="reveal mt"><strong>Medias:</strong> \(\bar{x} = 278\) km, \(\quad\bar{y} = \$775\)</div>
+    
+    <div class="reveal mt"><strong>Calcular manualmente:</strong>
+      \[ \hat{\beta}_1 = \frac{\sum(x_i-\bar{x})(y_i-\bar{y})}{\sum(x_i-\bar{x})^2} = \frac{607{,}300}{267{,}160} \approx 2.273 \;\frac{\$}{\text{km}} \]
+      \[ \hat{\beta}_0 = 775 - 2.273 \times 278 \approx 143.1 \;\$ \]
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-check-circle"></i> Modelo ajustado</span>
+      \(\hat{y} = 143.1 + 2.273\,x\) &nbsp;&nbsp;&nbsp;&nbsp; Costo fijo ≈ $143 + $2.27 por km adicional.
+    </div>
+  </div>
+
+  <!-- SLIDE 9: IMAGEN DISPERSIÓN -->
+  <div class="slide" data-slide="9">
+    <h2><i class="fas fa-image"></i> Dispersión y Recta de Regresión</h2>
+    <div class="reveal"><img class="fig" src="imagenes/clase21_scatter_regresion.png" alt="Dispersión, recta de regresión y residuos"><p class="fig-cap">Generado con los datos de la tabla (equivalente a la Sección 2 de <code>clase21_regresion.m</code>)</p></div>
+    <div class="col-layout mt">
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-eye"></i> Qué observar</span>
+        <ul>
+          <li>Puntos cerca de la recta: buen ajuste lineal</li>
+          <li>Residuos pequeños y sin patrón</li>
+          <li>Relación positiva clara</li>
+        </ul>
+      </div>
+      <div class="alert-block reveal">
+        <span class="b-title"><i class="fas fa-question-circle"></i> Preguntas al ver el gráfico</span>
+        ¿Hay algún punto muy alejado?<br>
+        ¿La relación parece realmente lineal?<br>
+        ¿Hay heterocedasticidad?
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 10: RESIDUOS DEL EJEMPLO -->
+  <div class="slide" data-slide="10">
+    <h2><i class="fas fa-calculator"></i> Residuos del Ejemplo</h2>
+    <p class="reveal"><strong>Cálculo de residuos para los 10 envíos:</strong></p>
+    <table class="compact reveal" style="font-size:0.85rem;">
+      <tr><th>Envío</th><th>\(x_i\)</th><th>\(y_i\)</th><th>\(\hat{y}_i\)</th><th>Residuo \(e_i\)</th></tr>
+      <tr><td>1</td><td>50</td><td>260</td><td>256.7</td><td>+3.3</td></tr>
+<tr><td>2</td><td>80</td><td>310</td><td>324.9</td><td>-14.9</td></tr>
+<tr><td>3</td><td>120</td><td>420</td><td>415.8</td><td>+4.2</td></tr>
+<tr><td>4</td><td>180</td><td>560</td><td>552.2</td><td>+7.8</td></tr>
+<tr><td>5</td><td>250</td><td>710</td><td>711.4</td><td>-1.4</td></tr>
+<tr><td>6</td><td>300</td><td>820</td><td>825.0</td><td>-5.0</td></tr>
+<tr><td>7</td><td>350</td><td>960</td><td>938.7</td><td>+21.3</td></tr>
+<tr><td>8</td><td>420</td><td>1080</td><td>1097.8</td><td>-17.8</td></tr>
+<tr><td>9</td><td>480</td><td>1240</td><td>1234.2</td><td>+5.8</td></tr>
+<tr><td>10</td><td>550</td><td>1390</td><td>1393.3</td><td>-3.3</td></tr>
+</table>
+    
+    <div class="col-layout mt">
+      <div class="example-block reveal">
+        <span class="b-title"><i class="fas fa-check-circle"></i> Verificación</span>
+        \(\sum e_i \approx 0\) <span class="ok">✓</span><br>
+        Residuos en rango \([-18, +21]\)<br>
+        Sin patrón claro: modelo adecuado
+      </div>
+      <div class="block reveal">
+        <span class="b-title"><i class="fas fa-lightbulb"></i> Interpretación práctica</span>
+        El error típico del modelo es ≈ ±$11 por envío (desv. estándar de los residuos).<br>
+      Para planificar presupuestos de $1.000, eso es ≈ ±1.1%.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 11: MATLAB POLYFIT -->
+  <div class="slide" data-slide="11">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Ajuste Lineal con polyfit</h2>
+    <div class="col-layout">
+      <div>
+        <pre><span class="mc">% Datos: distancia (km) y costo ($)</span>
+x = <span class="mf">[</span><span class="mn">50</span> <span class="mn">80</span> <span class="mn">120</span> <span class="mn">180</span> <span class="mn">250</span> <span class="mn">300</span> <span class="mn">350</span> <span class="mn">420</span> <span class="mn">480</span> <span class="mn">550</span><span class="mf">]</span>';
+y = <span class="mf">[</span><span class="mn">260</span> <span class="mn">310</span> <span class="mn">420</span> <span class="mn">560</span> <span class="mn">710</span> <span class="mn">820</span> <span class="mn">960</span> <span class="mn">1080</span> <span class="mn">1240</span> <span class="mn">1390</span><span class="mf">]</span>';
+
+<span class="mc">% Ajuste lineal (grado 1)</span>
+p = <span class="mk">polyfit</span>(x, y, <span class="mn">1</span>);
+beta1 = p(<span class="mn">1</span>);   <span class="mc">% pendiente</span>
+beta0 = p(<span class="mn">2</span>);   <span class="mc">% intercepto</span>
+
+<span class="mk">fprintf</span>(<span class="ms">'Pendiente  b1 = %.4f $/km\n'</span>, beta1)
+<span class="mk">fprintf</span>(<span class="ms">'Intercepto b0 = %.4f $\n'</span>,    beta0)
+<span class="mk">fprintf</span>(<span class="ms">'Modelo: y = %.2f + %.2f*x\n'</span>, beta0, beta1)
+
+<span class="mc">% Valores ajustados</span>
+y_hat = <span class="mk">polyval</span>(p, x);
+
+<span class="mc">% Residuos</span>
+e = y - y_hat;
+<span class="mk">fprintf</span>(<span class="ms">'\nSuma de residuos: %.6f\n'</span>, <span class="mk">sum</span>(e))
+<span class="mk">fprintf</span>(<span class="ms">'SCR (Suma Cuad Residuos): %.2f\n'</span>, <span class="mk">sum</span>(e.^<span class="mn">2</span>))</pre>
+      </div>
+      <div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-terminal"></i> Resultado esperado</span>
+          <ul>
+            <li><code>b1 = 2.2732 $/km</code></li>
+            <li><code>b0 = 143.06 $</code></li>
+            <li><code>suma e = 0.000000</code></li>
+            <li><code>SCR = 1154.08</code></li>
+          </ul>
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-info-circle"></i> Qué devuelve polyfit</span>
+          <code>p(1)</code> = \(\hat{\beta}_1\) (pendiente)<br>
+          <code>p(2)</code> = \(\hat{\beta}_0\) (intercepto)<br>
+          <strong>Orden:</strong> de mayor a menor grado.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: MATLAB VISUALIZACIÓN -->
+  <div class="slide" data-slide="12">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Visualización Completa</h2>
+    <pre><span class="mc">% Grafico con recta y residuos</span>
+<span class="mk">figure</span>(<span class="ms">'Name'</span>,<span class="ms">'Regresion Lineal - Distancia vs Costo'</span>,...
+    <span class="ms">'Position'</span>,<span class="mf">[</span><span class="mn">100</span> <span class="mn">100</span> <span class="mn">900</span> <span class="mn">400</span><span class="mf">]</span>);
+
+<span class="mc">% --- Subplot 1: Dispersion + recta ---</span>
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">2</span>,<span class="mn">1</span>)
+<span class="mk">scatter</span>(x, y, <span class="mn">60</span>, <span class="mf">[</span><span class="mn">0</span> <span class="mn">0.45</span> <span class="mn">0.74</span><span class="mf">]</span>, <span class="ms">'filled'</span>); <span class="mk">hold on</span>
+x_plot = <span class="mk">linspace</span>(<span class="mk">min</span>(x)-<span class="mn">20</span>, <span class="mk">max</span>(x)+<span class="mn">20</span>, <span class="mn">200</span>);
+<span class="mk">plot</span>(x_plot, <span class="mk">polyval</span>(p, x_plot), <span class="ms">'r-'</span>, <span class="ms">'LineWidth'</span>, <span class="mn">2</span>)
+<span class="mc">% Dibujar residuos</span>
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mf">length</span>(x)
+    <span class="mk">plot</span>(<span class="mf">[</span>x(i) x(i)<span class="mf">]</span>, <span class="mf">[</span>y(i) y_hat(i)<span class="mf">]</span>, <span class="ms">'g--'</span>, <span class="ms">'LineWidth'</span>, <span class="mn">1</span>)
+<span class="mk">end</span>
+<span class="mk">xlabel</span>(<span class="ms">'Distancia (km)'</span>); <span class="mk">ylabel</span>(<span class="ms">'Costo ($)'</span>);
+<span class="mk">title</span>(<span class="ms">'Dispersion y recta de regresion'</span>);
+<span class="mk">legend</span>(<span class="ms">'Datos'</span>,<span class="ms">'Recta ajustada'</span>,<span class="ms">'Residuos'</span>,<span class="ms">'Location'</span>,<span class="ms">'northwest'</span>);
+<span class="mk">grid on</span>
+
+<span class="mc">% --- Subplot 2: Grafico de residuos ---</span>
+<span class="mk">subplot</span>(<span class="mn">1</span>,<span class="mn">2</span>,<span class="mn">2</span>)
+<span class="mk">scatter</span>(y_hat, e, <span class="mn">60</span>, <span class="mf">[</span><span class="mn">0.85</span> <span class="mn">0.33</span> <span class="mn">0.10</span><span class="mf">]</span>, <span class="ms">'filled'</span>)
+<span class="mk">yline</span>(<span class="mn">0</span>, <span class="ms">'k--'</span>, <span class="ms">'LineWidth'</span>, <span class="mn">1.5</span>)
+<span class="mk">xlabel</span>(<span class="ms">'Valores ajustados'</span>); <span class="mk">ylabel</span>(<span class="ms">'Residuos ($)'</span>);
+<span class="mk">title</span>(<span class="ms">'Grafico de residuos'</span>);
+<span class="mk">grid on</span></pre>
+  </div>
+
+  <!-- SLIDE 13: MATLAB PREDICCIÓN -->
+  <div class="slide" data-slide="13">
+    <h2><i class="fas fa-laptop-code"></i> MATLAB: Predicción y Uso Práctico</h2>
+    <pre><span class="mc">% Prediccion para nuevas distancias</span>
+nuevas_distancias = <span class="mf">[</span><span class="mn">100</span>; <span class="mn">200</span>; <span class="mn">400</span>; <span class="mn">600</span><span class="mf">]</span>;
+costos_pred = <span class="mk">polyval</span>(p, nuevas_distancias);
+
+<span class="mk">fprintf</span>(<span class="ms">'=== PREDICCIONES DEL MODELO ===\n'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%-20s %-20s\n'</span>,<span class="ms">'Distancia (km)'</span>,<span class="ms">'Costo predicho ($)'</span>)
+<span class="mk">fprintf</span>(<span class="ms">'%s\n'</span>, <span class="mk">repmat</span>(<span class="ms">'-'</span>,<span class="mn">42</span>,<span class="mn">1</span>))
+<span class="mk">for</span> i = <span class="mn">1</span>:<span class="mf">length</span>(nuevas_distancias)
+    <span class="mk">fprintf</span>(<span class="ms">'%-20d %-20.2f\n'</span>,...
+        nuevas_distancias(i), costos_pred(i))
+<span class="mk">end</span>
+
+<span class="mc">% Intervalo de confianza aproximado (+/- 2*std(e))</span>
+sigma_e = <span class="mk">std</span>(e);
+<span class="mk">fprintf</span>(<span class="ms">'\nError tipico del modelo: +/- $%.2f\n'</span>, sigma_e)
+<span class="mk">fprintf</span>(<span class="ms">'Intervalo aproximado (95%%): +/- $%.2f\n'</span>, <span class="mn">2</span>*sigma_e)
+
+<span class="mc">% Planificacion de presupuesto</span>
+distancia_nueva = <span class="mn">380</span>;  <span class="mc">% km</span>
+costo_estimado  = <span class="mk">polyval</span>(p, distancia_nueva);
+<span class="mk">fprintf</span>(<span class="ms">'\nPresupuesto para ruta de %d km:\n'</span>, distancia_nueva)
+<span class="mk">fprintf</span>(<span class="ms">'  Estimado: $%.2f\n'</span>, costo_estimado)
+<span class="mk">fprintf</span>(<span class="ms">'  Rango 95%%: [$%.2f, $%.2f]\n'</span>,...
+    costo_estimado - <span class="mn">2</span>*sigma_e, costo_estimado + <span class="mn">2</span>*sigma_e)</pre>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-lightbulb"></i> Uso directo en decisión</span>
+      Si el presupuesto disponible es $1.100 y la ruta tiene 380 km:<br>
+      el modelo predice ≈ $1.007 (rango 95%: ≈ [$984, $1.029]) — dentro del presupuesto con margen de seguridad.
+    </div>
+  </div>
+
+  <!-- SLIDE 14: COEFICIENTE R² -->
+  <div class="slide" data-slide="14">
+    <h2><i class="fas fa-percentage"></i> Coeficiente de Determinación \(R^2\)</h2>
+    <div class="block reveal">
+      <span class="b-title">Definición</span>
+      \[ R^2 = 1 - \frac{\text{SCR}}{\text{SCT}} = 1 - \frac{\sum(y_i-\hat{y}_i)^2}{\sum(y_i-\bar{y})^2} \]
+      Proporción de la variabilidad de \(y\) <strong>explicada</strong> por el modelo.
+    </div>
+    
+    <div class="col-layout mt">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-chart-pie"></i> Interpretación</span>
+          <ul>
+            <li class="reveal">\(R^2 = 1\): ajuste perfecto (todos los puntos en la recta)</li>
+            <li class="reveal">\(R^2 = 0\): el modelo no explica nada</li>
+            <li class="reveal">\(R^2 = 0.95\): el modelo explica el 95% de la variabilidad</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-calculator"></i> Para el ejemplo</span>
+          \[ \text{SCR} = 1154.1 \qquad \text{SCT} = 1{,}381{,}650 \]
+          \[ R^2 = 1 - \frac{1154.1}{1{,}381{,}650} \approx 0.9992 \]
+          El modelo explica el <strong>99.92%</strong> de la variación en costos.
+        </div>
+      </div>
+    </div>
+    
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-laptop-code"></i> En MATLAB</span>
+      <code>SS_res = sum(e.^2);</code><br>
+      <code>SS_tot = sum((y - mean(y)).^2);</code><br>
+      <code>R2 = 1 - SS_res/SS_tot;</code>
+    </div>
+  </div>
+
+  <!-- SLIDE 15: LIMITACIONES -->
+  <div class="slide" data-slide="15">
+    <h2><i class="fas fa-exclamation-circle"></i> Limitaciones del Modelo Lineal Simple</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-list-check"></i> El modelo \(\hat{y} = \beta_0 + \beta_1 x\) asume:</span>
+          <ul>
+            <li class="reveal">Relación <strong>lineal</strong> entre \(x\) e \(y\)</li>
+            <li class="reveal">Errores de <strong>media cero</strong></li>
+            <li class="reveal">Errores de <strong>varianza constante</strong> (homocedasticidad)</li>
+            <li class="reveal">Errores <strong>independientes</strong> entre observaciones</li>
+          </ul>
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-truck"></i> En logística, pueden aparecer:</span>
+          <ul>
+            <li>Relaciones no lineales (curvas de demanda)</li>
+            <li>Costos que crecen más rápido al aumentar la distancia</li>
+            <li>Estacionalidad (picos en fechas especiales)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/lineal_vs_no_lineal.png" alt="Relaciones lineales y no lineales"><p class="fig-cap">Recta ajustada (azul) sobre tres tipos de datos: solo el primero cumple los supuestos</p></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">Si el gráfico de residuos muestra patrón, el modelo lineal no es adecuado.<br>Se estudiarán modelos cuadráticos en Clase 25.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: ¿USARÍAS ESTE MODELO? -->
+  <div class="slide" data-slide="16">
+    <h2><i class="fas fa-question-circle"></i> ¿Usarías este Modelo para Planificar?</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Criterios para usar el modelo en decisión</span>
+          <ol>
+            <li class="reveal">\(R^2 > 0.80\) para planificación operativa</li>
+            <li class="reveal">\(R^2 > 0.90\) para presupuestación financiera</li>
+            <li class="reveal">Gráfico de residuos sin patrón sistemático</li>
+            <li class="reveal">El rango de predicción cubre el caso de uso</li>
+            <li class="reveal">Los coeficientes tienen sentido económico</li>
+          </ol>
+        </div>
+      </div>
+      <div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-chart-bar"></i> Para nuestro ejemplo</span>
+          <ul>
+            <li>\(R^2 = 0.999\) <span style="color:var(--green);"><span class="ok">✓</span></span></li>
+            <li>Residuos sin patrón <span style="color:var(--green);"><span class="ok">✓</span></span></li>
+            <li>Rango: 50–550 km <span style="color:var(--green);"><span class="ok">✓</span></span></li>
+            <li>\(\beta_1 = \$2.27\)/km: razonable <span style="color:var(--green);"><span class="ok">✓</span></span></li>
+            <li>\(\beta_0 = \$143\): costo fijo plausible <span style="color:var(--green);"><span class="ok">✓</span></span></li>
+          </ul>
+          <p class="mt" style="color:var(--green); font-weight:600;"><strong>Conclusión: modelo adecuado para planificar.</strong></p>
+        </div>
+      </div>
+    </div>
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-exclamation-triangle"></i> Lo que el \(R^2\) NO dice</span>
+      Un \(R^2\) alto no garantiza causalidad, ni que el modelo sea válido fuera del rango observado, ni que la relación sea lineal para siempre.<br>
+      <strong>Siempre revisar el gráfico de datos y residuos.</strong>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: PROYECCIÓN ORTOGONAL -->
+  <div class="slide" data-slide="17">
+    <h2><i class="fas fa-vector-square"></i> Regresión como Proyección Ortogonal</h2>
+    <div class="col-layout">
+      <div>
+        <div class="reveal"><span class="b-title"><i class="fas fa-code"></i> El sistema \(\mathbf{X}\boldsymbol{\beta} = \mathbf{y}\)</span>
+          en general <strong>no tiene solución</strong> (más ecuaciones que incógnitas, datos con ruido).
+          \[ \mathbf{X} = \begin{pmatrix}1 & x_1 \\ 1 & x_2 \\ \vdots & \vdots \\ 1 & x_n\end{pmatrix} \in \mathbb{R}^{n\times2}, \quad \mathbf{y} \in \mathbb{R}^n \]
+        </div>
+        <div class="reveal mt"><span class="b-title"><i class="fas fa-equals"></i> MCO resuelve las ecuaciones normales</span>
+          \[ \mathbf{X}^T\mathbf{X}\,\hat{\boldsymbol{\beta}} = \mathbf{X}^T\mathbf{y} \]
+          La solución \(\hat{\mathbf{y}} = \mathbf{X}\hat{\boldsymbol{\beta}}\) es la <strong>proyección de \(\mathbf{y}\) sobre Col(\(\mathbf{X}\))</strong>.
+        </div>
+      </div>
+      <div class="center">
+        <div class="reveal"><img class="fig" src="imagenes/proyeccion_ortogonal.png" alt="Regresión como proyección ortogonal" style="max-width:360px"></div>
+        <p class="reveal mt italic" style="font-size:0.9rem;">\(\mathbf{e} \perp \text{Col}(\mathbf{X})\) (en particular \(\mathbf{e}\perp\hat{\mathbf{y}}\)): el residuo es ortogonal al plano de proyección.</p>
+      </div>
+    </div>
+    <div class="block mt reveal">
+      <span class="b-title"><i class="fas fa-link"></i> Conexión profunda</span>
+      Módulo 4 → Módulo 5: el espacio columna de \(\mathbf{X}\) es el subespacio sobre el que proyectamos. La regresión <strong>usa</strong> los conceptos de Col(\(A\)), Nul(\(A\)) y proyección ortogonal.
+    </div>
+  </div>
+
+  <!-- SLIDE 18: RESUMEN -->
+  <div class="slide" data-slide="18">
+    <h2><i class="fas fa-flag-checkered"></i> Resumen de Conceptos Clave</h2>
+    <div class="col-layout">
+      <div>
+        <div class="block reveal">
+          <span class="b-title"><i class="fas fa-chart-line"></i> Modelo de Regresión Lineal Simple</span>
+          \(\hat{y} = \hat{\beta}_0 + \hat{\beta}_1 x\)<br>
+          Minimiza \(\sum e_i^2\) (mínimos cuadrados).<br>
+          \(\hat{\beta}_1\): cambio en \(y\) por unidad de \(x\).<br>
+          \(\hat{\beta}_0\): valor de \(y\) cuando \(x=0\).
+        </div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-laptop-code"></i> MATLAB</span>
+          <code>p = polyfit(x, y, 1)</code><br>
+          <code>y_hat = polyval(p, x)</code><br>
+          <code>e = y - y_hat</code><br>
+          <code>R2 = 1 - sum(e.^2)/sum((y-mean(y)).^2)</code>
+        </div>
+      </div>
+      <div>
+        <div class="block mt reveal">
+          <span class="b-title"><i class="fas fa-chart-pie"></i> Evaluación del Modelo</span>
+          \(R^2\): proporción de variabilidad explicada.<br>
+          Gráfico de residuos: detectar patrones.<br>
+          Criterio: \(R^2 > 0.90\) para decisión financiera.
+        </div>
+        <div class="alert-block mt reveal">
+          <span class="b-title"><i class="fas fa-link"></i> Conexión Módulos 4 y 5</span>
+          Regresión = proyección ortogonal de \(\mathbf{y}\) sobre Col(\(\mathbf{X}\)).<br>
+          Álgebra lineal y estadística unidas.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 19: PUNTO DE DECISIÓN -->
+  <div class="slide" data-slide="19">
+    <h2><i class="fas fa-gavel"></i> Punto de Decisión</h2>
+    <div class="center reveal" style="background:var(--orange-light); padding:1rem; border-radius:8px; border-left:4px solid var(--orange);">
+      <span style="font-size:1.1rem; font-weight:600;">Pregunta de Cierre</span><br><br>
+      <em>Con el modelo ajustado \(\hat{y} = 143 + 2.27\,x\), la empresa necesita planificar el costo de una ruta de <strong>650 km</strong>.</em><br><br>
+      <strong>¿Usarías este modelo para estimar el presupuesto? ¿Qué riesgos identificas? ¿Qué información adicional pedirías?</strong>
+    </div>
+    
+    <div class="decision-cards mt">
+      <div class="dc-card a reveal">
+        <strong>El modelo predice</strong><br><br>
+        \(\hat{y}(650) = 143.1 + 2.273\times650\)<br>
+      ≈ $1.621<br>
+      Con error típico ±$11 (válido solo dentro del rango).
+      </div>
+      <div class="dc-card b reveal">
+        <strong>Riesgo de extrapolación</strong><br><br>
+        650 km está <strong>fuera</strong> del rango observado (50–550 km).<br>
+        La relación podría no ser lineal más allá de 550 km.
+      </div>
+      <div class="dc-card c reveal">
+        <strong>Información adicional</strong><br><br>
+        Datos de rutas &gt;550 km.<br>
+        Costos de peaje, hospedaje.<br>
+        Condiciones de ruta.
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 20: TAREA -->
+  <div class="slide" data-slide="20">
+    <h2><i class="fas fa-book"></i> Tarea para la Clase 22</h2>
+    <div class="block reveal">
+      <span class="b-title"><i class="fas fa-book-open"></i> Lecturas</span>
+      <ul>
+        <li class="reveal"><strong>Montgomery</strong>, Cap. 2: Regresión lineal simple — inferencia</li>
+        <li class="reveal"><strong>Montgomery</strong>, Cap. 2.4: Coeficiente de determinación \(R^2\)</li>
+      </ul>
+    </div>
+    <div class="example-block mt reveal">
+      <span class="b-title"><i class="fas fa-calculator"></i> Ejercicio preparatorio</span>
+      Con los datos del ejemplo de clase (distancia vs costo):
+      <ol>
+        <li class="reveal">Replicar el análisis en MATLAB con <code>polyfit</code>.</li>
+        <li class="reveal">Calcular \(R^2\) manualmente y verificar con la fórmula.</li>
+        <li class="reveal">Agregar una ruta con \(x = 650\) km y \(y = \$1.900\) observado.</li>
+        <li class="reveal">¿Cambia significativamente el modelo? ¿Cómo queda \(R^2\)?</li>
+        <li class="reveal">Graficar los residuos: ¿hay algún punto atípico (outlier)?</li>
+      </ol>
+    </div>
+    <div class="alert-block mt reveal">
+      <span class="b-title"><i class="fas fa-forward"></i> Próxima clase 22</span>
+      <strong>Interpretación de coeficientes y bondad del modelo</strong> — \(R^2\), análisis de residuos, qué variable priorizar
+    </div>
+  </div>
+
+  <!-- SLIDE 21: REFERENCIAS -->
+  <div class="slide" data-slide="21">
+    <h2><i class="fas fa-quote-left"></i> Referencias</h2>
+    <ul>
+      <li class="reveal"><strong>Montgomery, D.C., Peck, E.A. & Vining, G.G.</strong> (2012). <em>Introduction to Linear Regression Analysis</em> (5th ed.). Wiley. <strong>Capítulo 1</strong> (Introducción), <strong>Capítulo 2</strong> (Regresión simple).</li>
+      <li class="reveal"><strong>Lay, D.C., Lay, S.R., McDonald, J.J.</strong> (2016). <em>Álgebra Lineal y sus Aplicaciones</em> (5a ed.). Pearson. Cap. 6.5 (Mínimos cuadrados).</li>
+      <li class="reveal"><strong>MATLAB Documentation</strong>. <code>polyfit</code>, <code>polyval</code>, <code>scatter</code>. <a href="https://www.mathworks.com/help/matlab/" style="color:var(--navy);">https://www.mathworks.com/help/matlab/</a></li>
+      <li class="reveal"><strong>Material propio</strong>: Dataset distancia-costo, Script <code>clase21_regresion.m</code>.</li>
+    </ul>
+    <div class="center mt reveal" style="background:var(--navy); color:white; padding:0.5rem; border-radius:6px;">
+      <span>Matemáticas 2 — Clase 21 | Regresión Lineal Simple</span>
+    </div>
+  </div>
+
+  <!-- SLIDE 22: CIERRE -->
+  <div class="slide" data-slide="22">
+    <div class="portada">
+      <i class="fas fa-graduation-cap fa-3x" style="color:var(--navy); margin-bottom:1rem;"></i>
+      <h1>¡Hasta la próxima clase!</h1>
+      <p class="sub mt">Clase 22: Interpretación de Coeficientes y Bondad del Modelo</p>
+      <div class="info mt reveal"><i class="fas fa-envelope"></i> contacto@mat2logistica.edu</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<nav id="nav-controls">
+  <button class="nav-btn" id="prevBtn" aria-label="Anterior"><i class="fas fa-chevron-left"></i></button>
+  <span id="slide-counter">1 / 16</span>
+  <button class="nav-btn" id="nextBtn" aria-label="Siguiente"><i class="fas fa-chevron-right"></i></button>
+</nav>
+
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentSlide = 0;
+  let currentStep = 0;
+
+  const counterEl = document.getElementById('slide-counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const progressBar = document.getElementById('progress-bar');
+
+  const slideReveals = [];
+  slides.forEach(slide => {
+    slideReveals.push(Array.from(slide.querySelectorAll('.reveal')));
+  });
+
+  function getMaxSteps(idx) { return slideReveals[idx].length; }
+
+  function updateDisplay() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+    const reveals = slideReveals[currentSlide];
+    reveals.forEach((el, i) => el.classList.toggle('visible', i < currentStep));
+    counterEl.textContent = `${currentSlide + 1} / ${totalSlides}`;
+    progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+    prevBtn.disabled = (currentSlide === 0 && currentStep === 0);
+    nextBtn.disabled = (currentSlide === totalSlides - 1 && currentStep >= getMaxSteps(currentSlide));
+  }
+
+  function goNext() {
+    const max = getMaxSteps(currentSlide);
+    if (currentStep < max) currentStep++;
+    else if (currentSlide < totalSlides - 1) { currentSlide++; currentStep = 0; }
+    updateDisplay();
+  }
+
+  function goPrev() {
+    if (currentStep > 0) currentStep--;
+    else if (currentSlide > 0) { currentSlide--; currentStep = getMaxSteps(currentSlide); slideReveals[currentSlide].forEach(el => el.classList.add('visible')); }
+    updateDisplay();
+  }
+
+  nextBtn.addEventListener('click', goNext);
+  prevBtn.addEventListener('click', goPrev);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); goNext(); }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); goPrev(); }
+  });
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, {passive: true});
+  document.addEventListener('touchend', e => { const d = touchStartX - e.changedTouches[0].screenX; if(Math.abs(d)>50) d>0?goNext():goPrev(); }, {passive: true});
+  updateDisplay();
+})();
+</script>
+</body>
+</html>

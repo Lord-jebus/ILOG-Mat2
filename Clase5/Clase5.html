@@ -11,7 +11,7 @@
     window.MathJax = {
       tex: { inlineMath: [['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
       svg: { fontCache: 'global' },
-      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre','code'] }
     };
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
@@ -136,11 +136,39 @@
     .flow-diagram { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin: 0.5rem 0; }
     .flow-box { padding: 0.5rem; border: 2px solid var(--navy); background: rgba(0,82,147,0.1); border-radius: 8px; text-align: center; font-size: 0.85rem; width: 220px; }
     .flow-arrow-down { color: var(--orange); font-size: 1.2rem; }
+  
+    /* ===== Logos institucionales fijos (no tapan la diapositiva) ===== */
+    .logo-corner { position: fixed; top: 0; height: 8vh; display: flex; align-items: center; z-index: 150; pointer-events: none; }
+    .logo-corner.left  { left: max(2vw, 12px); }
+    .logo-corner.right { right: max(2vw, 12px); }
+    .logo-corner img { height: calc(8vh - 18px); max-height: 46px; max-width: 22vw; width: auto; object-fit: contain; }
+    .logo-fallback { font-weight: 800; letter-spacing: 0.04em; color: var(--navy); font-size: clamp(0.9rem, 2.2vh, 1.15rem); }
+    .slide img.fig { display: block; max-width: 100%; max-height: 52vh; margin: 0.6rem auto; border-radius: 8px; }
+    .slide .fig-cap { text-align: center; font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+    .ok { color: var(--green); font-weight: 700; } .bad { color: var(--red); font-weight: 700; }
+    .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) {
+      .col-3 { grid-template-columns: 1fr; }
+      .slide { top: 7vh; height: 86vh; }
+      #presentation-container { align-items: flex-start; }
+      .logo-corner { height: 7vh; }
+      .logo-corner img { height: calc(7vh - 14px); }
+    }
   </style>
 </head>
 <body>
 
 <div id="progress-bar"></div>
+<!-- LOGOS institucionales (para usarlos sin internet: copiar a imagenes/ y cambiar src) -->
+<div class="logo-corner left">
+  <img src="https://utec.edu.uy/assets/static/LOGO_HEADER.svg" alt="UTEC"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'UTEC'}))">
+</div>
+<div class="logo-corner right">
+  <img src="https://lord-jebus.github.io/ILOG-Mat3/clases/ILOG_LOGO.png" alt="Ingeniería en Logística"
+       onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-fallback',textContent:'ILOG'}))">
+</div>
+
 <div id="presentation-container">
 
   <!-- SLIDE 0: PORTADA -->
@@ -226,7 +254,7 @@
           $$ \begin{pmatrix}
             \color{#dc6b1f}{\mathbf{3}} & 1 & 2 & 8\\
             0 & \color{#dc6b1f}{\mathbf{\frac{11}{3}}} & -\frac{2}{3} & \frac{19}{3}\\
-            0 & 0 & \color{#dc6b1f}{\mathbf{\frac{22}{11}}} & \frac{2}{11}
+            0 & 0 & \color{#dc6b1f}{\mathbf{\frac{19}{11}}} & \frac{12}{11}
           \end{pmatrix} $$
         </div>
         <div class="example-block reveal">
@@ -364,8 +392,8 @@
           \(x_4 = 3/(5/2) = 1.2\)<br>
           \(2x_3 = 10-3(1.2)=6.4 \Rightarrow x_3=3.2\)<br>
           \(x_2 = 0-3.2+1.2 = -2.0\)<br>
-          \(x_1 = 7-2(-2)-0-1.2 = 10.8\)
-          $$\mathbf{x}^* = (10.8,\;-2,\;3.2,\;1.2)^T$$
+          \(x_1 = 7-2(-2)-0-1.2 = 9.8\)
+          $$\mathbf{x}^* = (9.8,\;-2,\;3.2,\;1.2)^T$$
         </div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Interpretación</span> \(x_2=-2\) ton es <strong>negativo</strong>: físicamente imposible. Indica que la red actual no soporta esa demanda. Revisar \(A\) o \(\mathbf{b}\).</div>
       </div>
@@ -440,8 +468,7 @@ n = <span class="mn">3</span>; x_g = <span class="mf">zeros</span>(n,<span class
       </div>
       <div>
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida</span>
-          <code>3.5000  0.5000  1.5000</code><br>
-          Residuos MATLAB & Gauss: <code>0.00e+00</code>
+          <code>x_matlab' = 3.5000  0.5000  1.5000</code><br><code>x_g'      = 3.5000  0.5000  1.5000</code><br>Residuo <code>norm(A*x_g-b)</code> ≈ <code>0</code> (orden 1e-15)
         </div>
         <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-balance-scale"></i> ¿Cuándo usar cada uno?</span>
           <ul><li><code>A\ b</code>: siempre en práctica (estable).</li><li>Gauss manual: para <strong>entender</strong> proceso y detectar estructura.</li></ul>
@@ -471,11 +498,13 @@ n   = <span class="mf">size</span>(A_lib, <span class="mn">2</span>);
     <span class="mk">disp</span>(<span class="ms">'UNICA'</span>);
 <span class="mk">else</span>
     <span class="mk">disp</span>(<span class="ms">'INFINITAS'</span>);
+    libres = <span class="mf">setdiff</span>(<span class="mn">1</span>:n, pivots);
+    <span class="mk">fprintf</span>(<span class="ms">'Variables libres: '</span>); <span class="mk">fprintf</span>(<span class="ms">'x%d '</span>, libres); <span class="mk">fprintf</span>(<span class="ms">'\n'</span>);
 <span class="mk">end</span></pre>
       </div>
       <div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-terminal"></i> Salida esperada</span>
-          <code>Sistema: INFINITAS SOLUCIONES</code><br>
+          <code>INFINITAS</code><br>
           <code>Variables libres: x2 x4</code>
         </div>
         <div class="example-block mt reveal"><span class="b-title"><i class="fas fa-exchange-alt"></i> Gauss vs rref</span>
@@ -495,8 +524,8 @@ n   = <span class="mf">size</span>(A_lib, <span class="mn">2</span>);
       $$ \left(\begin{array}{ccc|c}1&1&-1&3\\3&2&1&13\\2&-1&3&5\end{array}\right) \xrightarrow{F_2-3F_1, F_3-2F_1} \left(\begin{array}{ccc|c}1&1&-1&3\\0&-1&4&4\\0&-3&5&-1\end{array}\right) $$
       $$ \xrightarrow{F_3-3F_2} \left(\begin{array}{ccc|c}1&1&-1&3\\0&-1&4&4\\0&0&-7&-13\end{array}\right) $$
     </div>
-    <div class="example-block mt reveal"><span class="b-title">Sustitución</span> \(x_3=\frac{13}{7}\approx1.86\) | \(x_2\approx-3.43\) | \(x_1\approx4.57\)</div>
-    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-exclamation-triangle"></i> Interpretación</span> \(x_2<0\) indica ruta físicamente inviable. Rediseñar red.</div>
+    <div class="example-block mt reveal"><span class="b-title">Sustitución</span> \(x_3=\frac{13}{7}\approx1.86\) | \(x_2=4x_3-4=\frac{24}{7}\approx3.43\) | \(x_1=3-x_2+x_3=\frac{10}{7}\approx1.43\)</div>
+    <div class="alert-block mt reveal"><span class="b-title"><i class="fas fa-check-circle"></i> Verificación e interpretación</span> \(1.43+3.43-1.86=3\) ✓, \(3(1.43)+2(3.43)+1.86=13\) ✓, \(2(1.43)-3.43+3(1.86)=5\) ✓. Todas las cantidades son <strong>positivas</strong>: plan factible.</div>
   </div>
 
   <!-- SLIDE 16: EJERCICIO 2 -->
@@ -528,6 +557,7 @@ n   = <span class="mf">size</span>(A_lib, <span class="mn">2</span>);
       <div class="block reveal"><span class="b-title">Familia de soluciones</span>
         $$\mathbf{x}(s,t) = \begin{pmatrix}5-2s-t\\s\\1-t\\t\end{pmatrix} \quad s,t\geq0$$
         Restricciones físicas: \(s,t\geq0\), \(2s+t\leq5\), \(t\leq1\).
+<img class="fig" src="imagenes/region_factible_st.png" alt="Región factible en el plano s,t con líneas de costo" style="max-width:60%"><p class="fig-cap">Las líneas grises son de costo constante; el mínimo (22) está en el vértice (2,1).</p>
       </div>
       <div>
         <div class="example-block reveal"><span class="b-title"><i class="fas fa-coins"></i> Costo \(= (10,8,12,6)\cdot\mathbf{x}\)</span>
@@ -535,7 +565,7 @@ n   = <span class="mf">size</span>(A_lib, <span class="mn">2</span>);
           Minimizar: maximizar \(s,t\). Con \(t=1 \Rightarrow s=2\).
         </div>
         <div class="block mt reveal"><span class="b-title"><i class="fas fa-trophy"></i> Solución óptima</span> \((s,t)=(2,1) \Rightarrow \mathbf{x}^*=(0,2,0,1)^T\)<br>
-          Costo = \(\mathbf{22}\) USD/ton. Solo plantas 2 y 4.
+          Costo = \(8(2)+6(1)=\mathbf{22}\) USD. Solo plantas 2 y 4.
         </div>
       </div>
     </div>
@@ -594,8 +624,8 @@ n   = <span class="mf">size</span>(A_lib, <span class="mn">2</span>);
       <div class="example-block reveal" style="height:100%; display:flex; flex-direction:column; justify-content:center;">
         <span class="b-title"><i class="fas fa-play-circle"></i> Videos</span>
         <ul class="mt">
-          <li>Khan Academy: ``Gaussian elimination''</li>
-          <li><em>3Blue1Brown</em> — ``Essence of Linear Algebra'', Ep. 7: Null space</li>
+          <li>Khan Academy: “Gaussian elimination”</li>
+          <li><em>3Blue1Brown</em> — “Essence of Linear Algebra”, Ep. 7: Null space</li>
           <li>MathWorks: MATLAB <code>rref</code> tutorial</li>
         </ul>
       </div>
